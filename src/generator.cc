@@ -9,7 +9,7 @@ MyPrimaryGenerator::MyPrimaryGenerator()
     G4ParticleDefinition *particle = particleTable->FindParticle("chargedgeantino");
 
     G4ThreeVector pos(0., 0., -20.*km);
-    G4ThreeVector mom(0.9, 0., 0.1); // create the particle moving in z direction
+    G4ThreeVector mom(0., 0., 1.); // create the particle moving in z direction
 
     fParticleGun->SetParticlePosition(pos); // Set the position of the particle
     fParticleGun->SetParticleMomentumDirection(mom); 

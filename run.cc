@@ -1,38 +1,52 @@
-#include "run.hh"
+#include <iostream>
 
-MyRunAction::MyRunAction()
-{
-    // Constructor implementation
-}
+#include "G4RunManager.hh"
+#include "G4UImanager.hh"
+#include "G4UIExecutive.hh"
+#include "G4VisManager.hh"
+#include "G4VisExecutive.hh"
 
-MyRunAction::~MyRunAction()
-{
-    // Destructor implementation
-}
+#include "QGSP_BERT.hh"
 
-void MyRunAction::BeginOfRunAction(const G4Run*)
-{
-    G4AnalysisManager *man = G4AnalysisManager::Instance();
+#include "construction.hh"
+#include "physics.hh"
+#include "action.hh"
 
-    G4bool fileOpen = man->OpenFile("output.root"); 
+int main(int argc, char** argv)
+{   
+    // construct the run manager
+    G4RunManager *runManager = new G4RunManager();
 
-    if (!fileOpen) {
-        G4cout << "Error: Could not open output file!" << G4endl;
-        return;
-    }
+    // set mandatory initialization classes
+    runManager->SetUserInitialization(new MyDetectorConstruction()); 
+    runManager->SetUserInitialization(new MyPhysicsList());
+    runManager->SetUserInitialization(new MyActionInitialization());
 
-    man->CreateNtuple("Hits", "Hits");
-    man->CreateNtupleIColumn("fEvent");
-    man->CreateNtupleDColumn("fX");
-    man->CreateNtupleDColumn("fY");
-    man->CreateNtupleDColumn("fZ");
-    man->FinishNtuple(0);
-}
+    G4VModularPhysicsList* physics = new QGSP_BERT();
+    physics->RegisterPhysics(new G4DecayPhysics());
+    runManager->SetUserInitialization(physics);
 
-void MyRunAction::EndOfRunAction(const G4Run*)
-{
-    G4AnalysisManager *man = G4AnalysisManager::Instance();
+    // initialize G4 kernel
+    runManager->Initialize();
 
-    man->Write();
-    man->CloseFile();
+    G4UIExecutive *ui = new G4UIExecutive(argc, argv);
+    G4VisManager *visManager = new G4VisExecutive();
+    visManager->Initialize();
+
+    // get the pointer to the UI manager and set verbosities
+    G4UImanager *UImanager = G4UImanager::GetUIpointer();
+    UImanager->ApplyCommand("/vis/open OGL");
+    UImanager->ApplyCommand("/vis/viewer/set/viewpointVector 1 1 1");
+    UImanager->ApplyCommand("/vis/drawVolume");
+    UImanager->ApplyCommand("/vis/viewer/set/autoRefresh true"); // Automatically refresh the view
+    UImanager->ApplyCommand("/vis/scene/add/trajectories smooth");
+    UImanager->ApplyCommand("/vis/scene/endOfEventAction accumulate"); // Accumulate the scene at the end of each event
+    UImanager->ApplyCommand("/gun/particle proton");
+    UImanager->ApplyCommand("/vis/ogl/set/displayListLimit 5000000");
+
+    ui->SessionStart();
+
+    // job termination
+    delete runManager;
+    return 0;
 }
