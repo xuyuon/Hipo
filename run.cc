@@ -6,10 +6,9 @@
 #include "G4VisManager.hh"
 #include "G4VisExecutive.hh"
 
-#include "QGSP_BERT.hh"
+#include "FTFP_BERT.hh"
 
 #include "construction.hh"
-#include "physics.hh"
 #include "action.hh"
 
 int main(int argc, char** argv)
@@ -18,13 +17,11 @@ int main(int argc, char** argv)
     G4RunManager *runManager = new G4RunManager();
 
     // set mandatory initialization classes
+    G4VModularPhysicsList* physicsList = new FTFP_BERT();
+    runManager->SetUserInitialization(physicsList);
     runManager->SetUserInitialization(new MyDetectorConstruction()); 
-    runManager->SetUserInitialization(new MyPhysicsList());
     runManager->SetUserInitialization(new MyActionInitialization());
-
-    G4VModularPhysicsList* physics = new QGSP_BERT();
-    physics->RegisterPhysics(new G4DecayPhysics());
-    runManager->SetUserInitialization(physics);
+    
 
     // initialize G4 kernel
     runManager->Initialize();
