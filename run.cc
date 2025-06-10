@@ -8,8 +8,9 @@
 
 #include "FTFP_BERT.hh"
 
-#include "construction.hh"
+
 #include "action.hh"
+#include "atmosphereModel.hh"
 
 int main(int argc, char** argv)
 {   
@@ -19,10 +20,9 @@ int main(int argc, char** argv)
     // set mandatory initialization classes
     G4VModularPhysicsList* physicsList = new FTFP_BERT();
     runManager->SetUserInitialization(physicsList);
-    runManager->SetUserInitialization(new MyDetectorConstruction()); 
+    runManager->SetUserInitialization(new LayerAtmosphereModel()); 
     runManager->SetUserInitialization(new MyActionInitialization());
     
-
     // initialize G4 kernel
     runManager->Initialize();
 
@@ -40,6 +40,7 @@ int main(int argc, char** argv)
     UImanager->ApplyCommand("/vis/scene/endOfEventAction accumulate"); // Accumulate the scene at the end of each event
     UImanager->ApplyCommand("/gun/particle proton");
     UImanager->ApplyCommand("/vis/ogl/set/displayListLimit 5000000");
+    UImanager->ApplyCommand("/vis/scene/add/axes");
 
     ui->SessionStart();
 
