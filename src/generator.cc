@@ -1,6 +1,6 @@
 #include "generator.hh"
 
-MyPrimaryGenerator::MyPrimaryGenerator()
+PrimaryGenerator::PrimaryGenerator()
 {
     // Constructor implementation
     fParticleGun = new G4ParticleGun(1); // Create a particle gun with 1 particle
@@ -17,13 +17,13 @@ MyPrimaryGenerator::MyPrimaryGenerator()
     fParticleGun->SetParticleDefinition(particle); // Set the particle definition
 }
 
-MyPrimaryGenerator::~MyPrimaryGenerator()
+PrimaryGenerator::~PrimaryGenerator()
 {
     // Destructor implementation
     delete fParticleGun; // Clean up the particle gun
 }
 
-void MyPrimaryGenerator::GeneratePrimaries(G4Event *anEvent)
+void PrimaryGenerator::GeneratePrimaries(G4Event *anEvent)
 {
     G4ParticleDefinition *particle = fParticleGun->GetParticleDefinition(); // Find the particle definition
 

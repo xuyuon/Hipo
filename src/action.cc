@@ -1,18 +1,18 @@
 #include "action.hh"
 
-MyActionInitialization::MyActionInitialization()
+ActionInitialization::ActionInitialization()
 {
     // Constructor implementation
 }
 
-MyActionInitialization::~MyActionInitialization()
+ActionInitialization::~ActionInitialization()
 {
     // Destructor implementation
 }
 
-void MyActionInitialization::Build() const
+void ActionInitialization::Build() const
 {
-    MyPrimaryGenerator *generator = new MyPrimaryGenerator();
+    PrimaryGenerator *generator = new PrimaryGenerator();
     SetUserAction(generator); // Set the primary generator action
 
     MyRunAction *runAction = new MyRunAction();

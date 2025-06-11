@@ -7,11 +7,11 @@
 #include "G4SystemOfUnits.hh" // Include Geant4 units
 #include "G4ParticleTable.hh"
 
-class MyPrimaryGenerator : public G4VUserPrimaryGeneratorAction
+class PrimaryGenerator : public G4VUserPrimaryGeneratorAction
 {
 public:
-    MyPrimaryGenerator();
-    ~MyPrimaryGenerator();
+    PrimaryGenerator();
+    ~PrimaryGenerator();
 
     virtual void GeneratePrimaries(G4Event*);
 

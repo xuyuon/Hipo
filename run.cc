@@ -21,7 +21,7 @@ int main(int argc, char** argv)
     G4VModularPhysicsList* physicsList = new FTFP_BERT();
     runManager->SetUserInitialization(physicsList);
     runManager->SetUserInitialization(new LayerAtmosphereModel()); 
-    runManager->SetUserInitialization(new MyActionInitialization());
+    runManager->SetUserInitialization(new ActionInitialization());
     
     // initialize G4 kernel
     runManager->Initialize();

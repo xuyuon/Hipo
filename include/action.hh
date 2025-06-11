@@ -4,13 +4,13 @@
 #include "G4VUserActionInitialization.hh"
 
 #include "generator.hh"
-#include "run.hh"
+#include "runAction.hh"
 
-class MyActionInitialization : public G4VUserActionInitialization
+class ActionInitialization : public G4VUserActionInitialization
 {
 public:
-    MyActionInitialization();
-    ~MyActionInitialization();
+    ActionInitialization();
+    ~ActionInitialization();
 
     virtual void Build() const;
 };
