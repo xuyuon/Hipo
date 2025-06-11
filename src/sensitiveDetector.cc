@@ -24,8 +24,9 @@ G4bool SensitiveDetector::ProcessHits(G4Step* aStep,G4TouchableHistory* ROhist)
 
     G4double energy = preStepPoint->GetKineticEnergy(); 
 
-    G4cout << "Photon energy: " << energy / eV << " eV" << G4endl;
-
+    G4AnalysisManager *analysisManager = G4AnalysisManager::Instance(); // singleton instance of analysis manager
+    analysisManager->FillNtupleDColumn(0, 0, energy/eV); 
+    analysisManager->AddNtupleRow(0); 
 
 
     return true;

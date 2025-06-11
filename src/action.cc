@@ -15,6 +15,6 @@ void ActionInitialization::Build() const
     PrimaryGenerator *generator = new PrimaryGenerator();
     SetUserAction(generator); // Set the primary generator action
 
-    MyRunAction *runAction = new MyRunAction();
+    RunAction *runAction = new RunAction();
     SetUserAction(runAction);
 }

@@ -3,6 +3,7 @@
 
 #include "G4VSensitiveDetector.hh"
 #include "G4SystemOfUnits.hh"
+#include "G4AnalysisManager.hh"
 
 
 class SensitiveDetector : public G4VSensitiveDetector
