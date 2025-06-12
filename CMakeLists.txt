@@ -25,6 +25,13 @@ target_link_libraries(run ${Geant4_LIBRARIES})
 
 
 #----------------------------------------------------------------------------
+# Copy all scripts to the build directory
+file(GLOB MACRO_FILES
+    "*.mac"
+)
+file(COPY ${MACRO_FILES} DESTINATION ${CMAKE_BINARY_DIR})
+
+#----------------------------------------------------------------------------
 # Add program to the project targets
 # (this avoids the need of typing the program name after make)
 add_custom_target(G4Earth DEPENDS run)

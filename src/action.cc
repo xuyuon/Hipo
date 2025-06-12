@@ -24,3 +24,10 @@ void ActionInitialization::Build() const
     SteppingAction *steppingAction = new SteppingAction(eventAction);
     SetUserAction(steppingAction);
 }
+
+
+void ActionInitialization::BuildForMaster() const
+{
+    RunAction *runAction = new RunAction();
+    SetUserAction(runAction); // Set the run action for the master thread
+}
