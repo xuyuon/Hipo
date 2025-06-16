@@ -8,7 +8,7 @@ PrimaryGenerator::PrimaryGenerator()
     G4ParticleTable *particleTable = G4ParticleTable::GetParticleTable();
     G4ParticleDefinition *particle = particleTable->FindParticle("proton");
 
-    G4ThreeVector pos(0., 0., 300.*km);
+    G4ThreeVector pos(0., 0., 100.*km);
     G4ThreeVector mom(0., 0., -1.); // create the particle moving in z direction
 
     fParticleGun->SetParticlePosition(pos); // Set the position of the particle
