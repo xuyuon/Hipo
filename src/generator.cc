@@ -6,9 +6,9 @@ PrimaryGenerator::PrimaryGenerator()
     fParticleGun = new G4ParticleGun(1); // Create a particle gun with 1 particle
 
     G4ParticleTable *particleTable = G4ParticleTable::GetParticleTable();
-    G4ParticleDefinition *particle = particleTable->FindParticle("chargedgeantino");
+    G4ParticleDefinition *particle = particleTable->FindParticle("proton");
 
-    G4ThreeVector pos(0., 0., 100.*km);
+    G4ThreeVector pos(0., 0., 300.*km);
     G4ThreeVector mom(0., 0., -1.); // create the particle moving in z direction
 
     fParticleGun->SetParticlePosition(pos); // Set the position of the particle
