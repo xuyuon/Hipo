@@ -16,12 +16,11 @@
 
 int main(int argc, char** argv)
 {   
-    G4bool isMultiThreaded = true;
-    G4int nThreads = 4;
+    G4int nThreads = 4; // nThreads=1 for single-threaded mode, nThreads>1 for multi-threaded mode
 
     // construct the run manager
     G4RunManager *runManager = nullptr;
-    if (isMultiThreaded) {
+    if (nThreads > 1) {
         runManager = new G4MTRunManager();
         runManager->SetNumberOfThreads(nThreads);
     } else {
