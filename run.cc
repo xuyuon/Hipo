@@ -16,12 +16,13 @@
 
 int main(int argc, char** argv)
 {   
-    G4bool isMultiThreaded = false;
+    G4int nThreads = 4; // nThreads=1 for single-threaded mode, nThreads>1 for multi-threaded mode
 
     // construct the run manager
     G4RunManager *runManager = nullptr;
-    if (isMultiThreaded) {
+    if (nThreads > 1) {
         runManager = new G4MTRunManager();
+        runManager->SetNumberOfThreads(nThreads);
     } else {
         runManager = new G4RunManager();
     }
@@ -40,17 +41,22 @@ int main(int argc, char** argv)
     // get the pointer to the UI manager and set verbosities
     G4UImanager *UImanager = G4UImanager::GetUIpointer();
 
-    ui = new G4UIExecutive(argc, argv);
     G4VisManager *visManager = new G4VisExecutive();
     visManager->Initialize();
 
-    UImanager->ApplyCommand("/control/execute vis.mac");
-    
-
-
-
-    ui->SessionStart();
-
+    if (argc!=1){
+        // batch mode
+        G4String command = "/control/execute ";
+        G4String fileName = argv[1];
+        UImanager->ApplyCommand(command + fileName);
+    } else {
+        // interactive mode
+        ui = new G4UIExecutive(argc, argv);
+        UImanager->ApplyCommand("/control/execute vis.mac");
+        UImanager->ApplyCommand("/control/execute vis.mac");
+        ui->SessionStart();
+        delete ui; 
+    }
 
     // job termination
     delete runManager;
