@@ -10,6 +10,8 @@
 #include "G4PVPlacement.hh"
 
 #include "sensitiveDetector.hh"
+#include "densityModel.hh"
+
 
 const int nLayers = 20; // Number of atmospheric layers
 
@@ -25,15 +27,12 @@ public:
 class LayerAtmosphereModel : public AtmosphereModelBase
 {
 public:
-    LayerAtmosphereModel();
+    LayerAtmosphereModel(DensityModelBase*);
     ~LayerAtmosphereModel();
 
+
     virtual G4VPhysicalVolume *Construct() override;
-
-    double CalculateDensity(G4double altitude);
-
     void ConstructSDandField() override;
-
 private:
     G4double world_x, world_y, world_z; // half lengths of the world volume
     G4double sensitive_z;               // half-width of the sensitive layer
@@ -47,6 +46,8 @@ private:
 
     // Materials
     G4Material *worldMat, *Air[nLayers];
+    // Density profile model
+    DensityModelBase *densityModel;
 
     void ConstructAtmosphere();
     void ConstructSensitiveLayer();

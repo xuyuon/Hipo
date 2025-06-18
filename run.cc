@@ -13,6 +13,7 @@
 
 #include "action.hh"
 #include "atmosphereModel.hh"
+#include "densityModel.hh"
 
 int main(int argc, char** argv)
 {   
@@ -31,7 +32,7 @@ int main(int argc, char** argv)
     // set mandatory initialization classes
     G4VModularPhysicsList* physicsList = new FTFP_BERT();
     runManager->SetUserInitialization(physicsList);
-    runManager->SetUserInitialization(new LayerAtmosphereModel()); 
+    runManager->SetUserInitialization(new LayerAtmosphereModel(new ConstTempBarometricModel())); 
     runManager->SetUserInitialization(new ActionInitialization());
     
     // initialize G4 kernel

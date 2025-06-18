@@ -1,12 +1,14 @@
 #include "atmosphereModel.hh"
 
-LayerAtmosphereModel::LayerAtmosphereModel()
+LayerAtmosphereModel::LayerAtmosphereModel(DensityModelBase *densityModel)
 {
     world_x = 40. * km;
     world_y = 40. * km;
     world_z = 100. * km;
 
     sensitive_z = 1. * km;
+
+    this->densityModel = densityModel;
 }
 
 LayerAtmosphereModel::~LayerAtmosphereModel()
@@ -50,7 +52,7 @@ void LayerAtmosphereModel::ConstructAtmosphere()
     for (int i = 0; i < nLayers; ++i)
     {
         G4double altitude = 2 * world_z / nLayers * i;
-        G4double density = CalculateDensity(altitude);
+        G4double density = densityModel->CalculateDensity(altitude);
 
         // G4cout << "Layer " << i << ": Altitude = " << altitude / km << " km, Density = " << density /kg*m3<< " kg/m^3" << G4endl;
         Air[i] = new G4Material("Air" + std::to_string(i), density, 2);
@@ -85,27 +87,6 @@ void LayerAtmosphereModel::ConstructSensitiveLayer()
                                       true);
 }
 
-G4double LayerAtmosphereModel::CalculateDensity(G4double altitude)
-{
-    /*
-    Calculates the density of air (in newtons per square meter) at a given altitude (in m)
-    using the barometric formula.
-    */
-
-    G4double R = 8.3144626181532; // ideal gas constant
-    G4double g = 9.81;            // gravitational acceleration
-
-    G4double m_air = 0.028965; // molar mass of dry air
-
-    G4double h_ref = 50000.0;  // We set reference height at 50km (where most of photons are produced)
-    G4double temp_ref = 260.0; // Reference temperature at 50km
-    // source: https://amt.copernicus.org/articles/15/2231/2022/amt-15-2231-2022-f10-high-res.pdf
-    G4double pressure_ref = 79.77; // Reference pressure at 50km
-    // source: https://www.pdas.com/atmosTable1SI.html
-
-    G4double density = m_air / R / temp_ref * pressure_ref * exp(-g * m_air * (altitude / m - h_ref) / (R * temp_ref)) * kg / m3;
-    return density;
-}
 
 void LayerAtmosphereModel::ConstructSDandField()
 {
