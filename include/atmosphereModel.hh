@@ -32,7 +32,6 @@ public:
     LayerAtmosphereModel(DensityModelBase*);
     ~LayerAtmosphereModel();
 
-
     virtual G4VPhysicalVolume *Construct() override;
     virtual G4double GetWorldZ() const override;
     void ConstructSDandField() override;
@@ -40,14 +39,15 @@ private:
     G4double world_x, world_y, world_z; // half lengths of the world volume
     G4double h_min, h_max; // minimum and maximum altitudes in the atmosphere
     G4double X_layer; // Integrated density for every layer
-    G4double sensitive_z;               // half-width of the sensitive layer
+    G4double sens_z;               // half-width of the sensitive layer
+    G4int sens_layer;           // sensitive layer index
 
     // Volumes
-    G4Box *solidWorld, *solidSensLayer;
+    G4Box *solidWorld;
     std::vector<G4Box *> solidAtmosphere;
-    G4LogicalVolume *logicWorld, *logicSensLayer;
+    G4LogicalVolume *logicWorld;
     std::vector<G4LogicalVolume *> logicAtmosphere;
-    G4VPhysicalVolume *physWorld, *physSensLayer;
+    G4VPhysicalVolume *physWorld;
     std::vector<G4VPhysicalVolume *> physAtmosphere;
 
     // Materials
@@ -60,7 +60,6 @@ private:
 
     void InitBoundaries();
     void ConstructAtmosphere();
-    void ConstructSensitiveLayer();
 };
 
 #endif

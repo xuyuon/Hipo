@@ -3,7 +3,7 @@
 
 SteppingAction::SteppingAction(EventAction* eventAction)
 {
-    E_min = 100 * MeV;
+    E_min = 1. * MeV;
 }
 
 
@@ -25,10 +25,10 @@ void SteppingAction::UserSteppingAction(const G4Step* step)
     }
 
     // Kill particles with energy below E_min
-    // G4double E_kinetic = track->GetKineticEnergy();
-    // if(E_kinetic < E_min && pName=="gamma")
-    // {
-    //     track->SetTrackStatus(fStopAndKill);
-    // }
+    G4double E_kinetic = track->GetKineticEnergy();
+    if(E_kinetic < E_min && pName=="gamma")
+    {
+        track->SetTrackStatus(fStopAndKill);
+    }
 
 }

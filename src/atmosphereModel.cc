@@ -2,27 +2,25 @@
 
 LayerAtmosphereModel::LayerAtmosphereModel(DensityModelBase *densityModel)
 {
+    // User-defined variables
     world_x = 40. * km;
     world_y = 40. * km;
-
     X_layer = 10. * kg / m2; // Integrated density for every layer, can be adjusted
-
-    h_min = 30. * km;
+    h_min = 0. * km;
     h_max = 100. * km;
-
-    sensitive_z = 1. * km;
+    sens_z = 1. * km;
 
     this->densityModel = densityModel;
-
     InitBoundaries();
-
     world_z = (boundaries.back() - boundaries.front()) / 2.0; // Adjust world_z to the maximum altitude defined by the density model
 }
+
 
 LayerAtmosphereModel::~LayerAtmosphereModel()
 {
     // Destructor
 }
+
 
 G4VPhysicalVolume *LayerAtmosphereModel::Construct()
 {
@@ -43,7 +41,6 @@ G4VPhysicalVolume *LayerAtmosphereModel::Construct()
                                   true);
 
     ConstructAtmosphere();
-    // ConstructSensitiveLayer();
     return physWorld;
 }
 
@@ -73,7 +70,6 @@ void LayerAtmosphereModel::InitBoundaries()
     }
 }
 
-
 void LayerAtmosphereModel::ConstructAtmosphere()
 {
     G4double aN = 14.01 * g / mole; // Molar mass of nitrogen
@@ -82,7 +78,7 @@ void LayerAtmosphereModel::ConstructAtmosphere()
     G4Element *N = new G4Element("Nitrogen", "N", 7, aN);
     G4Element *O = new G4Element("Oxygen", "O", 8, aO);
 
-    G4double epsilon = 1e-6 * m; // Small value 
+    G4double epsilon = 1e-6 * m;           // Small value to prevent volume overlap
     G4int nLayers = boundaries.size() - 1; // Number of layers based on the boundaries
 
     for (int i = 0; i < nLayers; ++i)
@@ -95,7 +91,15 @@ void LayerAtmosphereModel::ConstructAtmosphere()
         Air[i]->AddElement(N, 78 * perCent); // Nitrogen 78%
         Air[i]->AddElement(O, 22 * perCent); // Oxygen 21%
 
-        solidAtmosphere.push_back(new G4Box("solidAtmosphere", world_x, world_y, (boundaries[i + 1] - boundaries[i]) / 2.0 - epsilon));
+        if (sens_z > boundaries[i] && sens_z < boundaries[i + 1])
+        {
+            sens_layer = i; // Set the sensitive layer index
+        }
+
+        solidAtmosphere.push_back(new G4Box("solidAtmosphere",
+                                            world_x,
+                                            world_y,
+                                            (boundaries[i + 1] - boundaries[i]) / 2.0 - epsilon));
         logicAtmosphere.push_back(new G4LogicalVolume(solidAtmosphere[i], Air[i], "logicAtmosphere"));
         physAtmosphere.push_back(new G4PVPlacement(0,
                                                    G4ThreeVector(0., 0., -world_z + (boundaries[i] - boundaries[0]) + (boundaries[i + 1] - boundaries[i]) / 2.0),
@@ -109,33 +113,15 @@ void LayerAtmosphereModel::ConstructAtmosphere()
 }
 
 
-void LayerAtmosphereModel::ConstructSensitiveLayer()
-{
-    // solidSensLayer = new G4Box("solidSensLayer", world_x, world_y, sensitive_z);
-    // logicSensLayer = new G4LogicalVolume(solidSensLayer,
-    //                                      Air[0], // Use the first layer material for the sensitive layer
-    //                                      "logicSensLayer");
-    // physSensLayer = new G4PVPlacement(0,
-    //                                   G4ThreeVector(0., 0., -world_z / nLayers + sensitive_z),
-    //                                   logicSensLayer,
-    //                                   "physSensLayer",
-    //                                   logicAtmosphere[0],
-    //                                   false,
-    //                                   0,
-    //                                   true);
-}
-
-
 G4double LayerAtmosphereModel::GetWorldZ() const
 {
     return world_z;
 }
 
-
 void LayerAtmosphereModel::ConstructSDandField()
 {
     // Construct sensitive detectors
-    // SensitiveDetector *sd = new SensitiveDetector("SensitiveDetector");
-    // logicSensLayer->SetSensitiveDetector(sd);
+    SensitiveDetector *sd = new SensitiveDetector("SensitiveDetector");
+    logicAtmosphere[sens_layer]->SetSensitiveDetector(sd);
     // G4SDManager *SDManager = G4SDManager::GetSDMpointer();
 }
