@@ -8,12 +8,12 @@ PrimaryGenerator::PrimaryGenerator()
     G4ParticleTable *particleTable = G4ParticleTable::GetParticleTable();
     G4ParticleDefinition *particle = particleTable->FindParticle("proton");
 
-    G4ThreeVector pos(0., 0., 100.*km);
+    G4ThreeVector pos(0., 0., 20.*km);
     G4ThreeVector mom(0., 0., -1.); // create the particle moving in z direction
 
     fParticleGun->SetParticlePosition(pos); // Set the position of the particle
     fParticleGun->SetParticleMomentumDirection(mom); 
-    fParticleGun->SetParticleMomentum(100.*GeV); // Set the momentum of the particle
+    fParticleGun->SetParticleEnergy(100.*GeV); // Set the momentum of the particle
     fParticleGun->SetParticleDefinition(particle); // Set the particle definition
 }
 

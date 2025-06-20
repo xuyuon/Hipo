@@ -10,29 +10,40 @@
 
 #include "FTFP_BERT.hh"
 
-
 #include "action.hh"
 #include "atmosphereModel.hh"
+#include "densityModel.hh"
 
-int main(int argc, char** argv)
-{   
-    G4bool isMultiThreaded = false;
+int main(int argc, char **argv)
+{
+    G4int nThreads = 4; // nThreads=1 for single-threaded mode, nThreads>1 for multi-threaded mode
 
     // construct the run manager
     G4RunManager *runManager = nullptr;
-    if (isMultiThreaded) {
+    if (nThreads > 1)
+    {
         runManager = new G4MTRunManager();
-    } else {
+        runManager->SetNumberOfThreads(nThreads);
+    }
+    else
+    {
         runManager = new G4RunManager();
     }
 
-
     // set mandatory initialization classes
-    G4VModularPhysicsList* physicsList = new FTFP_BERT();
+    G4VModularPhysicsList *physicsList = new FTFP_BERT();
     runManager->SetUserInitialization(physicsList);
-    runManager->SetUserInitialization(new LayerAtmosphereModel()); 
+    runManager->SetUserInitialization(new LayerAtmosphereModel(
+        new ConstTempBarometricModel(),
+        40. * km,
+        40. * km,
+        10. * kg / m2, // Integrated density for every layer
+        0. * km,
+        100. * km,
+        1. * km // location of the sensitive layer
+        ));
     runManager->SetUserInitialization(new ActionInitialization());
-    
+
     // initialize G4 kernel
     runManager->Initialize();
 
@@ -40,17 +51,25 @@ int main(int argc, char** argv)
     // get the pointer to the UI manager and set verbosities
     G4UImanager *UImanager = G4UImanager::GetUIpointer();
 
-    ui = new G4UIExecutive(argc, argv);
     G4VisManager *visManager = new G4VisExecutive();
     visManager->Initialize();
 
-    UImanager->ApplyCommand("/control/execute vis.mac");
-    
-
-
-
-    ui->SessionStart();
-
+    if (argc != 1)
+    {
+        // batch mode
+        G4String command = "/control/execute ";
+        G4String fileName = argv[1];
+        UImanager->ApplyCommand(command + fileName);
+    }
+    else
+    {
+        // interactive mode
+        ui = new G4UIExecutive(argc, argv);
+        UImanager->ApplyCommand("/control/execute vis.mac");
+        UImanager->ApplyCommand("/control/execute vis.mac");
+        ui->SessionStart();
+        delete ui;
+    }
 
     // job termination
     delete runManager;
