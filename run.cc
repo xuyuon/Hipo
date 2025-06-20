@@ -10,31 +10,40 @@
 
 #include "FTFP_BERT.hh"
 
-
 #include "action.hh"
 #include "atmosphereModel.hh"
 #include "densityModel.hh"
 
-int main(int argc, char** argv)
-{   
+int main(int argc, char **argv)
+{
     G4int nThreads = 4; // nThreads=1 for single-threaded mode, nThreads>1 for multi-threaded mode
 
     // construct the run manager
     G4RunManager *runManager = nullptr;
-    if (nThreads > 1) {
+    if (nThreads > 1)
+    {
         runManager = new G4MTRunManager();
         runManager->SetNumberOfThreads(nThreads);
-    } else {
+    }
+    else
+    {
         runManager = new G4RunManager();
     }
 
-
     // set mandatory initialization classes
-    G4VModularPhysicsList* physicsList = new FTFP_BERT();
+    G4VModularPhysicsList *physicsList = new FTFP_BERT();
     runManager->SetUserInitialization(physicsList);
-    runManager->SetUserInitialization(new LayerAtmosphereModel(new ConstTempBarometricModel())); 
+    runManager->SetUserInitialization(new LayerAtmosphereModel(
+        new ConstTempBarometricModel(),
+        40. * km,
+        40. * km,
+        10. * kg / m2, // Integrated density for every layer
+        0. * km,
+        100. * km,
+        1. * km // location of the sensitive layer
+        ));
     runManager->SetUserInitialization(new ActionInitialization());
-    
+
     // initialize G4 kernel
     runManager->Initialize();
 
@@ -45,18 +54,21 @@ int main(int argc, char** argv)
     G4VisManager *visManager = new G4VisExecutive();
     visManager->Initialize();
 
-    if (argc!=1){
+    if (argc != 1)
+    {
         // batch mode
         G4String command = "/control/execute ";
         G4String fileName = argv[1];
         UImanager->ApplyCommand(command + fileName);
-    } else {
+    }
+    else
+    {
         // interactive mode
         ui = new G4UIExecutive(argc, argv);
         UImanager->ApplyCommand("/control/execute vis.mac");
         UImanager->ApplyCommand("/control/execute vis.mac");
         ui->SessionStart();
-        delete ui; 
+        delete ui;
     }
 
     // job termination

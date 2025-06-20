@@ -29,7 +29,13 @@ public:
 class LayerAtmosphereModel : public AtmosphereModelBase
 {
 public:
-    LayerAtmosphereModel(DensityModelBase*);
+    LayerAtmosphereModel(DensityModelBase*, 
+                         G4double world_x,
+                         G4double world_y,
+                         G4double X_layer, // Integrated density for every layer
+                         G4double h_min,
+                         G4double h_max,
+                         G4double sens_z);
     ~LayerAtmosphereModel();
 
     virtual G4VPhysicalVolume *Construct() override;

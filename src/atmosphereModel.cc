@@ -1,26 +1,30 @@
 #include "atmosphereModel.hh"
 
-LayerAtmosphereModel::LayerAtmosphereModel(DensityModelBase *densityModel)
+LayerAtmosphereModel::LayerAtmosphereModel(DensityModelBase *densityModel, 
+                                           G4double world_x,
+                                           G4double world_y,
+                                           G4double X_layer,
+                                           G4double h_min,
+                                           G4double h_max,
+                                           G4double sens_z)
 {
     // User-defined variables
-    world_x = 40. * km;
-    world_y = 40. * km;
-    X_layer = 10. * kg / m2; // Integrated density for every layer, can be adjusted
-    h_min = 0. * km;
-    h_max = 100. * km;
-    sens_z = 1. * km;
+    this->world_x = world_x;
+    this->world_y = world_y;
+    this->X_layer = X_layer; // Integrated density for every layer
+    this->h_min = h_min;
+    this->h_max = h_max;
+    this->sens_z = sens_z; // location of the sensitive layer
 
     this->densityModel = densityModel;
     InitBoundaries();
     world_z = (boundaries.back() - boundaries.front()) / 2.0; // Adjust world_z to the maximum altitude defined by the density model
 }
 
-
 LayerAtmosphereModel::~LayerAtmosphereModel()
 {
     // Destructor
 }
-
 
 G4VPhysicalVolume *LayerAtmosphereModel::Construct()
 {
@@ -111,7 +115,6 @@ void LayerAtmosphereModel::ConstructAtmosphere()
                                                    true));
     }
 }
-
 
 G4double LayerAtmosphereModel::GetWorldZ() const
 {
