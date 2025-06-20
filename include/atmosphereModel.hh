@@ -9,11 +9,12 @@
 #include "G4NistManager.hh"
 #include "G4PVPlacement.hh"
 
+#include <vector>
+#include <cmath>
+
 #include "sensitiveDetector.hh"
 #include "densityModel.hh"
 
-
-const int nLayers = 20; // Number of atmospheric layers
 
 class AtmosphereModelBase : public G4VUserDetectorConstruction
 {
@@ -22,6 +23,7 @@ public:
     virtual ~AtmosphereModelBase() {}
 
     virtual G4VPhysicalVolume *Construct() = 0;
+    virtual G4double GetWorldZ() const = 0;
 };
 
 class LayerAtmosphereModel : public AtmosphereModelBase
@@ -32,23 +34,31 @@ public:
 
 
     virtual G4VPhysicalVolume *Construct() override;
+    virtual G4double GetWorldZ() const override;
     void ConstructSDandField() override;
 private:
     G4double world_x, world_y, world_z; // half lengths of the world volume
+    G4double h_min, h_max; // minimum and maximum altitudes in the atmosphere
+    G4double X_layer; // Integrated density for every layer
     G4double sensitive_z;               // half-width of the sensitive layer
 
     // Volumes
-    G4Box *solidWorld, *solidAtmosphere, *solidSensLayer;
-    G4LogicalVolume *logicWorld, *logicAtmosphere[nLayers],
-        *logicSensLayer;
-    G4VPhysicalVolume *physWorld, *physAtmosphere[nLayers],
-        *physSensLayer;
+    G4Box *solidWorld, *solidSensLayer;
+    std::vector<G4Box *> solidAtmosphere;
+    G4LogicalVolume *logicWorld, *logicSensLayer;
+    std::vector<G4LogicalVolume *> logicAtmosphere;
+    G4VPhysicalVolume *physWorld, *physSensLayer;
+    std::vector<G4VPhysicalVolume *> physAtmosphere;
 
     // Materials
-    G4Material *worldMat, *Air[nLayers];
+    G4Material *worldMat;
+    std::vector<G4Material *> Air;
+    
     // Density profile model
     DensityModelBase *densityModel;
+    std::vector<G4double> boundaries;
 
+    void InitBoundaries();
     void ConstructAtmosphere();
     void ConstructSensitiveLayer();
 };

@@ -1,4 +1,12 @@
+/control/verbose 0
+/run/verbose 0
+/event/verbose 0
+/tracking/verbose 0
+/run/particle/verbose 0
+/geometry/navigator/verbose 0
+
 /run/initialize
+
 /vis/open OGL
 /vis/viewer/set/viewpointVector 1 1 1
 /vis/drawVolume

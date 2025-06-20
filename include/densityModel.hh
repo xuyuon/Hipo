@@ -15,6 +15,8 @@ public:
 
 
     virtual G4double CalculateDensity(G4double altitude) const = 0;
+    virtual G4double CalculateCeiling(G4double altitude, G4double X) const = 0;
+    virtual G4double CalculateMaxCeiling(G4double X) const = 0;
 };
 
 
@@ -25,6 +27,8 @@ public:
     ~ConstTempBarometricModel();
 
     virtual G4double CalculateDensity(G4double altitude) const override;
+    virtual G4double CalculateCeiling(G4double altitude, G4double X) const override;
+    virtual G4double CalculateMaxCeiling(G4double X) const override;
 
 private:
     G4double temperature;  // Temperature in Kelvin
@@ -33,6 +37,8 @@ private:
     G4double R;          // Ideal gas constant in J/(mol*K)
     G4double g;          // Gravitational acceleration in m/s^2
     G4double m_air;      // Molar mass of dry air in kg/mol
+
+    G4double beta; // A constant defined as m_air * g / R / temperature
 };
 
 #endif
