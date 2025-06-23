@@ -28,6 +28,7 @@ void RunAction::BeginOfRunAction(const G4Run* run)
 
     analysisManager->CreateNtuple("Gamma", "Gamma");
     analysisManager->CreateNtupleDColumn("energy");
+    analysisManager->CreateNtupleSColumn("process");
     analysisManager->FinishNtuple(0);
 }
 
