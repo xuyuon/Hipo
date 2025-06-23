@@ -35,11 +35,11 @@ int main(int argc, char **argv)
     runManager->SetUserInitialization(physicsList);
     runManager->SetUserInitialization(new LayerAtmosphereModel(
         new ConstTempBarometricModel(),
-        40. * km,
-        40. * km,
+        40. * km, // world_x
+        40. * km, // world_y
         10. * kg / m2, // Integrated density for every layer
-        0. * km,
-        100. * km,
+        0. * km, // altitude of the first layer
+        100. * km, // altitude of the last layer
         1. * km // location of the sensitive layer
         ));
     runManager->SetUserInitialization(new ActionInitialization());
