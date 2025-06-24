@@ -33,20 +33,15 @@ int main(int argc, char **argv)
     // set mandatory initialization classes
     G4VModularPhysicsList *physicsList = new FTFP_BERT();
     runManager->SetUserInitialization(physicsList);
-    // runManager->SetUserInitialization(new LayerAtmosphereModel(
-    //     new ConstTempBarometricModel(),
-    //     40. * km, // world_x
-    //     40. * km, // world_y
-    //     10. * kg / m2, // Integrated density for every layer
-    //     0. * km, // altitude of the first layer
-    //     100. * km, // altitude of the last layer
-    //     1. * km // location of the sensitive layer
-    //     ));
-    runManager->SetUserInitialization(new AirBlock(
-        1. * m, // world_x
-        1. * m, // world_y
-        1. * m // world_z
-    ));
+    runManager->SetUserInitialization(new LayerAtmosphereModel(
+        new ConstTempBarometricModel(),
+        40. * km, // world_x
+        40. * km, // world_y
+        10. * kg / m2, // Integrated density for every layer
+        0. * km, // altitude of the first layer
+        100. * km, // altitude of the last layer
+        5. * km // location of the sensitive layer
+        ));
     runManager->SetUserInitialization(new ActionInitialization());
 
     // initialize G4 kernel
