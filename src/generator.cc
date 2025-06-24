@@ -2,6 +2,8 @@
 
 PrimaryGenerator::PrimaryGenerator()
 {
+    analysisManager = G4AnalysisManager::Instance(); // singleton instance of analysis manager
+
     // Constructor implementation
     fParticleGun = new G4ParticleGun(1); // Create a particle gun with 1 particle
 
@@ -13,8 +15,9 @@ PrimaryGenerator::PrimaryGenerator()
 
     fParticleGun->SetParticlePosition(pos); // Set the position of the particle
     fParticleGun->SetParticleMomentumDirection(mom); 
-    fParticleGun->SetParticleEnergy(100.*GeV); // Set the momentum of the particle
     fParticleGun->SetParticleDefinition(particle); // Set the particle definition
+
+    EnergySpectrum = new PowerLaw(2.75, 10000.*MeV, 100000.*MeV); // Initialize the energy spectrum with primary CR spectrum
 }
 
 PrimaryGenerator::~PrimaryGenerator()
@@ -26,6 +29,12 @@ PrimaryGenerator::~PrimaryGenerator()
 void PrimaryGenerator::GeneratePrimaries(G4Event *anEvent)
 {
     G4ParticleDefinition *particle = fParticleGun->GetParticleDefinition(); // Find the particle definition
+    
+    
+    G4double p_energy = EnergySpectrum->sample();
+    analysisManager->FillNtupleDColumn(1, 0, p_energy / eV); 
+    analysisManager->AddNtupleRow(1); 
 
+    fParticleGun->SetParticleEnergy(p_energy); // Set the momentum of the particle
     fParticleGun->GeneratePrimaryVertex(anEvent); // Generate the primary vertex for the event
 }

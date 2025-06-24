@@ -23,8 +23,33 @@ public:
     virtual ~AtmosphereModelBase() {}
 
     virtual G4VPhysicalVolume *Construct() = 0;
-    virtual G4double GetWorldZ() const = 0;
 };
+
+
+class AirBlock : public AtmosphereModelBase
+{
+    /*
+    A simple block of air for testing purpose
+    */
+public:
+    AirBlock(G4double world_x, G4double world_y, G4double world_z);
+    ~AirBlock();
+
+    virtual G4VPhysicalVolume *Construct() override;
+    void ConstructSDandField() override;
+
+private:
+    G4double world_x, world_y, world_z; // half lengths of the world volume
+
+    // Volumes
+    G4Box *solidWorld;
+    G4LogicalVolume *logicWorld;
+    G4VPhysicalVolume *physWorld;
+
+    // Materials
+    G4Material *worldMat;
+};
+
 
 class LayerAtmosphereModel : public AtmosphereModelBase
 {
@@ -39,7 +64,7 @@ public:
     ~LayerAtmosphereModel();
 
     virtual G4VPhysicalVolume *Construct() override;
-    virtual G4double GetWorldZ() const override;
+    virtual G4double GetWorldZ() const;
     void ConstructSDandField() override;
 private:
     G4double world_x, world_y, world_z; // half lengths of the world volume

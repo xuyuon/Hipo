@@ -30,6 +30,10 @@ void RunAction::BeginOfRunAction(const G4Run* run)
     analysisManager->CreateNtupleDColumn("energy");
     analysisManager->CreateNtupleSColumn("process");
     analysisManager->FinishNtuple(0);
+
+    analysisManager->CreateNtuple("Incident_p", "Incident_p");
+    analysisManager->CreateNtupleDColumn("energy");
+    analysisManager->FinishNtuple(1);
 }
 
 void RunAction::EndOfRunAction(const G4Run* run)

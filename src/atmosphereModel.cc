@@ -1,5 +1,48 @@
 #include "atmosphereModel.hh"
 
+
+AirBlock::AirBlock(G4double world_x, G4double world_y, G4double world_z)
+{
+    // User-defined variables
+    this->world_x = world_x;
+    this->world_y = world_y;
+    this->world_z = world_z;
+}
+
+
+AirBlock::~AirBlock()
+{
+    // Destructor
+}
+
+
+G4VPhysicalVolume *AirBlock::Construct()
+{
+    // Define world material
+    G4NistManager *nist = G4NistManager::Instance();
+    worldMat = nist->FindOrBuildMaterial("G4_AIR");
+
+    // Create the world volume
+    solidWorld = new G4Box("solidWorld", world_x, world_y, world_z);
+    logicWorld = new G4LogicalVolume(solidWorld, worldMat, "logicWorld");
+    physWorld = new G4PVPlacement(0,
+                                  G4ThreeVector(0., 0., 0.),
+                                  logicWorld,
+                                  "physWorld",
+                                  0,
+                                  false,
+                                  0,
+                                  true);
+    return physWorld;
+}
+
+
+void AirBlock::ConstructSDandField()
+{
+    
+}
+
+
 LayerAtmosphereModel::LayerAtmosphereModel(DensityModelBase *densityModel, 
                                            G4double world_x,
                                            G4double world_y,

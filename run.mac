@@ -1,3 +1,2 @@
-/gun/energy 10 GeV
-/run/printProgress 500
-/run/beamOn 500
+/run/printProgress 1000
+/run/beamOn 1000
