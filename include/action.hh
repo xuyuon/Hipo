@@ -12,11 +12,14 @@
 class ActionInitialization : public G4VUserActionInitialization
 {
 public:
-    ActionInitialization();
+    ActionInitialization(G4VUserPrimaryGeneratorAction* generator);
     ~ActionInitialization();
 
     virtual void Build() const;
     virtual void BuildForMaster() const;
+
+private:
+    G4VUserPrimaryGeneratorAction* generator;
 };
 
 

@@ -10,20 +10,22 @@
 
 #include "sampling.hh"
 
-
 class PrimaryGenerator : public G4VUserPrimaryGeneratorAction
 {
 public:
-    PrimaryGenerator();
+    PrimaryGenerator(
+        G4double h_ini,              // initial altitude
+        SamplingBase *energySpectrum // pointer to the energy spectrum sampling object
+    );
     ~PrimaryGenerator();
 
-    virtual void GeneratePrimaries(G4Event*);
+    virtual void GeneratePrimaries(G4Event *);
 
 private:
-    G4AnalysisManager *analysisManager; 
+    G4AnalysisManager *analysisManager;
     G4ParticleGun *fParticleGun; // Pointer to the particle gun
 
-    SamplingBase *EnergySpectrum; 
+    SamplingBase *EnergySpectrum;
 };
 
 #endif

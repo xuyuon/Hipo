@@ -13,6 +13,8 @@
 #include "action.hh"
 #include "atmosphereModel.hh"
 #include "densityModel.hh"
+#include "generator.hh"
+#include "sampling.hh"
 
 int main(int argc, char **argv)
 {
@@ -33,23 +35,28 @@ int main(int argc, char **argv)
     // set mandatory initialization classes
     G4VModularPhysicsList *physicsList = new FTFP_BERT();
     runManager->SetUserInitialization(physicsList);
-    // runManager->SetUserInitialization(new LayerAtmosphereModel(
-    //     new ConstTempBarometricModel(),
-    //     40. * km, // world_x
-    //     40. * km, // world_y
-    //     10. * kg / m2, // Integrated density for every layer
-    //     0. * km, // altitude of the first layer
-    //     100. * km, // altitude of the last layer
-    //     5. * km // location of the sensitive layer
-    //     ));
-    runManager->SetUserInitialization(new SphericalEarth(
+    runManager->SetUserInitialization(new LayerAtmosphereModel(
         new ConstTempBarometricModel(),
-        0. * km, // h_min
-        100. * km, // h_max
-        5. * km, // h_sens
-        10. * kg / m2 // Integrated density for every layer
+        40. * km,      // world_x
+        40. * km,      // world_y
+        10. * kg / m2, // Integrated density for every layer
+        0. * km,       // altitude of the first layer
+        100. * km,     // altitude of the last layer
+        5. * km        // location of the sensitive layer
     ));
-    runManager->SetUserInitialization(new ActionInitialization());
+    // runManager->SetUserInitialization(new SphericalEarth(
+    //     new ConstTempBarometricModel(),
+    //     0. * km,      // h_min
+    //     100. * km,    // h_max
+    //     5. * km,      // h_sens
+    //     10. * kg / m2 // Integrated density for every layer
+    //     ));
+    runManager->SetUserInitialization(new ActionInitialization(
+        new PrimaryGenerator(
+            20. * km,                                       // initial altitude
+            new PowerLaw(2.75, 10000. * MeV, 100000. * MeV) // energy spectrum sampling
+        )
+    ));
 
     // initialize G4 kernel
     runManager->Initialize();

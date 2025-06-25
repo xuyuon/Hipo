@@ -18,11 +18,11 @@ public:
 
 class PowerLaw : public SamplingBase
 {
-/*
-The probability density function is given by:
-P(x) ~ x^(-alpha) for xmin <= x <= xmax
+    /*
+    The probability density function is given by:
+    P(x) ~ x^(-alpha) for xmin <= x <= xmax
 
-*/
+    */
 public:
     PowerLaw(G4double alpha, G4double xmin, G4double xmax);
     ~PowerLaw();
@@ -34,5 +34,17 @@ private:
     G4double xmin;   // lower bound
     G4double xmax;   // upper bound
 };
+
+
+class UniformSphere : public SamplingBase
+{
+    /*
+    Samples uniformly from the surface of a sphere with radius r.
+    The sampling is done in spherical coordinates.
+    */
+public:
+
+};
+
 
 #endif
