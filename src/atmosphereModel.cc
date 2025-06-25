@@ -287,4 +287,6 @@ void SphericalEarth::ConstructAtmosphere()
 
 void SphericalEarth::ConstructSDandField()
 {
+    SensitiveDetector *sd = new SensitiveDetector("SensitiveDetector");
+    logicAtmosphere[sens_layer]->SetSensitiveDetector(sd);
 }
