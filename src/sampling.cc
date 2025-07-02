@@ -1,13 +1,14 @@
 #include "sampling.hh"
 
-
 PowerLaw::PowerLaw(G4double alpha, G4double xmin, G4double xmax)
     : alpha(alpha), xmin(xmin), xmax(xmax)
 {
-    if (xmax <= xmin) {
+    if (xmax <= xmin)
+    {
         G4cerr << "Error in initialing PowerLaw: xmax must be greater than xmin." << G4endl;
     }
-    if (alpha == 1) {
+    if (alpha == 1)
+    {
         G4cerr << "Error in initialing PowerLaw: use ParetoDist instead of PowerLaw for alpha=1" << G4endl;
     }
     this->alpha = alpha;
@@ -27,20 +28,22 @@ double PowerLaw::sample()
     P(x) ~ x^(-alpha) for xmin <= x <= xmax
     */
     double u = G4UniformRand(); // uniform random number in [0, 1)
-    double x = pow(((pow(xmax, 1-alpha) - pow(xmin, 1-alpha))*u + pow(xmin, 1-alpha)), 1 / (1 - alpha));
+    double x = pow(((pow(xmax, 1 - alpha) - pow(xmin, 1 - alpha)) * u + pow(xmin, 1 - alpha)), 1 / (1 - alpha));
     return x;
 }
 
-
 Sine::Sine(G4double xmin, G4double xmax)
 {
-    if (xmax <= xmin) {
+    if (xmax <= xmin)
+    {
         G4cerr << "Error in initialing Sine: xmax must be greater than xmin." << G4endl;
     }
-    if (xmin <  0){
+    if (xmin < 0)
+    {
         G4cerr << "Error in initialing Sine: xmin must be greater than or equal to 0." << G4endl;
     }
-    if (xmax > PI){
+    if (xmax > PI)
+    {
         G4cerr << "Error in initialing Sine: xmax must be less than or equal to pi." << G4endl;
     }
 
@@ -59,21 +62,23 @@ G4double Sine::sample()
     The probability density function is given by:
     P(x) ~ sin(x) for xmin <= x <= xmax
     */
-    G4double u = G4UniformRand(); 
-    G4double x = acos(cos(xmin)+ u*(cos(xmax)- cos(xmin)));
+    G4double u = G4UniformRand();
+    G4double x = acos(cos(xmin) + u * (cos(xmax) - cos(xmin)));
     return x;
 }
 
-
 Cosine::Cosine(G4double xmin, G4double xmax)
 {
-    if (xmax <= xmin) {
+    if (xmax <= xmin)
+    {
         G4cerr << "Error in initialing Cosine: xmax must be greater than xmin." << G4endl;
     }
-    if (xmin < -PI/2){
+    if (xmin < -PI / 2)
+    {
         G4cerr << "Error in initialing Cosine: xmin must be greater than or equal to -pi/2." << G4endl;
     }
-    if (xmax > PI/2){
+    if (xmax > PI / 2)
+    {
         G4cerr << "Error in initialing Cosine: xmax must be less than or equal to pi/2." << G4endl;
     }
 
@@ -85,7 +90,6 @@ Cosine::~Cosine()
 {
 }
 
-
 G4double Cosine::sample()
 {
     /*
@@ -93,28 +97,52 @@ G4double Cosine::sample()
     The probability density function is given by:
     P(x) ~ cos(x) for xmin <= x <= xmax
     */
-    G4double u = G4UniformRand(); 
+    G4double u = G4UniformRand();
     G4double x = asin(sin(xmin) + u * (sin(xmax) - sin(xmin)));
     return x;
 }
 
+ConstCoordinates::ConstCoordinates(G4double x,
+                                   G4double y,
+                                   G4double z)
+{
+    this->x = x;
+    this->y = y;
+    this->z = z;
+}
+
+ConstCoordinates::~ConstCoordinates()
+{
+}
+
+G4ThreeVector ConstCoordinates::sample()
+{
+    /*
+    Returns a constant 3D vector.
+    */
+    return G4ThreeVector(x, y, z);
+}
 
 UniformSphericalSurface::UniformSphericalSurface(G4double r,
-G4double theta_min,
-G4double theta_max,
-G4double phi_min,
-G4double phi_max)
+                                                 G4double theta_min,
+                                                 G4double theta_max,
+                                                 G4double phi_min,
+                                                 G4double phi_max)
 {
-    if (theta_max <= theta_min) {
+    if (theta_max <= theta_min)
+    {
         G4cerr << "Error in initialing UniformSphericalSurface: theta_max must be greater than theta_min." << G4endl;
     }
-    if (phi_max <= phi_min) {
+    if (phi_max <= phi_min)
+    {
         G4cerr << "Error in initialing UniformSphericalSurface: phi_max must be greater than phi_min." << G4endl;
     }
-    if (theta_min < 0 || theta_max > PI) {
+    if (theta_min < 0 || theta_max > PI)
+    {
         G4cerr << "Error in initialing UniformSphericalSurface: theta must be in [0, pi]." << G4endl;
     }
-    if (phi_min < 0 || phi_max > 2 * PI) {
+    if (phi_min < 0 || phi_max > 2 * PI)
+    {
         G4cerr << "Error in initialing UniformSphericalSurface: phi must be in [0, 2*pi]." << G4endl;
     }
     this->r = r;
@@ -126,16 +154,14 @@ G4double phi_max)
     thetaSampling = new Sine(theta_min, theta_max);
 }
 
-
 UniformSphericalSurface::~UniformSphericalSurface()
 {
 }
 
-
 G4ThreeVector UniformSphericalSurface::sample()
 {
     G4double theta = thetaSampling->sample();
-    
+
     // phi follows a uniform distribution
     G4double phi = G4UniformRand() * (phi_max - phi_min) + phi_min;
 

@@ -91,6 +91,22 @@ public:
     virtual G4ThreeVector sample() { return G4ThreeVector(0., 0., 0.); }
 };
 
+class ConstCoordinates : public CoordinatesSamplingBase
+{
+    /*
+    Returns a constant 3D vector.
+    */
+public:
+    ConstCoordinates(G4double x, G4double y, G4double z);
+    ~ConstCoordinates();
+
+    virtual G4ThreeVector sample() override;
+private:
+    G4double x;
+    G4double y;
+    G4double z;
+};
+
 class UniformSphericalSurface : public CoordinatesSamplingBase
 {
     /*

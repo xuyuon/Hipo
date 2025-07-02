@@ -14,8 +14,9 @@ class PrimaryGenerator : public G4VUserPrimaryGeneratorAction
 {
 public:
     PrimaryGenerator(
-        G4double h_ini,              // initial altitude
-        SamplingBase *energySpectrum // pointer to the energy spectrum sampling object
+        SamplingBase *energySpectrum,      // pointer to the energy spectrum sampling object
+        CoordinatesSamplingBase *pos_dist, // distribution of initial position
+        CoordinatesSamplingBase *dir_dist // distribution of direction of initial momentum
     );
     ~PrimaryGenerator();
 
@@ -26,6 +27,8 @@ private:
     G4ParticleGun *fParticleGun; // Pointer to the particle gun
 
     SamplingBase *EnergySpectrum;
+    CoordinatesSamplingBase *pos_dist;
+    CoordinatesSamplingBase *dir_dist;
 };
 
 #endif

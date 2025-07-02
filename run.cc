@@ -43,7 +43,7 @@ int main(int argc, char **argv)
         0. * km,       // altitude of the first layer
         100. * km,     // altitude of the last layer
         5. * km        // location of the sensitive layer
-    ));
+        ));
     // runManager->SetUserInitialization(new SphericalEarth(
     //     new ConstTempBarometricModel(),
     //     0. * km,      // h_min
@@ -53,10 +53,10 @@ int main(int argc, char **argv)
     //     ));
     runManager->SetUserInitialization(new ActionInitialization(
         new PrimaryGenerator(
-            20. * km,                                       // initial altitude
-            new PowerLaw(2.75, 10000. * MeV, 100000. * MeV) // energy spectrum sampling
-        )
-    ));
+            new PowerLaw(2.75, 10000. * MeV, 100000. * MeV), // energy spectrum sampling
+            new ConstCoordinates(0., 0., 20. * km),          // initial position sampling
+            new ConstCoordinates(0., 0., -1.)                // initial direction sampling
+            )));
 
     // initialize G4 kernel
     runManager->Initialize();
