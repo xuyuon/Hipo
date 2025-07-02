@@ -44,8 +44,8 @@ Sine::Sine(G4double xmin, G4double xmax)
         G4cerr << "Error in initialing Sine: xmax must be less than or equal to pi." << G4endl;
     }
 
-    this_->xmin = xmin;
-    this_->xmax = xmax;
+    this->xmin = xmin;
+    this->xmax = xmax;
 }
 
 Sine::~Sine()
@@ -60,7 +60,7 @@ G4double Sine::sample()
     P(x) ~ sin(x) for xmin <= x <= xmax
     */
     G4double u = G4UniformRand(); 
-    G4double x = acos(cos(xmin)+ u*(cos(xmax)- cos(xmin)))
+    G4double x = acos(cos(xmin)+ u*(cos(xmax)- cos(xmin)));
     return x;
 }
 
@@ -96,4 +96,53 @@ G4double Cosine::sample()
     G4double u = G4UniformRand(); 
     G4double x = asin(sin(xmin) + u * (sin(xmax) - sin(xmin)));
     return x;
+}
+
+
+UniformSphericalSurface::UniformSphericalSurface(G4double r,
+G4double theta_min,
+G4double theta_max,
+G4double phi_min,
+G4double phi_max)
+{
+    if (theta_max <= theta_min) {
+        G4cerr << "Error in initialing UniformSphericalSurface: theta_max must be greater than theta_min." << G4endl;
+    }
+    if (phi_max <= phi_min) {
+        G4cerr << "Error in initialing UniformSphericalSurface: phi_max must be greater than phi_min." << G4endl;
+    }
+    if (theta_min < 0 || theta_max > PI) {
+        G4cerr << "Error in initialing UniformSphericalSurface: theta must be in [0, pi]." << G4endl;
+    }
+    if (phi_min < 0 || phi_max > 2 * PI) {
+        G4cerr << "Error in initialing UniformSphericalSurface: phi must be in [0, 2*pi]." << G4endl;
+    }
+    this->r = r;
+    this->theta_min = theta_min;
+    this->theta_max = theta_max;
+    this->phi_min = phi_min;
+    this->phi_max = phi_max;
+
+    thetaSampling = new Sine(theta_min, theta_max);
+}
+
+
+UniformSphericalSurface::~UniformSphericalSurface()
+{
+}
+
+
+G4ThreeVector UniformSphericalSurface::sample()
+{
+    G4double theta = thetaSampling->sample();
+    
+    // phi follows a uniform distribution
+    G4double phi = G4UniformRand() * (phi_max - phi_min) + phi_min;
+
+    // transform to Cartesian coordinates
+    G4double x = r * sin(theta) * cos(phi);
+    G4double y = r * sin(theta) * sin(phi);
+    G4double z = r * cos(theta);
+
+    return G4ThreeVector(x, y, z);
 }

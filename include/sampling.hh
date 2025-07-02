@@ -4,8 +4,11 @@
 #include "Randomize.hh"
 #include "G4Types.hh"
 #include "G4ios.hh"
+#include "G4ThreeVector.hh"
 
-static const PI = 3.14159265358979323846;
+#include <vector>
+
+static const G4double PI = 3.14159265358979323846;
 
 class SamplingBase
 {
@@ -45,7 +48,7 @@ class Sine : public SamplingBase
     within [0, pi].
     */
 public:
-    Sine(G4double xmin, G4double xmax);
+    Sine(G4double xmin = 0., G4double xmax = PI);
     ~Sine();
 
     virtual G4double sample() override;
@@ -54,7 +57,6 @@ private:
     G4double xmin;
     G4double xmax;
 };
-
 
 class Cosine : public SamplingBase
 {
@@ -66,24 +68,53 @@ class Cosine : public SamplingBase
     within [-pi/2, pi/2].
     */
 public:
-    Cosine(G4double xmin, G4double xmax);
+    Cosine(G4double xmin = -PI / 2., G4double xmax = PI / 2.);
     ~Cosine();
 
     virtual G4double sample() override;
-    
+
 private:
     G4double xmin;
     G4double xmax;
-};  
+};
 
+class CoordinatesSamplingBase
+{
+public:
+    /*
+        Base class for sampling coordinates in a 3D space.
+        sample() method returns G4ThreeVector.
+    */
+    CoordinatesSamplingBase() {}
+    ~CoordinatesSamplingBase() {}
 
-class UniformSphere : public SamplingBase
+    virtual G4ThreeVector sample() { return G4ThreeVector(0., 0., 0.); }
+};
+
+class UniformSphericalSurface : public CoordinatesSamplingBase
 {
     /*
-    Samples uniformly from the surface of a sphere with radius r.
-    The sampling is done in spherical coordinates.
+    Samples points uniformly on the surface of a sphere.
+    The radius of the sphere is given by the parameter r.
     */
 public:
+    UniformSphericalSurface(G4double r,
+                            G4double theta_min = 0.,
+                            G4double theta_max = PI,
+                            G4double phi_min = 0.,
+                            G4double phi_max = 2 * PI);
+    ~UniformSphericalSurface();
+
+    virtual G4ThreeVector sample() override;
+
+private:
+    G4double r; 
+    G4double theta_min;
+    G4double theta_max; 
+    G4double phi_min; 
+    G4double phi_max; 
+
+    SamplingBase *thetaSampling;
 };
 
 #endif
