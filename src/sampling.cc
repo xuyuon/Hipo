@@ -1,5 +1,25 @@
 #include "sampling.hh"
 
+Scaled::Scaled(SamplingBase *dist, G4double alpha)
+{
+    if (alpha <= 0)
+    {
+        G4cerr << "Error in initialing Scaled: alpha must be greater than 0." << G4endl;
+    }
+    this->dist = dist;
+    this->alpha = alpha; 
+}
+
+Scaled::~Scaled()
+{
+}
+
+G4double Scaled::sample()
+{
+    G4double x = dist->sample();
+    return x / alpha;
+}
+
 PowerLaw::PowerLaw(G4double alpha, G4double xmin, G4double xmax)
     : alpha(alpha), xmin(xmin), xmax(xmax)
 {

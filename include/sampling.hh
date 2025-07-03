@@ -19,6 +19,22 @@ public:
     virtual G4double sample() = 0;
 };
 
+class Scaled : public SamplingBase
+{
+    /*
+    Given a distribution f(x), it returns a scaled version of it:
+    p(x) ~ f(alpha * x)
+    */
+public:
+    Scaled(SamplingBase *dist, G4double alpha);
+    ~Scaled();
+
+    virtual G4double sample() override;
+private:
+    SamplingBase *dist; 
+    G4double alpha;      // scaling factor
+};
+
 class PowerLaw : public SamplingBase
 {
     /*
