@@ -87,6 +87,7 @@ void SphericalSurfaceSampling::GeneratePrimaries(G4Event *anEvent)
     // Sample the momentum direction
     G4double p_theta = theta_dist->sample();
     G4double p_phi = phi_dist->sample();
+    analysisManager->FillNtupleDColumn(1, 1, p_theta);
 
     // Transform the local coordinate into global coordinate
     G4double p_pos_x = p_pos.x();
