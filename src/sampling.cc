@@ -20,6 +20,49 @@ G4double Scaled::sample()
     return x / alpha;
 }
 
+Offset::Offset(SamplingBase *dist, G4double offset)
+{
+    this->dist = dist;
+    this->offset = offset; 
+}
+
+Offset::~Offset()
+{
+}
+
+G4double Offset::sample()
+{
+    G4double x = dist->sample();
+    return x - offset;
+}
+
+
+Uniform::Uniform(G4double xmin, G4double xmax)
+{
+    if (xmax <= xmin)
+    {
+        G4cerr << "Error in initialing Uniform: xmax must be greater than xmin." << G4endl;
+    }
+    this->xmin = xmin;
+    this->xmax = xmax;
+}
+
+Uniform::~Uniform()
+{
+}
+
+G4double Uniform::sample()
+{
+    /*
+    Samples a value from the uniform distribution.
+    The probability density function is given by:
+    P(x) = 1 / (xmax - xmin) for xmin <= x <= xmax
+    */
+    G4double u = G4UniformRand(); // uniform random number in [0, 1)
+    G4double x = u * (xmax - xmin) + xmin; // scale to [xmin, xmax]
+    return x;
+}
+
 PowerLaw::PowerLaw(G4double alpha, G4double xmin, G4double xmax)
     : alpha(alpha), xmin(xmin), xmax(xmax)
 {

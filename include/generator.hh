@@ -31,4 +31,27 @@ private:
     CoordinatesSamplingBase *dir_dist;
 };
 
+
+class SphericalSurfaceSampling : public G4VUserPrimaryGeneratorAction
+{
+public:
+    SphericalSurfaceSampling(
+        SamplingBase *energySpectrum,
+        CoordinatesSamplingBase *pos_dist, // distribution of initial position
+        SamplingBase *theta_dist, // distribution of theta angle (nadir angle)
+        SamplingBase *phi_dist  // distribution of phi angle (azimuthal angle)
+    );
+    ~SphericalSurfaceSampling();
+
+    virtual void GeneratePrimaries(G4Event *);
+private:
+    G4AnalysisManager *analysisManager;
+    G4ParticleGun *fParticleGun; // Pointer to the particle gun
+
+    SamplingBase *EnergySpectrum;
+    CoordinatesSamplingBase *pos_dist;
+    SamplingBase *theta_dist;
+    SamplingBase *phi_dist;
+};
+
 #endif

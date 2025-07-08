@@ -35,6 +35,39 @@ private:
     G4double alpha;      // scaling factor
 };
 
+class Offset : public SamplingBase
+{
+    /*
+    Given a distribution f(x), it returns a offset version of it:
+    p(x) ~ f(x + offset)
+    */
+public:
+    Offset(SamplingBase *dist, G4double offset);
+    ~Offset();
+
+    virtual G4double sample() override;
+private:
+    SamplingBase *dist; // distribution to be shifted
+    G4double offset;    // offset value
+};
+
+
+class Uniform : public SamplingBase
+{
+    /*
+    Uniform distribution in the range [xmin, xmax].
+    */
+public:
+    Uniform(G4double xmin, G4double xmax);
+    ~Uniform();
+
+    virtual G4double sample() override;
+private:
+    G4double xmin; // lower bound
+    G4double xmax; // upper bound
+};
+
+
 class PowerLaw : public SamplingBase
 {
     /*
