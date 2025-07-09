@@ -7,16 +7,27 @@
 #include "G4VProcess.hh"
 
 
-class SensitiveDetector : public G4VSensitiveDetector
+class SensitiveDetectorBase : public G4VSensitiveDetector
 {
 public:
-    SensitiveDetector(G4String name);
-    ~SensitiveDetector();
+    SensitiveDetectorBase(G4String name);
+    ~SensitiveDetectorBase();
 
     G4bool ProcessHits(G4Step *step, G4TouchableHistory *history);
 
-private:
+protected:
     G4AnalysisManager *analysisManager; // singleton instance of analysis manager
+};
+
+
+class SphericalShellSD : public SensitiveDetectorBase
+{
+public:
+    SphericalShellSD(G4String name);
+    ~SphericalShellSD();
+
+    G4bool ProcessHits(G4Step *step, G4TouchableHistory *history) override;
+
 };
 
 

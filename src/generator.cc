@@ -44,7 +44,6 @@ void PrimaryGenerator::GeneratePrimaries(G4Event *anEvent)
     fParticleGun->GeneratePrimaryVertex(anEvent); // Generate the primary vertex for the event
 }
 
-
 SphericalSurfaceSampling::SphericalSurfaceSampling(
     SamplingBase *energySpectrum,
     CoordinatesSamplingBase *pos_dist,
@@ -60,7 +59,7 @@ SphericalSurfaceSampling::SphericalSurfaceSampling(
     fParticleGun->SetParticleDefinition(particle);
 
     this->EnergySpectrum = energySpectrum;
-    this->pos_dist = pos_dist; 
+    this->pos_dist = pos_dist;
     this->theta_dist = theta_dist;
     this->phi_dist = phi_dist;
 }
@@ -90,27 +89,23 @@ void SphericalSurfaceSampling::GeneratePrimaries(G4Event *anEvent)
     analysisManager->FillNtupleDColumn(1, 1, p_theta);
 
     // Transform the local coordinate into global coordinate
-    G4double p_pos_x = p_pos.x();
-    G4double p_pos_y = p_pos.y();
-    G4double p_pos_z = p_pos.z();
+    G4double p_pos_mag = p_pos.mag();
+    G4double p_pos_theta = p_pos.theta();
+    G4double p_pos_phi = p_pos.phi();
 
-    G4double p_pos_r = sqrt(p_pos_x*p_pos_x + p_pos_y*p_pos_y + p_pos_z*p_pos_z);
-    G4double p_pos_theta = acos(p_pos_z / p_pos_r); 
-    G4double p_pos_phi = atan2(p_pos_y, p_pos_x);
-
-    G4double local_x = sin(p_theta) * cos(p_phi); 
+    G4double local_x = sin(p_theta) * cos(p_phi);
     G4double local_y = sin(p_theta) * sin(p_phi);
-    G4double local_z = - cos(p_theta); // reflected about x-y plane
+    G4double local_z = -cos(p_theta); // reflected about x-y plane
 
-    G4double p_dir_x = local_x * cos(p_pos_theta) * cos(p_pos_phi) + 
-                       local_y * cos(p_pos_theta) * sin(p_pos_phi) - 
-                       local_z * sin(p_pos_theta);
-    G4double p_dir_y = - local_x * sin(p_pos_phi) +
-                        local_y * cos(p_pos_phi);
-    G4double p_dir_z = local_x * sin(p_pos_theta) * cos(p_pos_phi) +
-                        local_y * sin(p_pos_theta) * sin(p_pos_phi) + 
-                        local_z * cos(p_pos_theta);
-    
+    G4double p_dir_x = local_x * cos(p_pos_theta) * cos(p_pos_phi) -
+                       local_y * sin(p_pos_phi) +
+                       local_z * sin(p_pos_theta) * cos(p_pos_phi);
+    G4double p_dir_y = local_x * cos(p_pos_theta) * sin(p_pos_phi) +
+                       local_y * cos(p_pos_phi) +
+                       local_z * sin(p_pos_theta) * sin(p_pos_phi);
+    G4double p_dir_z = -local_x * sin(p_pos_theta) +
+                       local_z * cos(p_pos_theta);
+
     G4ThreeVector p_dir(p_dir_x, p_dir_y, p_dir_z);
     fParticleGun->SetParticleMomentumDirection(p_dir);
 

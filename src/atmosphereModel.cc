@@ -161,7 +161,7 @@ G4double LayerAtmosphereModel::GetWorldZ() const
 void LayerAtmosphereModel::ConstructSDandField()
 {
     // Construct sensitive detectors
-    SensitiveDetector *sd = new SensitiveDetector("SensitiveDetector");
+    SensitiveDetectorBase *sd = new SensitiveDetectorBase("SensitiveDetector");
     logicAtmosphere[sens_layer]->SetSensitiveDetector(sd);
     // G4SDManager *SDManager = G4SDManager::GetSDMpointer();
 }
@@ -287,6 +287,6 @@ void SphericalEarth::ConstructAtmosphere()
 
 void SphericalEarth::ConstructSDandField()
 {
-    SensitiveDetector *sd = new SensitiveDetector("SensitiveDetector");
+    SensitiveDetectorBase *sd = new SphericalShellSD("SensitiveDetector");
     logicAtmosphere[sens_layer]->SetSensitiveDetector(sd);
 }
