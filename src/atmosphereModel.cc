@@ -43,7 +43,7 @@ LayerAtmosphereModel::LayerAtmosphereModel(DensityModelBase *densityModel,
                                            G4double X_layer,
                                            G4double h_min,
                                            G4double h_max,
-                                           G4double sens_z)
+                                           G4double h_sens)
 {
     // User-defined variables
     this->world_x = world_x;
@@ -51,7 +51,10 @@ LayerAtmosphereModel::LayerAtmosphereModel(DensityModelBase *densityModel,
     this->X_layer = X_layer; // Integrated density for every layer
     this->h_min = h_min;
     this->h_max = h_max;
-    this->sens_z = sens_z; // location of the sensitive layer
+    this->h_sens = h_sens; // location of the sensitive layer
+
+    delta_z = 5. * km;
+    delta_sens = 0.5 * m;
 
     this->densityModel = densityModel;
     InitBoundaries();
@@ -82,6 +85,7 @@ G4VPhysicalVolume *LayerAtmosphereModel::Construct()
                                   true);
 
     ConstructAtmosphere();
+    ConstructSensitiveLayer();
     return physWorld;
 }
 
@@ -89,15 +93,10 @@ void LayerAtmosphereModel::InitBoundaries()
 {
     boundaries = {h_min}; // Start with the ground level
 
-    G4double ceilling_max = densityModel->CalculateMaxCeiling(X_layer);
+    G4double ceiling_max = densityModel->CalculateMaxCeiling(X_layer);
 
-    if (h_max > ceilling_max)
-    {
-        h_max = ceilling_max;
-        G4cout << "Warning: h_max exceeds the maximum ceiling, adjusted to " << h_max / km << " km" << G4endl;
-    }
-
-    while (boundaries.back() < h_max)
+    // filling the space up to maximum ceiling height with fixed integrated density
+    while (boundaries.back() < ceiling_max)
     {
         G4double nextBoundary = densityModel->CalculateCeiling(boundaries.back(), X_layer);
         if (std::isnan(nextBoundary))
@@ -108,6 +107,23 @@ void LayerAtmosphereModel::InitBoundaries()
         if (nextBoundary > h_max)
             break; // Stop if we exceed the maximum altitude
         boundaries.push_back(nextBoundary);
+    }
+
+    // filling the space beyond maximum ceiling height
+    if (h_max > ceiling_max)
+    {
+        // h_max = ceilling_max;
+        G4cout << "h_max exceeds the maximum ceiling height, filling the space "
+                  "beyond maximum ceiling height with layer of thickness "
+               << delta_z / km << "km" << G4endl;
+
+        while (boundaries.back() < h_max)
+        {
+            G4double nextBoundary = boundaries.back() + delta_z;
+            if (nextBoundary > h_max)
+                break; // Stop if we exceed the maximum altitude
+            boundaries.push_back(nextBoundary);
+        }
     }
 }
 
@@ -132,7 +148,7 @@ void LayerAtmosphereModel::ConstructAtmosphere()
         Air[i]->AddElement(N, 78 * perCent); // Nitrogen 78%
         Air[i]->AddElement(O, 22 * perCent); // Oxygen 21%
 
-        if (sens_z > boundaries[i] && sens_z < boundaries[i + 1])
+        if (h_sens > boundaries[i] && h_sens < boundaries[i + 1])
         {
             sens_layer = i; // Set the sensitive layer index
         }
@@ -153,16 +169,32 @@ void LayerAtmosphereModel::ConstructAtmosphere()
     }
 }
 
-G4double LayerAtmosphereModel::GetWorldZ() const
+void LayerAtmosphereModel::ConstructSensitiveLayer()
 {
-    return world_z;
+    solidSensLayer = new G4Box("solidSensLayer", world_x, world_y, delta_sens);
+    logicSensLayer = new G4LogicalVolume(solidSensLayer,
+                                         Air[sens_layer], // Use the first layer material for the sensitive layer
+                                         "logicSensLayer");
+    physSensLayer = new G4PVPlacement(0,
+                                      G4ThreeVector(0., 0., -(boundaries[sens_layer + 1] + boundaries[sens_layer] + delta_sens) / 2.0 + h_sens),
+                                      logicSensLayer,
+                                      "physSensLayer",
+                                      logicAtmosphere[sens_layer],
+                                      false,
+                                      0,
+                                      true);
+}
+
+G4double LayerAtmosphereModel::GetCeiling() const
+{
+    return boundaries.back();
 }
 
 void LayerAtmosphereModel::ConstructSDandField()
 {
     // Construct sensitive detectors
     SensitiveDetectorBase *sd = new SensitiveDetectorBase("SensitiveDetector");
-    logicAtmosphere[sens_layer]->SetSensitiveDetector(sd);
+    logicSensLayer->SetSensitiveDetector(sd);
     // G4SDManager *SDManager = G4SDManager::GetSDMpointer();
 }
 
