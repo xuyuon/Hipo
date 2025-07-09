@@ -112,12 +112,15 @@ public:
 
     virtual G4VPhysicalVolume *Construct() override;
     void ConstructSDandField() override;
+    G4double GetCeiling() const; // return maximum height
 
 private:
     // Geometry
     G4double R_earth; // Radius of the Earth
     G4double R_min, R_max;
+    G4double R_delta; // thickness of each layer
     G4double R_sens;
+    G4double delta_sens; // thickness of sensitive layer
     G4int sens_layer; // Index of the sensitive layer
 
     // Integrated density for the air layer
@@ -128,11 +131,11 @@ private:
     std::vector<G4double> boundaries;
 
     // Volumes
-    G4Sphere *solidWorld;
+    G4Sphere *solidWorld, *solidSensLayer;
     std::vector<G4Sphere *> solidAtmosphere;
-    G4LogicalVolume *logicWorld;
+    G4LogicalVolume *logicWorld, *logicSensLayer;
     std::vector<G4LogicalVolume *> logicAtmosphere;
-    G4VPhysicalVolume *physWorld;
+    G4VPhysicalVolume *physWorld, *physSensLayer;
     std::vector<G4VPhysicalVolume *> physAtmosphere;
 
     // Materials
@@ -142,6 +145,7 @@ private:
     // Private Methods
     void InitBoundaries();
     void ConstructAtmosphere();
+    void ConstructSensitiveLayer();
 };
 
 #endif

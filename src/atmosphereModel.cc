@@ -54,7 +54,7 @@ LayerAtmosphereModel::LayerAtmosphereModel(DensityModelBase *densityModel,
     this->h_sens = h_sens; // location of the sensitive layer
 
     delta_z = 5. * km;
-    delta_sens = 0.5 * m;
+    delta_sens = 1. * m;
 
     this->densityModel = densityModel;
     InitBoundaries();
@@ -112,7 +112,6 @@ void LayerAtmosphereModel::InitBoundaries()
     // filling the space beyond maximum ceiling height
     if (h_max > ceiling_max)
     {
-        // h_max = ceilling_max;
         G4cout << "h_max exceeds the maximum ceiling height, filling the space "
                   "beyond maximum ceiling height with layer of thickness "
                << delta_z / km << "km" << G4endl;
@@ -209,6 +208,10 @@ SphericalEarth::SphericalEarth(DensityModelBase *densityModel,
     R_min = h_min + R_earth;
     R_max = h_max + R_earth;
     R_sens = h_sens + R_earth;
+
+    delta_sens = 1. * m;
+    R_delta = 5. * km;
+
     this->X_layer = X_layer;
     this->densityModel = densityModel;
 
@@ -223,15 +226,9 @@ SphericalEarth::~SphericalEarth()
 void SphericalEarth::InitBoundaries()
 {
     boundaries = {R_min}; // Start with the minimum radius
-    G4double ceilling_max = densityModel->CalculateMaxCeiling(X_layer);
+    G4double ceiling_max = densityModel->CalculateMaxCeiling(X_layer) + R_earth;
 
-    if (R_max > ceilling_max + R_earth)
-    {
-        R_max = ceilling_max + R_earth;
-        G4cout << "Warning: h_max exceeds the maximum ceiling, adjusted to " << (R_max - R_earth) / km << " km" << G4endl;
-    }
-
-    while (boundaries.back() < R_max)
+    while (boundaries.back() < ceiling_max)
     {
         G4double nextBoundary = densityModel->CalculateCeiling(boundaries.back() - R_earth, X_layer) + R_earth;
         if (std::isnan(nextBoundary))
@@ -242,6 +239,21 @@ void SphericalEarth::InitBoundaries()
         if (nextBoundary > R_max)
             break; // Stop if we exceed the maximum radius
         boundaries.push_back(nextBoundary);
+    }
+
+    if (R_max > ceiling_max)
+    {
+        G4cout << "h_max exceeds the maximum ceiling, filling the space "
+                  "beyond maximum ceiling height with layer of thickness "
+               << R_delta / km << "km" << G4endl;
+
+        while (boundaries.back() < R_max)
+        {
+            G4double nextBoundary = boundaries.back() + R_delta;
+            if (nextBoundary > R_max)
+                break; // Stop if we exceed the maximum altitude
+            boundaries.push_back(nextBoundary);
+        }
     }
 }
 
@@ -269,6 +281,7 @@ G4VPhysicalVolume *SphericalEarth::Construct()
                                   0,
                                   true);
     ConstructAtmosphere();
+    ConstructSensitiveLayer();
     return physWorld;
 }
 
@@ -317,8 +330,35 @@ void SphericalEarth::ConstructAtmosphere()
     }
 }
 
+void SphericalEarth::ConstructSensitiveLayer()
+{
+    solidSensLayer = new G4Sphere("solidSensLayer",
+                                  R_sens,
+                                  R_sens + delta_sens,
+                                  0 * degree,
+                                  360 * degree,
+                                  0. * degree,
+                                  180. * degree);
+    logicSensLayer = new G4LogicalVolume(solidSensLayer,
+                                         Air[sens_layer],
+                                         "logicSensLayer");
+    physSensLayer = new G4PVPlacement(0,
+                                      G4ThreeVector(0., 0., 0.),
+                                      logicSensLayer,
+                                      "physSensLayer",
+                                      logicAtmosphere[sens_layer],
+                                      false,
+                                      0,
+                                      true);
+}
+
+G4double SphericalEarth::GetCeiling() const
+{
+    return boundaries.back();
+}
+
 void SphericalEarth::ConstructSDandField()
 {
     SensitiveDetectorBase *sd = new SphericalShellSD("SensitiveDetector");
-    logicAtmosphere[sens_layer]->SetSensitiveDetector(sd);
+    logicSensLayer->SetSensitiveDetector(sd);
 }

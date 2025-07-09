@@ -36,42 +36,41 @@ int main(int argc, char **argv)
     G4VModularPhysicsList *physicsList = new FTFP_BERT();
     runManager->SetUserInitialization(physicsList);
 
-    LayerAtmosphereModel *atmophereModel = new LayerAtmosphereModel(
+    // LayerAtmosphereModel *atmosphereModel = new LayerAtmosphereModel(
+    //     new ConstTempBarometricModel(),
+    //     40. * km,      // world_x
+    //     40. * km,      // world_y
+    //     10. * kg / m2, // Integrated density for every layer
+    //     0. * km,       // altitude of the first layer
+    //     100. * km,     // altitude of the last layer
+    //     95. * km        // location of the sensitive layer
+    // );
+    // G4double epsilon = 1e-6 * m;
+    // PrimaryGenerator *generator = new PrimaryGenerator(
+    //     new PowerLaw(2.75, 10000. * MeV, 100000. * MeV), // energy spectrum sampling
+    //     new ConstCoordinates(0., 0., atmosphereModel->GetCeiling()/2. - epsilon),          // initial position sampling
+    //     new ConstCoordinates(0., 0., -1.)                // nadir angle sampling
+    // );
+    // ActionInitialization *action = new ActionInitialization(generator);
+
+    SphericalEarth *atmosphereModel = new SphericalEarth(
         new ConstTempBarometricModel(),
-        40. * km,      // world_x
-        40. * km,      // world_y
-        10. * kg / m2, // Integrated density for every layer
-        0. * km,       // altitude of the first layer
-        100. * km,     // altitude of the last layer
-        95. * km        // location of the sensitive layer
+        0. * km,      // h_min
+        1000. * km,    // h_max
+        550. * km,      // h_sens
+        10. * kg / m2 // Integrated density for every layer
     );
-    G4double epsilon = 1e-6 * m; 
-    PrimaryGenerator *generator = new PrimaryGenerator(
-        new PowerLaw(2.75, 10000. * MeV, 100000. * MeV), // energy spectrum sampling
-        new ConstCoordinates(0., 0., atmophereModel->GetCeiling()/2. - epsilon),          // initial position sampling
-        new ConstCoordinates(0., 0., -1.)                // nadir angle sampling
+    G4double epsilon = 1e-6 * m;
+    SphericalSurfaceSampling *generator = new SphericalSurfaceSampling(
+        new PowerLaw(2.75, 1000. * MeV, 10000. * MeV),      // energy spectrum sampling
+        new UniformSphericalSurface(atmosphereModel->GetCeiling() - epsilon), // initial position sampling
+        new Scaled(new Sine(), 2.),                           // nadir angle sampling
+        new Uniform(0., 2 * PI)                               // azimuthal angle sampling
     );
     ActionInitialization *action = new ActionInitialization(generator);
-    
-    runManager->SetUserInitialization(atmophereModel);
+
+    runManager->SetUserInitialization(atmosphereModel);
     runManager->SetUserInitialization(action);
-    
-
-    // runManager->SetUserInitialization(new SphericalEarth(
-    //     new ConstTempBarometricModel(),
-    //     0. * km,      // h_min
-    //     100. * km,    // h_max
-    //     5. * km,      // h_sens
-    //     10. * kg / m2 // Integrated density for every layer
-    //     ));
-    // runManager->SetUserInitialization(new ActionInitialization(
-    //     new SphericalSurfaceSampling(
-    //         new PowerLaw(2.75, 10000. * MeV, 100000. * MeV), // energy spectrum sampling
-    //         new UniformSphericalSurface(6371.0 * km + 50.0 * km),          // initial position sampling
-    //         new Scaled(new Sine(), 2.),              // nadir angle sampling
-    //         new Uniform(0., 2 * PI) // azimuthal angle sampling
-    //     )));
-
 
     // initialize G4 kernel
     runManager->Initialize();
