@@ -83,7 +83,7 @@ G4bool SphericalShellSD::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhist)
                        p_mom.y() * sin(p_pos_theta) * sin(p_pos_phi) +
                        p_mom.z() * cos(p_pos_theta);
 
-    G4ThreeVector p_mom_local(p_mom_x, p_mom_y, p_mom_z);
+    G4ThreeVector p_mom_local(p_mom_x, p_mom_y, - p_mom_z); // reflected along z-axis
     analysisManager->FillNtupleDColumn(0, 5, p_mom_local.phi() / radian);
     analysisManager->FillNtupleDColumn(0, 6, p_mom_local.theta() / radian);
 
