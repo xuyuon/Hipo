@@ -1,8 +1,8 @@
 #include "action.hh"
 
-ActionInitialization::ActionInitialization()
+ActionInitialization::ActionInitialization(G4VUserPrimaryGeneratorAction* generator)
 {
-    // Constructor implementation
+    this->generator = generator;
 }
 
 ActionInitialization::~ActionInitialization()
@@ -12,7 +12,6 @@ ActionInitialization::~ActionInitialization()
 
 void ActionInitialization::Build() const
 {
-    PrimaryGenerator *generator = new PrimaryGenerator();
     SetUserAction(generator); // Set the primary generator action
 
     RunAction *runAction = new RunAction();
