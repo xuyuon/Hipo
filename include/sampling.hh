@@ -167,7 +167,7 @@ public:
                             G4double theta_min = 0.,
                             G4double theta_max = PI,
                             G4double phi_min = 0.,
-                            G4double phi_max = 2 * PI);
+                            G4double phi_max = 2. * PI);
     ~UniformSphericalSurface();
 
     virtual G4ThreeVector sample() override;

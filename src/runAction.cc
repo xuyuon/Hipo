@@ -38,7 +38,11 @@ void RunAction::BeginOfRunAction(const G4Run* run)
 
     analysisManager->CreateNtuple("Incident_p", "Incident_p");
     analysisManager->CreateNtupleDColumn("energy");
-    analysisManager->CreateNtupleDColumn("nadir");
+    analysisManager->CreateNtupleDColumn("position_r");
+    analysisManager->CreateNtupleDColumn("position_phi");
+    analysisManager->CreateNtupleDColumn("position_theta");
+    analysisManager->CreateNtupleDColumn("nadir_phi");
+    analysisManager->CreateNtupleDColumn("nadir_theta");
     analysisManager->FinishNtuple(1);
 }
 
