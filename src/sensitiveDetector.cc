@@ -75,11 +75,11 @@ G4bool SphericalShellSD::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhist)
     G4double p_pos_theta = p_pos.theta();
 
     G4double p_mom_x = -p_mom.x() * cos(p_pos_theta) * cos(p_pos_phi) -
-                       p_mom.y() * cos(p_pos_theta) * sin(p_pos_phi) -
+                       p_mom.y() * cos(p_pos_theta) * sin(p_pos_phi) +
                        p_mom.z() * sin(p_pos_theta);
     G4double p_mom_y = p_mom.x() * sin(p_pos_phi) -
                        p_mom.y() * cos(p_pos_phi);
-    G4double p_mom_z = -p_mom.x() * sin(p_pos_theta) * cos(p_pos_phi) -
+    G4double p_mom_z = p_mom.x() * sin(p_pos_theta) * cos(p_pos_phi) +
                        p_mom.y() * sin(p_pos_theta) * sin(p_pos_phi) +
                        p_mom.z() * cos(p_pos_theta);
 
