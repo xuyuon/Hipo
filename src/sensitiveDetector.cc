@@ -73,7 +73,7 @@ G4bool SphericalShellSD::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhist)
     // Transform to local coordinates
     G4double p_pos_phi = p_pos.phi();
     G4double p_pos_theta = p_pos.theta();
-
+    // transformation defined such that phi=0 is pointing towards north pole
     G4double p_mom_x = -p_mom.x() * cos(p_pos_theta) * cos(p_pos_phi) -
                        p_mom.y() * cos(p_pos_theta) * sin(p_pos_phi) +
                        p_mom.z() * sin(p_pos_theta);
