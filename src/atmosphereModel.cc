@@ -209,7 +209,7 @@ SphericalEarth::SphericalEarth(DensityModelBase *densityModel,
     R_max = h_max + R_earth;
     R_sens = h_sens + R_earth;
 
-    delta_sens = 1. * m;
+    delta_sens = 1. * cm;
     R_delta = 5. * km;
 
     this->X_layer = X_layer;

@@ -44,6 +44,12 @@ SphericalShellSD::~SphericalShellSD()
 
 G4bool SphericalShellSD::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhist)
 {
+    // Check if this is the first step in the volume
+    if(aStep->IsFirstStepInVolume() == false)
+    {
+        return true;
+    }
+
     G4Track *track = aStep->GetTrack();
     G4String pName = track->GetDefinition()->GetParticleName();
 
@@ -55,7 +61,7 @@ G4bool SphericalShellSD::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhist)
     G4StepPoint *postStepPoint = aStep->GetPostStepPoint(); // when the particle exits the sensitive detector
 
     // 1. Record the energy of the photon at the pre-step point
-    G4double energy = preStepPoint->GetKineticEnergy();
+    G4double energy = postStepPoint->GetKineticEnergy();
     analysisManager->FillNtupleDColumn(0, 0, energy / eV);
 
     // 2. Record the physical process that generated the photon
@@ -88,6 +94,7 @@ G4bool SphericalShellSD::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhist)
     analysisManager->FillNtupleDColumn(0, 6, p_mom_local.theta() / radian);
 
     analysisManager->AddNtupleRow(0);
+
 
     return true;
 }
