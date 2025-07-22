@@ -36,14 +36,17 @@ int main(int argc, char **argv)
     G4VModularPhysicsList *physicsList = new FTFP_BERT();
     runManager->SetUserInitialization(physicsList);
 
+    // DensityModelBase *densityModel = new ConstTempBarometricModel(
+    //     0. * km,       // h_min
+    //     100. * km,     // h_max
+    //     1. * km,       // delta_h
+    //     10. * kg / m2 // Integrated density for every layer
+    // );
     // LayerAtmosphereModel *atmosphereModel = new LayerAtmosphereModel(
-    //     new ConstTempBarometricModel(),
+    //     densityModel,
     //     40. * km,      // world_x
     //     40. * km,      // world_y
-    //     10. * kg / m2, // Integrated density for every layer
-    //     0. * km,       // altitude of the first layer
-    //     100. * km,     // altitude of the last layer
-    //     95. * km        // location of the sensitive layer
+    //     50. * km        // location of the sensitive layer
     // );
     // G4double epsilon = 1e-6 * m;
     // PrimaryGenerator *generator = new PrimaryGenerator(
@@ -53,19 +56,22 @@ int main(int argc, char **argv)
     // );
     // ActionInitialization *action = new ActionInitialization(generator);
 
-    SphericalEarth *atmosphereModel = new SphericalEarth(
-        new ConstTempBarometricModel(),
+    DensityModelBase *densityModel = new ConstTempBarometricModel(
         0. * km,      // h_min
         1000. * km,    // h_max
-        550. * km,      // h_sens
+        1. * km,      // delta_h
         10. * kg / m2 // Integrated density for every layer
+    );
+    SphericalEarth *atmosphereModel = new SphericalEarth(
+        densityModel, // density model
+        550. * km    // h_sens
     );
     G4double epsilon = 1e-6 * m;
     SphericalSurfaceSampling *generator = new SphericalSurfaceSampling(
-        new PowerLaw(2.75, 1000. * MeV, 10000. * MeV),      // energy spectrum sampling
+        new PowerLaw(2.75, 1000. * MeV, 10000. * MeV),                        // energy spectrum sampling
         new UniformSphericalSurface(atmosphereModel->GetCeiling() - epsilon), // initial position sampling
-        new Scaled(new Sine(), 2.),                           // nadir angle sampling
-        new Uniform(0., 2. * PI)                               // azimuthal angle sampling
+        new Scaled(new Sine(), 2.),                                           // nadir angle sampling
+        new Uniform(0., 2. * PI)                                              // azimuthal angle sampling
     );
     ActionInitialization *action = new ActionInitialization(generator);
 
