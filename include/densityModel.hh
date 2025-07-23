@@ -7,6 +7,9 @@
 #include "G4Transportation.hh"
 
 #include <vector>
+#include <fstream>
+#include <string>
+#include <sstream>
 
 class DensityModelBase
 {
@@ -64,6 +67,21 @@ private:
     void InitBoundaries();
     G4double LayerCeiling(G4double altitude, G4double X) const;
     G4double MaxCeiling(G4double X) const;
+};
+
+
+class NRLMSIS_2 : public DensityModelBase
+{
+public:
+    NRLMSIS_2(G4String data_file);
+    ~NRLMSIS_2();
+
+    virtual std::vector<G4double> GetBoundaries() const override;
+    virtual std::vector<G4double> GetDensities() const override;
+
+private:
+    std::vector<G4double> boundaries;
+    std::vector<G4double> densities;
 };
 
 #endif

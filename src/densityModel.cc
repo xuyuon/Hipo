@@ -115,3 +115,45 @@ G4double ConstTempBarometricModel::MaxCeiling(G4double X) const
     G4double maxCeiling = -1 / beta * log(g * (X / kg * m2) / pressure_ref / exp(beta * h_ref / m));
     return maxCeiling * m;
 }
+
+NRLMSIS_2::NRLMSIS_2(G4String data_file)
+{
+    std::ifstream file(data_file);
+    if (!file.is_open())
+    {
+        G4cerr << "Error: Could not open data file " << data_file << G4endl;
+        return;
+    }
+
+    std::string line;
+    while (std::getline(file, line))
+    {
+        std::stringstream ss(line);
+
+        // Assuming the file has two columns: altitude and density
+        std::string numstr;
+
+        std::getline(ss, numstr, ' ');
+        boundaries.push_back(std::stod(numstr) * km);
+        G4cout << "Altitude: " << boundaries.back() / km << " km" << G4endl;
+
+        std::getline(ss, numstr, ' ');
+        densities.push_back(std::stod(numstr) * kg / m3);
+        G4cout << "Density: " << densities.back() / kg * m3 << " kg/m^3" << G4endl;
+    }
+}
+
+
+NRLMSIS_2::~NRLMSIS_2()
+{
+}
+
+std::vector<G4double> NRLMSIS_2::GetBoundaries() const
+{
+    return boundaries;
+}
+
+std::vector<G4double> NRLMSIS_2::GetDensities() const
+{
+    return densities;
+}
