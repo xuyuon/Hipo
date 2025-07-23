@@ -87,11 +87,17 @@ G4VPhysicalVolume *LayerAtmosphereModel::Construct()
 
 void LayerAtmosphereModel::ConstructAtmosphere()
 {
-    G4double aN = 14.01 * g / mole; // Molar mass of nitrogen
-    G4double aO = 16.00 * g / mole; // Molar mass of oxygen
+    G4double aN = 14.01 * g / mole;  // Molar mass of nitrogen
+    G4double aO = 16.00 * g / mole;  // Molar mass of oxygen
+    G4double aAr = 39.95 * g / mole; // Molar mass of argon
+    G4double aHe = 4.003 * g / mole; // Molar mass of helium
+    G4double aH = 1.008 * g / mole;  // Molar mass of hydrogen
 
-    G4Element *N = new G4Element("Nitrogen", "N", 7, aN);
-    G4Element *O = new G4Element("Oxygen", "O", 8, aO);
+    G4Element *N = new G4Element("Nitrogen", "N", 7., aN);
+    G4Element *O = new G4Element("Oxygen", "O", 8., aO);
+    G4Element *Ar = new G4Element("Argon", "Ar", 18., aAr);
+    G4Element *He = new G4Element("Helium", "He", 2., aHe);
+    G4Element *H = new G4Element("Hydrogen", "H", 1., aH);
 
     G4double epsilon = 1e-6 * m;           // Small value to prevent volume overlap
     G4int nLayers = boundaries.size() - 1; // Number of layers based on the boundaries
@@ -101,9 +107,12 @@ void LayerAtmosphereModel::ConstructAtmosphere()
         G4double altitude = boundaries[i];
         G4double density = densities[i];
 
-        Air.push_back(new G4Material("Air" + std::to_string(i), density, 2));
-        Air[i]->AddElement(N, 78 * perCent); // Nitrogen 78%
-        Air[i]->AddElement(O, 22 * perCent); // Oxygen 21%
+        Air.push_back(new G4Material("Air" + std::to_string(i), density, 5));
+        Air[i]->AddElement(N, densityModel->GetNPercentageMass()[i]); 
+        Air[i]->AddElement(O, densityModel->GetOPercentageMass()[i]);
+        Air[i]->AddElement(Ar, densityModel->GetArPercentageMass()[i]);
+        Air[i]->AddElement(He, densityModel->GetHePercentageMass()[i]);
+        Air[i]->AddElement(H, densityModel->GetHPercentageMass()[i]); 
 
         if (h_sens > boundaries[i] && h_sens < boundaries[i + 1])
         {
@@ -209,20 +218,29 @@ G4VPhysicalVolume *SphericalEarth::Construct()
 
 void SphericalEarth::ConstructAtmosphere()
 {
-    G4double aN = 14.01 * g / mole; // Molar mass of nitrogen
-    G4double aO = 16.00 * g / mole; // Molar mass of oxygen
+    G4double aN = 14.01 * g / mole;  // Molar mass of nitrogen
+    G4double aO = 16.00 * g / mole;  // Molar mass of oxygen
+    G4double aAr = 39.95 * g / mole; // Molar mass of argon
+    G4double aHe = 4.003 * g / mole; // Molar mass of helium
+    G4double aH = 1.008 * g / mole;  // Molar mass of hydrogen
 
-    G4Element *N = new G4Element("Nitrogen", "N", 7, aN);
-    G4Element *O = new G4Element("Oxygen", "O", 8, aO);
+    G4Element *N = new G4Element("Nitrogen", "N", 7., aN);
+    G4Element *O = new G4Element("Oxygen", "O", 8., aO);
+    G4Element *Ar = new G4Element("Argon", "Ar", 18., aAr);
+    G4Element *He = new G4Element("Helium", "He", 2., aHe);
+    G4Element *H = new G4Element("Hydrogen", "H", 1., aH);
 
     G4double epsilon = 1e-6 * m;           // Small value to prevent volume overlap
     G4int nLayers = boundaries.size() - 1; // Number of layers based on the boundaries
 
     for (int i = 0; i < nLayers; ++i)
     {
-        Air.push_back(new G4Material("Air" + std::to_string(i), densities[i], 2));
-        Air[i]->AddElement(N, 78 * perCent); // Nitrogen 78%
-        Air[i]->AddElement(O, 22 * perCent); // Oxygen 21%
+        Air.push_back(new G4Material("Air" + std::to_string(i), densities[i], 5));
+        Air[i]->AddElement(N, densityModel->GetNPercentageMass()[i]); 
+        Air[i]->AddElement(O, densityModel->GetOPercentageMass()[i]);
+        Air[i]->AddElement(Ar, densityModel->GetArPercentageMass()[i]);
+        Air[i]->AddElement(He, densityModel->GetHePercentageMass()[i]);
+        Air[i]->AddElement(H, densityModel->GetHPercentageMass()[i]); 
 
         if (R_sens > boundaries[i] && R_sens < boundaries[i + 1])
         {

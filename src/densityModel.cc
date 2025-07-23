@@ -74,6 +74,13 @@ void ConstTempBarometricModel::InitBoundaries()
     {
         densities.push_back(CalculateDensity(boundaries[i]));
     }
+
+    // filling in the percentage mass of each element
+    h_percentage_mass.assign(n_boundaries, 0.0);
+    he_percentage_mass.assign(n_boundaries, 0.0);
+    n_percentage_mass.assign(n_boundaries, 0.78);
+    o_percentage_mass.assign(n_boundaries, 0.22);
+    ar_percentage_mass.assign(n_boundaries, 0.0);
 }
 
 std::vector<G4double> ConstTempBarometricModel::GetBoundaries() const
@@ -84,6 +91,31 @@ std::vector<G4double> ConstTempBarometricModel::GetBoundaries() const
 std::vector<G4double> ConstTempBarometricModel::GetDensities() const
 {
     return densities;
+}
+
+std::vector<G4double> ConstTempBarometricModel::GetHPercentageMass() const
+{
+    return h_percentage_mass;
+}
+
+std::vector<G4double> ConstTempBarometricModel::GetHePercentageMass() const
+{
+    return he_percentage_mass;
+}
+
+std::vector<G4double> ConstTempBarometricModel::GetNPercentageMass() const
+{
+    return n_percentage_mass;
+}
+
+std::vector<G4double> ConstTempBarometricModel::GetOPercentageMass() const
+{
+    return o_percentage_mass;
+}
+
+std::vector<G4double> ConstTempBarometricModel::GetArPercentageMass() const
+{
+    return ar_percentage_mass;
 }
 
 G4double ConstTempBarometricModel::CalculateDensity(G4double altitude) const
@@ -143,7 +175,6 @@ NRLMSIS_2::NRLMSIS_2(G4String data_file)
     }
 }
 
-
 NRLMSIS_2::~NRLMSIS_2()
 {
 }
@@ -156,4 +187,29 @@ std::vector<G4double> NRLMSIS_2::GetBoundaries() const
 std::vector<G4double> NRLMSIS_2::GetDensities() const
 {
     return densities;
+}
+
+std::vector<G4double> NRLMSIS_2::GetHPercentageMass() const
+{
+    return h_percentage_mass;
+}
+
+std::vector<G4double> NRLMSIS_2::GetHePercentageMass() const
+{
+    return he_percentage_mass;
+}
+
+std::vector<G4double> NRLMSIS_2::GetNPercentageMass() const
+{
+    return n_percentage_mass;
+}
+
+std::vector<G4double> NRLMSIS_2::GetOPercentageMass() const
+{
+    return o_percentage_mass;
+}
+
+std::vector<G4double> NRLMSIS_2::GetArPercentageMass() const
+{
+    return ar_percentage_mass;
 }

@@ -24,6 +24,11 @@ public:
 
     virtual std::vector<G4double> GetBoundaries() const = 0;
     virtual std::vector<G4double> GetDensities() const = 0;
+    virtual std::vector<G4double> GetHPercentageMass() const = 0;
+    virtual std::vector<G4double> GetHePercentageMass() const = 0;
+    virtual std::vector<G4double> GetNPercentageMass() const = 0;
+    virtual std::vector<G4double> GetOPercentageMass() const = 0;
+    virtual std::vector<G4double> GetArPercentageMass() const = 0;
 };
 
 class ConstTempBarometricModel : public DensityModelBase
@@ -41,6 +46,11 @@ public:
 
     virtual std::vector<G4double> GetBoundaries() const override;
     virtual std::vector<G4double> GetDensities() const override;
+    virtual std::vector<G4double> GetHPercentageMass() const override;
+    virtual std::vector<G4double> GetHePercentageMass() const override;
+    virtual std::vector<G4double> GetNPercentageMass() const override;
+    virtual std::vector<G4double> GetOPercentageMass() const override;
+    virtual std::vector<G4double> GetArPercentageMass() const override;
 
     G4double CalculateDensity(G4double altitude) const;
 
@@ -62,13 +72,17 @@ private:
 
     std::vector<G4double> boundaries;
     std::vector<G4double> densities;
+    std::vector<G4double> h_percentage_mass;
+    std::vector<G4double> he_percentage_mass;
+    std::vector<G4double> n_percentage_mass;
+    std::vector<G4double> o_percentage_mass;
+    std::vector<G4double> ar_percentage_mass;
 
     // Helper functions
     void InitBoundaries();
     G4double LayerCeiling(G4double altitude, G4double X) const;
     G4double MaxCeiling(G4double X) const;
 };
-
 
 class NRLMSIS_2 : public DensityModelBase
 {
@@ -78,10 +92,20 @@ public:
 
     virtual std::vector<G4double> GetBoundaries() const override;
     virtual std::vector<G4double> GetDensities() const override;
+    virtual std::vector<G4double> GetHPercentageMass() const override;
+    virtual std::vector<G4double> GetHePercentageMass() const override;
+    virtual std::vector<G4double> GetNPercentageMass() const override;
+    virtual std::vector<G4double> GetOPercentageMass() const override;
+    virtual std::vector<G4double> GetArPercentageMass() const override;
 
 private:
     std::vector<G4double> boundaries;
     std::vector<G4double> densities;
+    std::vector<G4double> h_percentage_mass;
+    std::vector<G4double> he_percentage_mass;
+    std::vector<G4double> n_percentage_mass;
+    std::vector<G4double> o_percentage_mass;
+    std::vector<G4double> ar_percentage_mass;
 };
 
 #endif
