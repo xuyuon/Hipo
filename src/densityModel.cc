@@ -171,31 +171,24 @@ NRLMSIS_2::NRLMSIS_2(G4String data_file)
 
         std::getline(ss, numstr, ',');
         boundaries.push_back(std::stod(numstr) * km);
-        G4cout << "Altitude: " << boundaries.back() / km << " km" << G4endl;
 
         std::getline(ss, numstr, ',');
         h_percentage_mass.push_back(std::stod(numstr));
-        G4cout << "H percentage mass: " << h_percentage_mass.back() << G4endl;
 
         std::getline(ss, numstr, ',');
         he_percentage_mass.push_back(std::stod(numstr));
-        G4cout << "He percentage mass: " << he_percentage_mass.back() << G4endl;
 
         std::getline(ss, numstr, ',');
         n_percentage_mass.push_back(std::stod(numstr));
-        G4cout << "N percentage mass: " << n_percentage_mass.back() << G4endl;
 
         std::getline(ss, numstr, ',');
         o_percentage_mass.push_back(std::stod(numstr));
-        G4cout << "O percentage mass: " << o_percentage_mass.back() << G4endl;
 
         std::getline(ss, numstr, ',');
         ar_percentage_mass.push_back(std::stod(numstr));
-        G4cout << "Ar percentage mass: " << ar_percentage_mass.back() << G4endl;
 
         std::getline(ss, numstr, ',');
         densities.push_back(std::stod(numstr) * g / cm3);
-        G4cout << "Density: " << densities.back() / g * cm3 << " g/cm^3" << G4endl;
     }
 }
 
