@@ -137,6 +137,12 @@ void LayerAtmosphereModel::ConstructAtmosphere()
 
 void LayerAtmosphereModel::ConstructSensitiveLayer()
 {
+    // Check if the sensitive layer is within a layer
+    if (h_sens < boundaries[sens_layer] || h_sens > boundaries[sens_layer + 1])
+    {
+        G4cerr << "Error: Sensitive layer should be within a atmosphere layer." << G4endl;
+    }
+    
     solidSensLayer = new G4Box("solidSensLayer", world_x, world_y, delta_sens);
     logicSensLayer = new G4LogicalVolume(solidSensLayer,
                                          Air[sens_layer], // Use the first layer material for the sensitive layer
@@ -268,6 +274,12 @@ void SphericalEarth::ConstructAtmosphere()
 
 void SphericalEarth::ConstructSensitiveLayer()
 {
+    // Check if the sensitive layer is within a layer
+    if (R_sens < boundaries[sens_layer] || R_sens > boundaries[sens_layer + 1])
+    {
+        G4cerr << "Error: Sensitive layer should be within a atmosphere layer." << G4endl;
+    }
+
     solidSensLayer = new G4Sphere("solidSensLayer",
                                   R_sens,
                                   R_sens + delta_sens,

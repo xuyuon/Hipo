@@ -51,12 +51,12 @@ int main(int argc, char **argv)
     // );
     // ActionInitialization *action = new ActionInitialization(generator);
 
+    G4double epsilon = 1e-6 * m;
     DensityModelBase *densityModel = new NRLMSIS_2("msis2.0_density_profile.txt");
     SphericalEarth *atmosphereModel = new SphericalEarth(
         densityModel, // density model
-        550. * km    // h_sens
+        550. * km + epsilon  // h_sens
     );
-    G4double epsilon = 1e-6 * m;
     SphericalSurfaceSampling *generator = new SphericalSurfaceSampling(
         new PowerLaw(2.75, 1000. * MeV, 10000. * MeV),                        // energy spectrum sampling
         new UniformSphericalSurface(atmosphereModel->GetCeiling() - epsilon), // initial position sampling
