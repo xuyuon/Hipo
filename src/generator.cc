@@ -77,7 +77,6 @@ void SphericalSurfaceSampling::GeneratePrimaries(G4Event *anEvent)
     G4double p_energy = EnergySpectrum->sample();
     fParticleGun->SetParticleEnergy(p_energy); // Set the energy of the particle
     analysisManager->FillNtupleDColumn(1, 0, p_energy / eV);
-    analysisManager->AddNtupleRow(1);
 
     // Sample the initial position
     G4ThreeVector p_pos = pos_dist->sample();
@@ -91,6 +90,8 @@ void SphericalSurfaceSampling::GeneratePrimaries(G4Event *anEvent)
     G4double p_phi = phi_dist->sample();
     analysisManager->FillNtupleDColumn(1, 4, p_phi);
     analysisManager->FillNtupleDColumn(1, 5, p_theta);
+
+    analysisManager->AddNtupleRow(1);
 
     // Transform the local coordinate into global coordinate
     G4double p_pos_theta = p_pos.theta();
