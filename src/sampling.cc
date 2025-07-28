@@ -7,7 +7,7 @@ Scaled::Scaled(SamplingBase *dist, G4double alpha)
         G4cerr << "Error in initialing Scaled: alpha must be greater than 0." << G4endl;
     }
     this->dist = dist;
-    this->alpha = alpha; 
+    this->alpha = alpha;
 }
 
 Scaled::~Scaled()
@@ -23,7 +23,7 @@ G4double Scaled::sample()
 Offset::Offset(SamplingBase *dist, G4double offset)
 {
     this->dist = dist;
-    this->offset = offset; 
+    this->offset = offset;
 }
 
 Offset::~Offset()
@@ -35,7 +35,6 @@ G4double Offset::sample()
     G4double x = dist->sample();
     return x - offset;
 }
-
 
 Uniform::Uniform(G4double xmin, G4double xmax)
 {
@@ -58,7 +57,7 @@ G4double Uniform::sample()
     The probability density function is given by:
     P(x) = 1 / (xmax - xmin) for xmin <= x <= xmax
     */
-    G4double u = G4UniformRand(); // uniform random number in [0, 1)
+    G4double u = G4UniformRand();          // uniform random number in [0, 1)
     G4double x = u * (xmax - xmin) + xmin; // scale to [xmin, xmax]
     return x;
 }
@@ -163,6 +162,30 @@ G4double Cosine::sample()
     G4double u = G4UniformRand();
     G4double x = asin(sin(xmin) + u * (sin(xmax) - sin(xmin)));
     return x;
+}
+
+LogUniform::LogUniform(G4double xmin, G4double xmax)
+{
+    if (xmax <= xmin)
+    {
+        G4cerr << "Error in initialing LogUniform: xmax must be greater than xmin." << G4endl;
+    }
+    if (xmin <= 0)
+    {
+        G4cerr << "Error in initialing LogUniform: xmin must be greater than 0." << G4endl;
+    }
+    this->xmin = xmin;
+    this->xmax = xmax;
+}
+
+LogUniform::~LogUniform()
+{
+}
+
+G4double LogUniform::sample()
+{
+    G4double u = G4UniformRand();
+    return xmin * pow(xmax / xmin, u);
 }
 
 ConstCoordinates::ConstCoordinates(G4double x,

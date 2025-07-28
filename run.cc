@@ -58,7 +58,7 @@ int main(int argc, char **argv)
         550. * km + epsilon  // h_sens
     );
     SphericalSurfaceSampling *generator = new SphericalSurfaceSampling(
-        new PowerLaw(2.75, 1000. * MeV, 10000. * MeV),                        // energy spectrum sampling
+        new LogUniform(1000. * MeV, 10000. * MeV),                        // energy spectrum sampling
         new UniformSphericalSurface(atmosphereModel->GetCeiling() - epsilon), // initial position sampling
         new Scaled(new Sine(), 2.),                                           // nadir angle sampling
         new Uniform(0., 2. * PI)                                              // azimuthal angle sampling

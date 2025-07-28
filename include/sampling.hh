@@ -30,9 +30,10 @@ public:
     ~Scaled();
 
     virtual G4double sample() override;
+
 private:
-    SamplingBase *dist; 
-    G4double alpha;      // scaling factor
+    SamplingBase *dist;
+    G4double alpha; // scaling factor
 };
 
 class Offset : public SamplingBase
@@ -46,11 +47,11 @@ public:
     ~Offset();
 
     virtual G4double sample() override;
+
 private:
     SamplingBase *dist; // distribution to be shifted
     G4double offset;    // offset value
 };
-
 
 class Uniform : public SamplingBase
 {
@@ -62,11 +63,11 @@ public:
     ~Uniform();
 
     virtual G4double sample() override;
+
 private:
     G4double xmin; // lower bound
     G4double xmax; // upper bound
 };
-
 
 class PowerLaw : public SamplingBase
 {
@@ -127,6 +128,23 @@ private:
     G4double xmax;
 };
 
+class LogUniform : public SamplingBase
+{
+    /*
+    Uniform distribution in the range [log(xmin), log(xmax)].
+    */
+
+public:
+    LogUniform(G4double xmin, G4double xmax);
+    ~LogUniform();
+
+    virtual G4double sample() override;
+
+private:
+    G4double xmin;
+    G4double xmax;
+};
+
 class CoordinatesSamplingBase
 {
 public:
@@ -150,6 +168,7 @@ public:
     ~ConstCoordinates();
 
     virtual G4ThreeVector sample() override;
+
 private:
     G4double x;
     G4double y;
@@ -173,11 +192,11 @@ public:
     virtual G4ThreeVector sample() override;
 
 private:
-    G4double r; 
+    G4double r;
     G4double theta_min;
-    G4double theta_max; 
-    G4double phi_min; 
-    G4double phi_max; 
+    G4double theta_max;
+    G4double phi_min;
+    G4double phi_max;
 
     SamplingBase *thetaSampling;
 };
