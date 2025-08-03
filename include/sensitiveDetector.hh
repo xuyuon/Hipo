@@ -5,6 +5,7 @@
 #include "G4SystemOfUnits.hh"
 #include "G4AnalysisManager.hh"
 #include "G4VProcess.hh"
+#include "G4EventManager.hh"
 
 
 class SensitiveDetectorBase : public G4VSensitiveDetector

@@ -7,6 +7,7 @@
 #include "G4SystemOfUnits.hh" // Include Geant4 units
 #include "G4ParticleTable.hh"
 #include "G4AnalysisManager.hh"
+#include "G4Event.hh"
 
 #include "sampling.hh"
 

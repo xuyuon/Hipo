@@ -60,21 +60,25 @@ G4bool SphericalShellSD::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhist)
     G4StepPoint *preStepPoint = aStep->GetPreStepPoint();   // when the particle enters the sensitive detector
     G4StepPoint *postStepPoint = aStep->GetPostStepPoint(); // when the particle exits the sensitive detector
 
-    // 1. Record the energy of the photon at the pre-step point
+    // 1. Record the event ID
+    G4int eventID = G4EventManager::GetEventManager()->GetConstCurrentEvent()->GetEventID();
+    analysisManager->FillNtupleIColumn(0, 0, eventID);
+
+    // 2. Record the energy of the photon at the pre-step point
     G4double energy = postStepPoint->GetKineticEnergy();
-    analysisManager->FillNtupleDColumn(0, 0, energy / eV);
+    analysisManager->FillNtupleDColumn(0, 1, energy / eV);
 
-    // 2. Record the physical process that generated the photon
+    // 3. Record the physical process that generated the photon
     G4String processName = track->GetCreatorProcess()->GetProcessName();
-    analysisManager->FillNtupleSColumn(0, 1, processName);
+    analysisManager->FillNtupleSColumn(0, 2, processName);
 
-    // 3. Record the position of the photon
+    // 4. Record the position of the photon
     G4ThreeVector p_pos = track->GetPosition();
-    analysisManager->FillNtupleDColumn(0, 2, p_pos.mag() / km);
-    analysisManager->FillNtupleDColumn(0, 3, p_pos.phi() / radian);
-    analysisManager->FillNtupleDColumn(0, 4, p_pos.theta() / radian);
+    analysisManager->FillNtupleDColumn(0, 3, p_pos.mag() / km);
+    analysisManager->FillNtupleDColumn(0, 4, p_pos.phi() / radian);
+    analysisManager->FillNtupleDColumn(0, 5, p_pos.theta() / radian);
 
-    // 4. Record the momentum direction of the photon
+    // 5. Record the momentum direction of the photon
     G4ThreeVector p_mom = track->GetMomentumDirection();
     // Transform to local coordinates
     G4double p_pos_phi = p_pos.phi();
@@ -90,8 +94,8 @@ G4bool SphericalShellSD::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhist)
                        p_mom.z() * cos(p_pos_theta);
 
     G4ThreeVector p_mom_local(p_mom_x, p_mom_y, p_mom_z); 
-    analysisManager->FillNtupleDColumn(0, 5, p_mom_local.phi() / radian);
-    analysisManager->FillNtupleDColumn(0, 6, p_mom_local.theta() / radian);
+    analysisManager->FillNtupleDColumn(0, 6, p_mom_local.phi() / radian);
+    analysisManager->FillNtupleDColumn(0, 7, p_mom_local.theta() / radian);
 
     analysisManager->AddNtupleRow(0);
 

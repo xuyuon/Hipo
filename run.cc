@@ -7,7 +7,6 @@
 #include "G4VisManager.hh"
 #include "G4VisExecutive.hh"
 #include "G4SystemOfUnits.hh"
-
 #include "FTFP_BERT.hh"
 
 #include "action.hh"
@@ -16,9 +15,12 @@
 #include "generator.hh"
 #include "sampling.hh"
 
+
 int main(int argc, char **argv)
 {
     G4int nThreads = 4; // nThreads=1 for single-threaded mode, nThreads>1 for multi-threaded mode
+
+    G4String densityModelFile = "msis2.0_density_profile.txt";
 
     // construct the run manager
     G4RunManager *runManager = nullptr;
@@ -36,14 +38,12 @@ int main(int argc, char **argv)
     G4VModularPhysicsList *physicsList = new FTFP_BERT();
     runManager->SetUserInitialization(physicsList);
 
+    // DensityModelBase *densityModel = new NRLMSIS_2("msis2.0_density_profile.txt");
     // LayerAtmosphereModel *atmosphereModel = new LayerAtmosphereModel(
-    //     new ConstTempBarometricModel(),
+    //     densityModel,
     //     40. * km,      // world_x
     //     40. * km,      // world_y
-    //     10. * kg / m2, // Integrated density for every layer
-    //     0. * km,       // altitude of the first layer
-    //     100. * km,     // altitude of the last layer
-    //     95. * km        // location of the sensitive layer
+    //     50. * km        // location of the sensitive layer
     // );
     // G4double epsilon = 1e-6 * m;
     // PrimaryGenerator *generator = new PrimaryGenerator(
@@ -53,19 +53,17 @@ int main(int argc, char **argv)
     // );
     // ActionInitialization *action = new ActionInitialization(generator);
 
-    SphericalEarth *atmosphereModel = new SphericalEarth(
-        new ConstTempBarometricModel(),
-        0. * km,      // h_min
-        1000. * km,    // h_max
-        550. * km,      // h_sens
-        10. * kg / m2 // Integrated density for every layer
-    );
     G4double epsilon = 1e-6 * m;
+    DensityModelBase *densityModel = new NRLMSIS_2(densityModelFile);
+    SphericalEarth *atmosphereModel = new SphericalEarth(
+        densityModel, // density model
+        550. * km + epsilon  // h_sens
+    );
     SphericalSurfaceSampling *generator = new SphericalSurfaceSampling(
-        new PowerLaw(2.75, 1000. * MeV, 10000. * MeV),      // energy spectrum sampling
+        new LogUniform(1000. * MeV, 10000. * MeV),                        // energy spectrum sampling
         new UniformSphericalSurface(atmosphereModel->GetCeiling() - epsilon), // initial position sampling
-        new Scaled(new Sine(), 2.),                           // nadir angle sampling
-        new Uniform(0., 2. * PI)                               // azimuthal angle sampling
+        new Scaled(new Sine(), 2.),                                           // nadir angle sampling
+        new Uniform(0., 2. * PI)                                              // azimuthal angle sampling
     );
     ActionInitialization *action = new ActionInitialization(generator);
 
@@ -93,7 +91,6 @@ int main(int argc, char **argv)
     {
         // interactive mode
         ui = new G4UIExecutive(argc, argv);
-        UImanager->ApplyCommand("/control/execute vis.mac");
         UImanager->ApplyCommand("/control/execute vis.mac");
         ui->SessionStart();
         delete ui;
