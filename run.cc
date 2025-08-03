@@ -18,15 +18,14 @@
 
 int main(int argc, char **argv)
 {
-    G4int nThreads = 4; // nThreads=1 for single-threaded mode, nThreads>1 for multi-threaded mode
-    G4String densityModelFile = "msis2.0_density_profile.txt";
-
     // Setting Up Parser
     Parser *parser = new Parser();
-    parser->ReadConfig("config.txt");
+    G4String config_file = argv[1];
+    parser->ReadConfig(config_file);
 
     // construct the run manager
     G4RunManager *runManager = nullptr;
+    G4int nThreads = parser->GetIValue("nThreads");
     if (nThreads > 1)
     {
         runManager = new G4MTRunManager();
@@ -57,7 +56,7 @@ int main(int argc, char **argv)
     // ActionInitialization *action = new ActionInitialization(generator);
 
     G4double epsilon = 1e-6 * m;
-    DensityModelBase *densityModel = new NRLMSIS_2(densityModelFile);
+    DensityModelBase *densityModel = new NRLMSIS_2(parser->GetSValue("DensityProfileFile"));
     SphericalEarth *atmosphereModel = new SphericalEarth(
         densityModel,                    // density model
         550. * km + epsilon,             // h_sens
@@ -85,11 +84,11 @@ int main(int argc, char **argv)
     G4VisManager *visManager = new G4VisExecutive();
     visManager->Initialize();
 
-    if (argc != 1)
+    if (parser->GetBValue("batch_mode"))
     {
         // batch mode
         G4String command = "/control/execute ";
-        G4String fileName = argv[1];
+        G4String fileName = parser->GetSValue("macro_file");
         UImanager->ApplyCommand(command + fileName);
     }
     else

@@ -19,6 +19,8 @@ public:
 
     std::string GetSValue(std::string key);
     G4double GetDValue(std::string key);
+    G4int GetIValue(std::string key);
+    G4bool GetBValue(std::string key);
     
     void ReadConfig(const std::string filename);
 private:

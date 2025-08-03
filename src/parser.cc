@@ -20,6 +20,16 @@ G4double Parser::GetDValue(std::string key)
     return G4UIcommand::ConvertToDouble(dict[key].c_str());
 }
 
+G4int Parser::GetIValue(std::string key)
+{
+    return G4UIcommand::ConvertToInt(dict[key].c_str());
+}
+
+G4bool Parser::GetBValue(std::string key)
+{
+    return G4UIcommand::ConvertToBool(dict[key].c_str());
+}
+
 void Parser::ReadConfig(const std::string filename)
 {
     std::ifstream file(filename);
