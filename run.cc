@@ -7,7 +7,6 @@
 #include "G4VisManager.hh"
 #include "G4VisExecutive.hh"
 #include "G4SystemOfUnits.hh"
-
 #include "FTFP_BERT.hh"
 
 #include "action.hh"
@@ -16,9 +15,12 @@
 #include "generator.hh"
 #include "sampling.hh"
 
+
 int main(int argc, char **argv)
 {
     G4int nThreads = 4; // nThreads=1 for single-threaded mode, nThreads>1 for multi-threaded mode
+
+    G4String densityModelFile = "msis2.0_density_profile.txt";
 
     // construct the run manager
     G4RunManager *runManager = nullptr;
@@ -52,7 +54,7 @@ int main(int argc, char **argv)
     // ActionInitialization *action = new ActionInitialization(generator);
 
     G4double epsilon = 1e-6 * m;
-    DensityModelBase *densityModel = new NRLMSIS_2("msis2.0_density_profile.txt");
+    DensityModelBase *densityModel = new NRLMSIS_2(densityModelFile);
     SphericalEarth *atmosphereModel = new SphericalEarth(
         densityModel, // density model
         550. * km + epsilon  // h_sens
@@ -89,7 +91,6 @@ int main(int argc, char **argv)
     {
         // interactive mode
         ui = new G4UIExecutive(argc, argv);
-        UImanager->ApplyCommand("/control/execute vis.mac");
         UImanager->ApplyCommand("/control/execute vis.mac");
         ui->SessionStart();
         delete ui;
