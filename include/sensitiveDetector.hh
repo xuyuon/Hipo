@@ -7,6 +7,9 @@
 #include "G4VProcess.hh"
 #include "G4EventManager.hh"
 
+#include <iostream>
+#include <fstream>
+#include <filesystem>
 
 class SensitiveDetectorBase : public G4VSensitiveDetector
 {
@@ -20,16 +23,16 @@ protected:
     G4AnalysisManager *analysisManager; // singleton instance of analysis manager
 };
 
-
 class SphericalShellSD : public SensitiveDetectorBase
 {
 public:
-    SphericalShellSD(G4String name);
+    SphericalShellSD(G4String name, std::string SDOutputDir = "output/sensitiveDetector");
     ~SphericalShellSD();
 
     G4bool ProcessHits(G4Step *step, G4TouchableHistory *history) override;
 
+private:
+    std::string SDOutputDir, SDOutputFile;
 };
-
 
 #endif
