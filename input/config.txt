@@ -1,0 +1,4 @@
+GenOutputDir=output/generator
+SDOutputDir=output/sensitiveDetector
+Emin=1000
+Emax=10000
