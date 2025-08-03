@@ -98,7 +98,8 @@ class SphericalEarth : public AtmosphereModelBase
     */
 public:
     SphericalEarth(DensityModelBase *densityModel,
-                   G4double h_sens // Height of the sensitive layer
+                   G4double h_sens,                                     // Height of the sensitive layer
+                   std::string SDOutputDir = "output/sensitiveDetector" // Output directory for sensitive detector
     );
     ~SphericalEarth();
 
@@ -129,6 +130,9 @@ private:
     // Materials
     G4Material *worldMat;
     std::vector<G4Material *> Air;
+
+    // Output directory
+    std::string SDOutputDir, SDOutputFile; 
 
     // Private Methods
     void ConstructAtmosphere();

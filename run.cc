@@ -15,12 +15,13 @@
 #include "generator.hh"
 #include "sampling.hh"
 
-
 int main(int argc, char **argv)
 {
     G4int nThreads = 4; // nThreads=1 for single-threaded mode, nThreads>1 for multi-threaded mode
 
     G4String densityModelFile = "msis2.0_density_profile.txt";
+    std::string GenOutputDir = "output/generator";
+    std::string SDOutputDir = "output/sensitiveDetector";
 
     // construct the run manager
     G4RunManager *runManager = nullptr;
@@ -56,14 +57,16 @@ int main(int argc, char **argv)
     G4double epsilon = 1e-6 * m;
     DensityModelBase *densityModel = new NRLMSIS_2(densityModelFile);
     SphericalEarth *atmosphereModel = new SphericalEarth(
-        densityModel, // density model
-        550. * km + epsilon  // h_sens
+        densityModel,        // density model
+        550. * km + epsilon, // h_sens
+        SDOutputDir          // output directory for sensitive detector
     );
     SphericalSurfaceSampling *generator = new SphericalSurfaceSampling(
-        new LogUniform(1000. * MeV, 10000. * MeV),                        // energy spectrum sampling
+        new LogUniform(1000. * MeV, 10000. * MeV),                            // energy spectrum sampling
         new UniformSphericalSurface(atmosphereModel->GetCeiling() - epsilon), // initial position sampling
         new Scaled(new Sine(), 2.),                                           // nadir angle sampling
-        new Uniform(0., 2. * PI)                                              // azimuthal angle sampling
+        new Uniform(0., 2. * PI),                                             // azimuthal angle sampling
+        GenOutputDir                                                          // output directory for analysis
     );
     ActionInitialization *action = new ActionInitialization(generator);
 
