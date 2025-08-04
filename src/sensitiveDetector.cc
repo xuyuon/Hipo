@@ -34,8 +34,19 @@ G4bool SensitiveDetectorBase::ProcessHits(G4Step *aStep, G4TouchableHistory *ROh
     return true;
 }
 
-SphericalShellSD::SphericalShellSD(G4String name) : SensitiveDetectorBase(name)
+SphericalShellSD::SphericalShellSD(G4String name, std::string SDOutputDir) : SensitiveDetectorBase(name)
 {
+    this->SDOutputDir = SDOutputDir;
+    this->SDOutputFile = SDOutputDir + "/secondaries.csv";
+
+    // Create the output directory
+    std::filesystem::create_directories(SDOutputDir);
+
+    // Create the output file
+    std::ofstream ofs;
+    ofs.open(SDOutputFile, std::ofstream::out | std::ofstream::trunc);
+    ofs << "EventID,Energy,Process,Position_mag,Position_phi,Position_theta,Nadir_phi,Nadir_theta\n"; // CSV header
+    ofs.close();
 }
 
 SphericalShellSD::~SphericalShellSD()
@@ -45,7 +56,7 @@ SphericalShellSD::~SphericalShellSD()
 G4bool SphericalShellSD::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhist)
 {
     // Check if this is the first step in the volume
-    if(aStep->IsFirstStepInVolume() == false)
+    if (aStep->IsFirstStepInVolume() == false)
     {
         return true;
     }
@@ -62,21 +73,15 @@ G4bool SphericalShellSD::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhist)
 
     // 1. Record the event ID
     G4int eventID = G4EventManager::GetEventManager()->GetConstCurrentEvent()->GetEventID();
-    analysisManager->FillNtupleIColumn(0, 0, eventID);
 
     // 2. Record the energy of the photon at the pre-step point
     G4double energy = postStepPoint->GetKineticEnergy();
-    analysisManager->FillNtupleDColumn(0, 1, energy / eV);
 
     // 3. Record the physical process that generated the photon
     G4String processName = track->GetCreatorProcess()->GetProcessName();
-    analysisManager->FillNtupleSColumn(0, 2, processName);
 
     // 4. Record the position of the photon
     G4ThreeVector p_pos = track->GetPosition();
-    analysisManager->FillNtupleDColumn(0, 3, p_pos.mag() / km);
-    analysisManager->FillNtupleDColumn(0, 4, p_pos.phi() / radian);
-    analysisManager->FillNtupleDColumn(0, 5, p_pos.theta() / radian);
 
     // 5. Record the momentum direction of the photon
     G4ThreeVector p_mom = track->GetMomentumDirection();
@@ -93,12 +98,27 @@ G4bool SphericalShellSD::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhist)
                        p_mom.y() * sin(p_pos_theta) * sin(p_pos_phi) +
                        p_mom.z() * cos(p_pos_theta);
 
-    G4ThreeVector p_mom_local(p_mom_x, p_mom_y, p_mom_z); 
-    analysisManager->FillNtupleDColumn(0, 6, p_mom_local.phi() / radian);
-    analysisManager->FillNtupleDColumn(0, 7, p_mom_local.theta() / radian);
+    G4ThreeVector p_mom_local(p_mom_x, p_mom_y, p_mom_z);
 
-    analysisManager->AddNtupleRow(0);
-
+    // Write the data to data file
+    std::ofstream output_file;
+    output_file.open(SDOutputFile, std::ios::app);
+    if (output_file.is_open())
+    {
+        output_file << eventID << ","
+                    << energy / eV << ","
+                    << processName << ","
+                    << p_pos.mag() / km << ","
+                    << p_pos.phi() / radian << ","
+                    << p_pos.theta() / radian << ","
+                    << p_mom_local.phi() / radian << ","
+                    << p_mom_local.theta() / radian << "\n";
+        output_file.close();
+    }
+    else
+    {
+        G4cerr << "Unable to open file for writing output data." << G4endl;
+    }
 
     return true;
 }

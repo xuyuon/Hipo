@@ -108,11 +108,11 @@ void LayerAtmosphereModel::ConstructAtmosphere()
         G4double density = densities[i];
 
         Air.push_back(new G4Material("Air" + std::to_string(i), density, 5));
-        Air[i]->AddElement(N, densityModel->GetNPercentageMass()[i]); 
+        Air[i]->AddElement(N, densityModel->GetNPercentageMass()[i]);
         Air[i]->AddElement(O, densityModel->GetOPercentageMass()[i]);
         Air[i]->AddElement(Ar, densityModel->GetArPercentageMass()[i]);
         Air[i]->AddElement(He, densityModel->GetHePercentageMass()[i]);
-        Air[i]->AddElement(H, densityModel->GetHPercentageMass()[i]); 
+        Air[i]->AddElement(H, densityModel->GetHPercentageMass()[i]);
 
         if (h_sens > boundaries[i] && h_sens < boundaries[i + 1])
         {
@@ -142,7 +142,7 @@ void LayerAtmosphereModel::ConstructSensitiveLayer()
     {
         G4cerr << "Error: Sensitive layer should be within a atmosphere layer." << G4endl;
     }
-    
+
     solidSensLayer = new G4Box("solidSensLayer", world_x, world_y, delta_sens);
     logicSensLayer = new G4LogicalVolume(solidSensLayer,
                                          Air[sens_layer], // Use the first layer material for the sensitive layer
@@ -171,7 +171,8 @@ void LayerAtmosphereModel::ConstructSDandField()
 }
 
 SphericalEarth::SphericalEarth(DensityModelBase *densityModel,
-                               G4double h_sens)
+                               G4double h_sens,
+                               std::string SDOutputDir)
 {
     R_earth = 6371.0 * km; // Global average number
 
@@ -187,6 +188,8 @@ SphericalEarth::SphericalEarth(DensityModelBase *densityModel,
     {
         boundary += R_earth;
     }
+
+    this->SDOutputDir = SDOutputDir;
 }
 
 SphericalEarth::~SphericalEarth()
@@ -242,11 +245,11 @@ void SphericalEarth::ConstructAtmosphere()
     for (int i = 0; i < nLayers; ++i)
     {
         Air.push_back(new G4Material("Air" + std::to_string(i), densities[i], 5));
-        Air[i]->AddElement(N, densityModel->GetNPercentageMass()[i]); 
+        Air[i]->AddElement(N, densityModel->GetNPercentageMass()[i]);
         Air[i]->AddElement(O, densityModel->GetOPercentageMass()[i]);
         Air[i]->AddElement(Ar, densityModel->GetArPercentageMass()[i]);
         Air[i]->AddElement(He, densityModel->GetHePercentageMass()[i]);
-        Air[i]->AddElement(H, densityModel->GetHPercentageMass()[i]); 
+        Air[i]->AddElement(H, densityModel->GetHPercentageMass()[i]);
 
         if (R_sens > boundaries[i] && R_sens < boundaries[i + 1])
         {
@@ -307,6 +310,7 @@ G4double SphericalEarth::GetCeiling() const
 
 void SphericalEarth::ConstructSDandField()
 {
-    SensitiveDetectorBase *sd = new SphericalShellSD("SensitiveDetector");
+    SensitiveDetectorBase *sd = new SphericalShellSD("SensitiveDetector",
+                                                     SDOutputDir);
     logicSensLayer->SetSensitiveDetector(sd);
 }

@@ -1,0 +1,11 @@
+nThreads=4
+batch_mode=TRUE
+macro_file=run.mac
+
+GenOutputDir=output/generator
+SDOutputDir=output/sensitiveDetector
+
+DensityProfileFile=msis2.0_density_profile.txt
+
+Emin=1000
+Emax=10000

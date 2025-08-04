@@ -40,7 +40,8 @@ public:
         SamplingBase *energySpectrum,
         CoordinatesSamplingBase *pos_dist, // distribution of initial position
         SamplingBase *theta_dist, // distribution of theta angle (nadir angle)
-        SamplingBase *phi_dist  // distribution of phi angle (azimuthal angle)
+        SamplingBase *phi_dist,  // distribution of phi angle (azimuthal angle)
+        std::string GenOutputDir = "output/generator" // output directory for analysis
     );
     ~SphericalSurfaceSampling();
 
@@ -53,6 +54,8 @@ private:
     CoordinatesSamplingBase *pos_dist;
     SamplingBase *theta_dist;
     SamplingBase *phi_dist;
+
+    std::string GenOutputDir, GenOutputFile; 
 };
 
 #endif

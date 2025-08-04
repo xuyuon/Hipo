@@ -51,7 +51,8 @@ SphericalSurfaceSampling::SphericalSurfaceSampling(
     SamplingBase *energySpectrum,
     CoordinatesSamplingBase *pos_dist,
     SamplingBase *theta_dist,
-    SamplingBase *phi_dist)
+    SamplingBase *phi_dist,
+    std::string GenOutputDir)
 {
     analysisManager = G4AnalysisManager::Instance(); // singleton instance of analysis manager
 
@@ -65,6 +66,18 @@ SphericalSurfaceSampling::SphericalSurfaceSampling(
     this->pos_dist = pos_dist;
     this->theta_dist = theta_dist;
     this->phi_dist = phi_dist;
+
+    this->GenOutputDir = GenOutputDir;
+    this->GenOutputFile = GenOutputDir + "/primaries.csv";
+
+    // Create the output directory
+    std::filesystem::create_directories(GenOutputDir);
+
+    // Create the output file
+    std::ofstream ofs;
+    ofs.open(GenOutputFile, std::ofstream::out | std::ofstream::trunc);
+    ofs << "EventID,Energy,Position_mag,Position_phi,Position_theta,Nadir_phi,Nadir_theta\n"; // CSV header
+    ofs.close();
 }
 
 SphericalSurfaceSampling::~SphericalSurfaceSampling()
@@ -78,27 +91,18 @@ void SphericalSurfaceSampling::GeneratePrimaries(G4Event *anEvent)
 
     // Save the event id
     G4int event_id = anEvent->GetEventID();
-    analysisManager->FillNtupleIColumn(1, 0, event_id);
 
     // Sample the particle energy
     G4double p_energy = EnergySpectrum->sample();
     fParticleGun->SetParticleEnergy(p_energy); // Set the energy of the particle
-    analysisManager->FillNtupleDColumn(1, 1, p_energy / eV);
 
     // Sample the initial position
     G4ThreeVector p_pos = pos_dist->sample();
     fParticleGun->SetParticlePosition(p_pos);
-    analysisManager->FillNtupleDColumn(1, 2, p_pos.mag() / km);
-    analysisManager->FillNtupleDColumn(1, 3, p_pos.phi() / radian);
-    analysisManager->FillNtupleDColumn(1, 4, p_pos.theta() / radian);
 
     // Sample the momentum direction
     G4double p_theta = theta_dist->sample();
     G4double p_phi = phi_dist->sample();
-    analysisManager->FillNtupleDColumn(1, 5, p_phi);
-    analysisManager->FillNtupleDColumn(1, 6, p_theta);
-
-    analysisManager->AddNtupleRow(1);
 
     // Transform the local coordinate into global coordinate
     G4double p_pos_theta = p_pos.theta();
@@ -120,5 +124,25 @@ void SphericalSurfaceSampling::GeneratePrimaries(G4Event *anEvent)
     G4ThreeVector p_dir(p_dir_x, p_dir_y, p_dir_z);
     fParticleGun->SetParticleMomentumDirection(p_dir);
 
-    fParticleGun->GeneratePrimaryVertex(anEvent); // Generate the primary vertex for the event
+    // Write the data to data file
+    std::ofstream output_file;
+    output_file.open(GenOutputFile, std::ios::app);
+    if (output_file.is_open())
+    {
+        output_file << event_id << ","
+                    << p_energy / eV << ","
+                    << p_pos.mag() / km << ","
+                    << p_pos.phi() / radian << ","
+                    << p_pos.theta() / radian << ","
+                    << p_phi / radian << ","
+                    << p_theta / radian << "\n";
+        output_file.close();
+    }
+    else
+    {
+        G4cerr << "Unable to open file for writing output data." << G4endl;
+    }
+
+    // Generate the primary vertex for the event
+    fParticleGun->GeneratePrimaryVertex(anEvent); 
 }
