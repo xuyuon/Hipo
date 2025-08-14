@@ -15,9 +15,14 @@
 #include "generator.hh"
 #include "sampling.hh"
 #include "parser.hh"
+#include "timer.hh"
 
 int main(int argc, char **argv)
 {
+    // Setting up Timer
+    Timer *timer = new Timer();
+    timer->start("Initialization and Run Manager Setup");
+
     // Setting Up Parser
     Parser *parser = new Parser();
     G4String config_file = argv[1];
@@ -63,6 +68,7 @@ int main(int argc, char **argv)
         parser->GetSValue("SDOutputDir") // output directory for sensitive detector
     );
     SphericalSurfaceSampling *generator = new SphericalSurfaceSampling(
+        "proton",                                                                         // particle name
         new LogUniform(parser->GetDValue("Emin") * MeV, parser->GetDValue("Emax") * MeV), // energy spectrum sampling
         new UniformSphericalSurface(atmosphereModel->GetCeiling() - epsilon),             // initial position sampling
         new Scaled(new Sine(), 2.),                                                       // nadir angle sampling
@@ -84,12 +90,16 @@ int main(int argc, char **argv)
     G4VisManager *visManager = new G4VisExecutive();
     visManager->Initialize();
 
+    timer->stop();
+
     if (parser->GetBValue("batch_mode"))
     {
         // batch mode
+        timer->start("Batch Mode Execution");
         G4String command = "/control/execute ";
         G4String fileName = parser->GetSValue("macro_file");
         UImanager->ApplyCommand(command + fileName);
+        timer->stop();
     }
     else
     {
