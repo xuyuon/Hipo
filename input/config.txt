@@ -7,5 +7,6 @@ SDOutputDir=output/sensitiveDetector
 
 DensityProfileFile=msis2.0_density_profile.txt
 
-Emin=1000
-Emax=10000
+ParticleName=proton
+Emin=10000
+Emax=100000
