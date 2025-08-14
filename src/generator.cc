@@ -48,6 +48,7 @@ void PrimaryGenerator::GeneratePrimaries(G4Event *anEvent)
 }
 
 SphericalSurfaceSampling::SphericalSurfaceSampling(
+    G4String particleName,
     SamplingBase *energySpectrum,
     CoordinatesSamplingBase *pos_dist,
     SamplingBase *theta_dist,
@@ -59,7 +60,7 @@ SphericalSurfaceSampling::SphericalSurfaceSampling(
     fParticleGun = new G4ParticleGun(1); // Create a particle gun with 1 particle
 
     G4ParticleTable *particleTable = G4ParticleTable::GetParticleTable();
-    G4ParticleDefinition *particle = particleTable->FindParticle("proton");
+    G4ParticleDefinition *particle = particleTable->FindParticle(particleName);
     fParticleGun->SetParticleDefinition(particle);
 
     this->EnergySpectrum = energySpectrum;

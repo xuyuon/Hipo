@@ -37,6 +37,7 @@ class SphericalSurfaceSampling : public G4VUserPrimaryGeneratorAction
 {
 public:
     SphericalSurfaceSampling(
+        G4String particleName, // name of the particle to be generated
         SamplingBase *energySpectrum,
         CoordinatesSamplingBase *pos_dist, // distribution of initial position
         SamplingBase *theta_dist, // distribution of theta angle (nadir angle)
