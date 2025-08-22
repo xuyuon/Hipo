@@ -68,12 +68,12 @@ int main(int argc, char **argv)
         parser->GetSValue("SDOutputDir") // output directory for sensitive detector
     );
     SphericalSurfaceSampling *generator = new SphericalSurfaceSampling(
-        "proton",                                                                         // particle name
-        new LogUniform(parser->GetDValue("Emin") * MeV, parser->GetDValue("Emax") * MeV), // energy spectrum sampling
-        new UniformSphericalSurface(atmosphereModel->GetCeiling() - epsilon),             // initial position sampling
-        new Scaled(new Sine(), 2.),                                                       // nadir angle sampling
-        new Uniform(0., 2. * PI),                                                         // azimuthal angle sampling
-        parser->GetSValue("GenOutputDir")                                                 // output directory for analysis
+        parser->GetSValue("ParticleName"),                                              // particle name
+        new LogUniform(parser->GetDValue("Emin") * eV, parser->GetDValue("Emax") * eV), // energy spectrum sampling
+        new UniformSphericalSurface(atmosphereModel->GetCeiling() - epsilon),           // initial position sampling
+        new Scaled(new Sine(), 2.),                                                     // nadir angle sampling
+        new Uniform(0., 2. * PI),                                                       // azimuthal angle sampling
+        parser->GetSValue("GenOutputDir")                                               // output directory for analysis
     );
     ActionInitialization *action = new ActionInitialization(generator);
 
