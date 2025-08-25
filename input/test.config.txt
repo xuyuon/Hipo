@@ -10,6 +10,7 @@ DensityProfileFile=msis2.0_density_profile.txt
 
 AtmosphereModel=SphericalEarth
 h_detector=550.0 km
+R_earth=6371.2 km
 
 GeneratorModel=SphericalSurfaceSampling
 ParticleName=He3

@@ -103,6 +103,7 @@ void G4EarthRunManager::init_atmosphere()
         atmosphere = new SphericalEarth(
             densityModel,                    // density model
             parser->GetDimensionedDValue("h_detector") + epsilon, // h_sens
+            parser->GetDimensionedDValue("R_earth"),
             parser->GetSValue("SDOutputDir") // output directory for sensitive detector
         );
     }
