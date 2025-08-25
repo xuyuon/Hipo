@@ -53,9 +53,7 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
 
 G4EarthRunManager::~G4EarthRunManager()
 {
-    delete timer;
-    delete parser;
-    delete runManager;
+    // destructor
 }
 
 void G4EarthRunManager::run()
