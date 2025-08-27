@@ -8,6 +8,9 @@ SDOutputDir=output/sensitiveDetector
 DensityModel=NRLMSIS_2
 DensityProfileFile=msis2.0_density_profile.txt
 
+FieldModel=EarthMagneticField
+FieldTableFile=B_field_table.txt
+
 AtmosphereModel=SphericalEarth
 h_detector=550.0 km
 R_earth=6371.2 km

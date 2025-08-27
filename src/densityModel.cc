@@ -190,6 +190,7 @@ NRLMSIS_2::NRLMSIS_2(G4String data_file)
         std::getline(ss, numstr, ',');
         densities.push_back(std::stod(numstr) * g / cm3);
     }
+    file.close();
 }
 
 NRLMSIS_2::~NRLMSIS_2()

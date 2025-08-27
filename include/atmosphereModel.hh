@@ -9,12 +9,16 @@
 #include "G4LogicalVolume.hh"
 #include "G4NistManager.hh"
 #include "G4PVPlacement.hh"
+#include "G4MagneticField.hh"
+#include "G4FieldManager.hh"
+#include "G4TransportationManager.hh"
 
 #include <vector>
 #include <cmath>
 
 #include "sensitiveDetector.hh"
 #include "densityModel.hh"
+#include "field.hh"
 
 class AtmosphereModelBase : public G4VUserDetectorConstruction
 {
@@ -100,6 +104,7 @@ public:
     SphericalEarth(DensityModelBase *densityModel,
                    G4double h_sens,                                     // Height of the sensitive layer
                    G4double R_earth,
+                   G4MagneticField *Bfield = nullptr,
                    std::string SDOutputDir = "output/sensitiveDetector" // Output directory for sensitive detector
     );
     ~SphericalEarth();
@@ -131,6 +136,9 @@ private:
     // Materials
     G4Material *worldMat;
     std::vector<G4Material *> Air;
+
+    // Fields
+    G4MagneticField *Bfield;
 
     // Output directory
     std::string SDOutputDir, SDOutputFile; 

@@ -173,6 +173,7 @@ void LayerAtmosphereModel::ConstructSDandField()
 SphericalEarth::SphericalEarth(DensityModelBase *densityModel,
                                G4double h_sens,
                                G4double R_earth,
+                               G4MagneticField *Bfield,
                                std::string SDOutputDir)
 {
     this->R_earth = R_earth; // Global average number
@@ -190,6 +191,7 @@ SphericalEarth::SphericalEarth(DensityModelBase *densityModel,
         boundary += R_earth;
     }
 
+    this->Bfield = Bfield;
     this->SDOutputDir = SDOutputDir;
 }
 
@@ -283,7 +285,8 @@ void SphericalEarth::ConstructSensitiveLayer()
     {
         G4cerr << "Error: Sensitive layer should be within a atmosphere layer." << G4endl;
     }
-
+    
+    // Create the sensitive layer as a thin spherical shell
     solidSensLayer = new G4Sphere("solidSensLayer",
                                   R_sens,
                                   R_sens + delta_sens,
@@ -302,6 +305,13 @@ void SphericalEarth::ConstructSensitiveLayer()
                                       false,
                                       0,
                                       true);
+
+    // Construct magnetic field
+    if (Bfield != nullptr)
+    {
+        G4FieldManager* globalFieldMgr = G4TransportationManager::GetTransportationManager()->GetFieldManager();
+        globalFieldMgr->SetDetectorField(Bfield);
+    }
 }
 
 G4double SphericalEarth::GetCeiling() const
