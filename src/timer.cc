@@ -1,10 +1,10 @@
 #include "timer.hh"
 
-Timer::Timer()
+Timer::Timer(std::string output_file)
 {
     // Create the output file
     std::ofstream ofs;
-    ofs.open("runtime.txt", std::ofstream::out | std::ofstream::trunc);
+    ofs.open(output_file, std::ofstream::out | std::ofstream::trunc);
     ofs.close();
 }
 

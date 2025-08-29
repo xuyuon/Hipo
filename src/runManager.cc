@@ -5,13 +5,16 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
 {
     this->config_file = config_file;
 
-    // Setting up Timer
-    timer = new Timer();
-    timer->start("Initialization and Run Manager Setup");
-
     // Setting Up Parser
     parser = new Parser();
     parser->ReadConfig(config_file);
+    
+    // Read project name
+    project_name = parser->GetSValue("ProjectName");
+
+    // Setting up Timer
+    timer = new Timer(project_name + "_runtime.txt");
+    timer->start("Initialization and Run Manager Setup");
 
     // Set Random seed
     G4long seed = 345354;

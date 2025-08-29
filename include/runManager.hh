@@ -39,6 +39,7 @@ public:
 
 private:
     // config
+    std::string project_name;
     G4bool batch_mode;
 
     // utility classes

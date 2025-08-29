@@ -9,7 +9,7 @@
 class Timer
 {
 public:
-    Timer();
+    Timer(std::string output_file);
     ~Timer();
 
     void start(std::string session_name);
