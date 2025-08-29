@@ -18,7 +18,7 @@ public:
     EarthMagneticField(const G4String datafile);
     ~EarthMagneticField();
 
-    void GetFieldValue(const G4double Point[4], G4double *Bfield) const;
+    void GetFieldValue(const G4double *Point, G4double *Bfield) const;
 
 private:
     // Storage space for the table

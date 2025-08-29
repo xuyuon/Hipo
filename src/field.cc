@@ -64,7 +64,7 @@ EarthMagneticField::~EarthMagneticField()
     // Destructor
 }
 
-void EarthMagneticField::GetFieldValue(const G4double Point[4], G4double *Bfield) const
+void EarthMagneticField::GetFieldValue(const G4double *Point, G4double *Bfield) const
 {
     G4double x = Point[0];
     G4double y = Point[1];

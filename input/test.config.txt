@@ -16,7 +16,7 @@ h_detector=550.0 km
 R_earth=6371.2 km
 
 GeneratorModel=SphericalSurfaceSampling
-ParticleName=He3
+ParticleName=proton
 EnergySpectrum=LogUniform
 EnergySpectrum_min=1e10 eV
 EnergySpectrum_max=1e11 eV

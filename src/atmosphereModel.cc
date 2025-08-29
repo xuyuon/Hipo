@@ -285,7 +285,7 @@ void SphericalEarth::ConstructSensitiveLayer()
     {
         G4cerr << "Error: Sensitive layer should be within a atmosphere layer." << G4endl;
     }
-    
+
     // Create the sensitive layer as a thin spherical shell
     solidSensLayer = new G4Sphere("solidSensLayer",
                                   R_sens,
@@ -305,13 +305,6 @@ void SphericalEarth::ConstructSensitiveLayer()
                                       false,
                                       0,
                                       true);
-
-    // Construct magnetic field
-    if (Bfield != nullptr)
-    {
-        G4FieldManager* globalFieldMgr = G4TransportationManager::GetTransportationManager()->GetFieldManager();
-        globalFieldMgr->SetDetectorField(Bfield);
-    }
 }
 
 G4double SphericalEarth::GetCeiling() const
@@ -324,4 +317,37 @@ void SphericalEarth::ConstructSDandField()
     SensitiveDetectorBase *sd = new SphericalShellSD("SensitiveDetector",
                                                      SDOutputDir);
     logicSensLayer->SetSensitiveDetector(sd);
+
+    // Construct magnetic field
+    if (Bfield != nullptr)
+    {
+        G4double minStep = 1 * km; // minimal step of 1 km
+        G4double minEps = 1e-5;    //   Minimum & value for smallest steps
+        G4double maxEps = 1e-3;
+        G4bool allLocal = true;
+        G4double deltaStep = minStep;
+        G4double deltaChord = minStep;
+        G4double deltaIntersection = minStep;
+
+        // Create an equation of motion for this field
+        G4Mag_UsualEqRhs *fEquation = new G4Mag_UsualEqRhs(Bfield);
+
+        // Create the Runge-Kutta 'stepper' using the efficient 'DoPri5' method
+        G4MagIntegratorStepper *fstepper = new G4DormandPrince745(fEquation);
+
+        // Set this field to the global field manager
+        G4FieldManager *globalFieldMgr = G4TransportationManager::GetTransportationManager()->GetFieldManager();
+        globalFieldMgr->SetDetectorField(Bfield);
+
+        G4MagInt_Driver *pIntgrDriver = new G4MagInt_Driver(minStep, fstepper);
+        G4ChordFinder *pChordFinder = new G4ChordFinder(pIntgrDriver);
+        globalFieldMgr->SetChordFinder(pChordFinder);
+
+        globalFieldMgr->GetChordFinder()->SetDeltaChord(deltaChord);
+        globalFieldMgr->SetAccuraciesWithDeltaOneStep(deltaStep);
+        globalFieldMgr->SetMinimumEpsilonStep(minEps);
+        globalFieldMgr->SetMaximumEpsilonStep(maxEps);
+        globalFieldMgr->SetDeltaOneStep(deltaStep);
+        globalFieldMgr->SetDeltaIntersection(deltaIntersection);
+    }
 }

@@ -13,6 +13,11 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
     parser = new Parser();
     parser->ReadConfig(config_file);
 
+    // Set Random seed
+    G4long seed = 345354;
+    G4Random::setTheEngine(new CLHEP::RanluxEngine);
+    G4Random::setTheSeed(seed, 3);
+
     // construct the run manager
     runManager = nullptr;
     G4int nThreads = parser->GetIValue("nThreads");

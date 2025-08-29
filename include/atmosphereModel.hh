@@ -12,6 +12,10 @@
 #include "G4MagneticField.hh"
 #include "G4FieldManager.hh"
 #include "G4TransportationManager.hh"
+#include "G4Mag_UsualEqRhs.hh"
+#include "G4DormandPrince745.hh"
+#include "G4MagIntegratorDriver.hh"
+#include "G4ChordFinder.hh"
 
 #include <vector>
 #include <cmath>
