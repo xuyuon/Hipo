@@ -1,10 +1,11 @@
 #include "timer.hh"
 
-Timer::Timer(std::string output_file)
+Timer::Timer(std::string output_filename)
 {
     // Create the output file
     std::ofstream ofs;
-    ofs.open(output_file, std::ofstream::out | std::ofstream::trunc);
+    this->output_filename = output_filename;
+    ofs.open(output_filename, std::ofstream::out | std::ofstream::trunc);
     ofs.close();
 }
 
@@ -31,7 +32,7 @@ void Timer::stop()
 
     // output data
     std::ofstream output_file;
-    output_file.open("runtime.txt", std::ios::app);
+    output_file.open(output_filename, std::ios::app);
     output_file << session_name << ": " << s << "sec (" << ms << " ms)\n";
     output_file.close();
 }

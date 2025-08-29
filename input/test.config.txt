@@ -1,3 +1,4 @@
+ProjectName=1e10eV-1e11eV
 nThreads=4
 batch_mode=TRUE
 macro_file=test_run.mac

@@ -16,6 +16,7 @@ public:
     void stop();
 private:
     std::chrono::time_point<std::chrono::high_resolution_clock> start_timepoint;
+    std::string output_filename;
     std::string session_name;
 };
 
