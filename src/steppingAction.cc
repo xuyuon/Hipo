@@ -2,7 +2,7 @@
 
 SteppingAction::SteppingAction(EventAction *eventAction)
 {
-    E_min = 1. * MeV;
+    E_min = 100. * MeV;
 }
 
 SteppingAction::~SteppingAction()

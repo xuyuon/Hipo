@@ -40,24 +40,20 @@ void AirBlock::ConstructSDandField()
 LayerAtmosphereModel::LayerAtmosphereModel(DensityModelBase *densityModel,
                                            G4double world_x,
                                            G4double world_y,
-                                           G4double X_layer,
-                                           G4double h_min,
-                                           G4double h_max,
                                            G4double h_sens)
 {
     // User-defined variables
     this->world_x = world_x;
     this->world_y = world_y;
-    this->X_layer = X_layer; // Integrated density for every layer
-    this->h_min = h_min;
-    this->h_max = h_max;
     this->h_sens = h_sens; // location of the sensitive layer
 
-    delta_z = 5. * km;
+    delta_h = 5. * km;
     delta_sens = 1. * m;
 
     this->densityModel = densityModel;
-    InitBoundaries();
+    this->boundaries = densityModel->GetBoundaries();
+    this->densities = densityModel->GetDensities();
+
     world_z = (boundaries.back() - boundaries.front()) / 2.0; // Adjust world_z to the maximum altitude defined by the density model
 }
 
@@ -89,50 +85,19 @@ G4VPhysicalVolume *LayerAtmosphereModel::Construct()
     return physWorld;
 }
 
-void LayerAtmosphereModel::InitBoundaries()
-{
-    boundaries = {h_min}; // Start with the ground level
-
-    G4double ceiling_max = densityModel->CalculateMaxCeiling(X_layer);
-
-    // filling the space up to maximum ceiling height with fixed integrated density
-    while (boundaries.back() < ceiling_max)
-    {
-        G4double nextBoundary = densityModel->CalculateCeiling(boundaries.back(), X_layer);
-        if (std::isnan(nextBoundary))
-        {
-            G4cout << "Error: nextBoundary is NaN at altitude " << boundaries.back() / km << " km" << G4endl;
-            break; // Stop if we encounter a NaN value
-        }
-        if (nextBoundary > h_max)
-            break; // Stop if we exceed the maximum altitude
-        boundaries.push_back(nextBoundary);
-    }
-
-    // filling the space beyond maximum ceiling height
-    if (h_max > ceiling_max)
-    {
-        G4cout << "h_max exceeds the maximum ceiling height, filling the space "
-                  "beyond maximum ceiling height with layer of thickness "
-               << delta_z / km << "km" << G4endl;
-
-        while (boundaries.back() < h_max)
-        {
-            G4double nextBoundary = boundaries.back() + delta_z;
-            if (nextBoundary > h_max)
-                break; // Stop if we exceed the maximum altitude
-            boundaries.push_back(nextBoundary);
-        }
-    }
-}
-
 void LayerAtmosphereModel::ConstructAtmosphere()
 {
-    G4double aN = 14.01 * g / mole; // Molar mass of nitrogen
-    G4double aO = 16.00 * g / mole; // Molar mass of oxygen
+    G4double aN = 14.01 * g / mole;  // Molar mass of nitrogen
+    G4double aO = 16.00 * g / mole;  // Molar mass of oxygen
+    G4double aAr = 39.95 * g / mole; // Molar mass of argon
+    G4double aHe = 4.003 * g / mole; // Molar mass of helium
+    G4double aH = 1.008 * g / mole;  // Molar mass of hydrogen
 
-    G4Element *N = new G4Element("Nitrogen", "N", 7, aN);
-    G4Element *O = new G4Element("Oxygen", "O", 8, aO);
+    G4Element *N = new G4Element("Nitrogen", "N", 7., aN);
+    G4Element *O = new G4Element("Oxygen", "O", 8., aO);
+    G4Element *Ar = new G4Element("Argon", "Ar", 18., aAr);
+    G4Element *He = new G4Element("Helium", "He", 2., aHe);
+    G4Element *H = new G4Element("Hydrogen", "H", 1., aH);
 
     G4double epsilon = 1e-6 * m;           // Small value to prevent volume overlap
     G4int nLayers = boundaries.size() - 1; // Number of layers based on the boundaries
@@ -140,12 +105,14 @@ void LayerAtmosphereModel::ConstructAtmosphere()
     for (int i = 0; i < nLayers; ++i)
     {
         G4double altitude = boundaries[i];
-        G4double density = densityModel->CalculateDensity(altitude);
+        G4double density = densities[i];
 
-        // G4cout << "Layer " << i << ": Altitude = " << altitude / km << " km, Density = " << density /kg*m3<< " kg/m^3" << G4endl;
-        Air.push_back(new G4Material("Air" + std::to_string(i), density, 2));
-        Air[i]->AddElement(N, 78 * perCent); // Nitrogen 78%
-        Air[i]->AddElement(O, 22 * perCent); // Oxygen 21%
+        Air.push_back(new G4Material("Air" + std::to_string(i), density, 5));
+        Air[i]->AddElement(N, densityModel->GetNPercentageMass()[i]);
+        Air[i]->AddElement(O, densityModel->GetOPercentageMass()[i]);
+        Air[i]->AddElement(Ar, densityModel->GetArPercentageMass()[i]);
+        Air[i]->AddElement(He, densityModel->GetHePercentageMass()[i]);
+        Air[i]->AddElement(H, densityModel->GetHPercentageMass()[i]);
 
         if (h_sens > boundaries[i] && h_sens < boundaries[i + 1])
         {
@@ -170,6 +137,12 @@ void LayerAtmosphereModel::ConstructAtmosphere()
 
 void LayerAtmosphereModel::ConstructSensitiveLayer()
 {
+    // Check if the sensitive layer is within a layer
+    if (h_sens < boundaries[sens_layer] || h_sens > boundaries[sens_layer + 1])
+    {
+        G4cerr << "Error: Sensitive layer should be within a atmosphere layer." << G4endl;
+    }
+
     solidSensLayer = new G4Box("solidSensLayer", world_x, world_y, delta_sens);
     logicSensLayer = new G4LogicalVolume(solidSensLayer,
                                          Air[sens_layer], // Use the first layer material for the sensitive layer
@@ -198,63 +171,31 @@ void LayerAtmosphereModel::ConstructSDandField()
 }
 
 SphericalEarth::SphericalEarth(DensityModelBase *densityModel,
-                               G4double h_min,
-                               G4double h_max,
                                G4double h_sens,
-                               G4double X_layer)
+                               G4double R_earth,
+                               std::string SDOutputDir)
 {
-    R_earth = 6371.0 * km; // Global average number
+    this->R_earth = R_earth; // Global average number
 
-    R_min = h_min + R_earth;
-    R_max = h_max + R_earth;
     R_sens = h_sens + R_earth;
+    delta_sens = 1. * cm;
 
-    delta_sens = 1. * m;
-    R_delta = 5. * km;
-
-    this->X_layer = X_layer;
     this->densityModel = densityModel;
+    this->boundaries = densityModel->GetBoundaries();
+    this->densities = densityModel->GetDensities();
 
-    InitBoundaries();
+    // Convert boundaries from altitude to radius
+    for (auto &boundary : boundaries)
+    {
+        boundary += R_earth;
+    }
+
+    this->SDOutputDir = SDOutputDir;
 }
 
 SphericalEarth::~SphericalEarth()
 {
     // Destructor
-}
-
-void SphericalEarth::InitBoundaries()
-{
-    boundaries = {R_min}; // Start with the minimum radius
-    G4double ceiling_max = densityModel->CalculateMaxCeiling(X_layer) + R_earth;
-
-    while (boundaries.back() < ceiling_max)
-    {
-        G4double nextBoundary = densityModel->CalculateCeiling(boundaries.back() - R_earth, X_layer) + R_earth;
-        if (std::isnan(nextBoundary))
-        {
-            G4cout << "Error: nextBoundary is NaN at radius " << boundaries.back() / km << " km" << G4endl;
-            break; // Stop if we encounter a NaN value
-        }
-        if (nextBoundary > R_max)
-            break; // Stop if we exceed the maximum radius
-        boundaries.push_back(nextBoundary);
-    }
-
-    if (R_max > ceiling_max)
-    {
-        G4cout << "h_max exceeds the maximum ceiling, filling the space "
-                  "beyond maximum ceiling height with layer of thickness "
-               << R_delta / km << "km" << G4endl;
-
-        while (boundaries.back() < R_max)
-        {
-            G4double nextBoundary = boundaries.back() + R_delta;
-            if (nextBoundary > R_max)
-                break; // Stop if we exceed the maximum altitude
-            boundaries.push_back(nextBoundary);
-        }
-    }
 }
 
 G4VPhysicalVolume *SphericalEarth::Construct()
@@ -287,24 +228,29 @@ G4VPhysicalVolume *SphericalEarth::Construct()
 
 void SphericalEarth::ConstructAtmosphere()
 {
-    G4double aN = 14.01 * g / mole; // Molar mass of nitrogen
-    G4double aO = 16.00 * g / mole; // Molar mass of oxygen
+    G4double aN = 14.01 * g / mole;  // Molar mass of nitrogen
+    G4double aO = 16.00 * g / mole;  // Molar mass of oxygen
+    G4double aAr = 39.95 * g / mole; // Molar mass of argon
+    G4double aHe = 4.003 * g / mole; // Molar mass of helium
+    G4double aH = 1.008 * g / mole;  // Molar mass of hydrogen
 
-    G4Element *N = new G4Element("Nitrogen", "N", 7, aN);
-    G4Element *O = new G4Element("Oxygen", "O", 8, aO);
+    G4Element *N = new G4Element("Nitrogen", "N", 7., aN);
+    G4Element *O = new G4Element("Oxygen", "O", 8., aO);
+    G4Element *Ar = new G4Element("Argon", "Ar", 18., aAr);
+    G4Element *He = new G4Element("Helium", "He", 2., aHe);
+    G4Element *H = new G4Element("Hydrogen", "H", 1., aH);
 
     G4double epsilon = 1e-6 * m;           // Small value to prevent volume overlap
     G4int nLayers = boundaries.size() - 1; // Number of layers based on the boundaries
 
     for (int i = 0; i < nLayers; ++i)
     {
-        G4double altitude = boundaries[i] - R_earth;
-        G4double density = densityModel->CalculateDensity(altitude);
-
-        // G4cout << "Layer " << i << ": Altitude = " << altitude / km << " km, Density = " << density /kg*m3<< " kg/m^3" << G4endl;
-        Air.push_back(new G4Material("Air" + std::to_string(i), density, 2));
-        Air[i]->AddElement(N, 78 * perCent); // Nitrogen 78%
-        Air[i]->AddElement(O, 22 * perCent); // Oxygen 21%
+        Air.push_back(new G4Material("Air" + std::to_string(i), densities[i], 5));
+        Air[i]->AddElement(N, densityModel->GetNPercentageMass()[i]);
+        Air[i]->AddElement(O, densityModel->GetOPercentageMass()[i]);
+        Air[i]->AddElement(Ar, densityModel->GetArPercentageMass()[i]);
+        Air[i]->AddElement(He, densityModel->GetHePercentageMass()[i]);
+        Air[i]->AddElement(H, densityModel->GetHPercentageMass()[i]);
 
         if (R_sens > boundaries[i] && R_sens < boundaries[i + 1])
         {
@@ -332,6 +278,12 @@ void SphericalEarth::ConstructAtmosphere()
 
 void SphericalEarth::ConstructSensitiveLayer()
 {
+    // Check if the sensitive layer is within a layer
+    if (R_sens < boundaries[sens_layer] || R_sens > boundaries[sens_layer + 1])
+    {
+        G4cerr << "Error: Sensitive layer should be within a atmosphere layer." << G4endl;
+    }
+
     solidSensLayer = new G4Sphere("solidSensLayer",
                                   R_sens,
                                   R_sens + delta_sens,
@@ -359,6 +311,7 @@ G4double SphericalEarth::GetCeiling() const
 
 void SphericalEarth::ConstructSDandField()
 {
-    SensitiveDetectorBase *sd = new SphericalShellSD("SensitiveDetector");
+    SensitiveDetectorBase *sd = new SphericalShellSD("SensitiveDetector",
+                                                     SDOutputDir);
     logicSensLayer->SetSensitiveDetector(sd);
 }

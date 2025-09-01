@@ -55,9 +55,6 @@ public:
     LayerAtmosphereModel(DensityModelBase *,
                          G4double world_x,
                          G4double world_y,
-                         G4double X_layer, // Integrated density for every layer
-                         G4double h_min,
-                         G4double h_max,
                          G4double h_sens);
     ~LayerAtmosphereModel();
 
@@ -68,9 +65,7 @@ public:
 private:
     // Geometric Parameters
     G4double world_x, world_y, world_z; // half lengths of the world volume
-    G4double delta_z;                   // thickness of each layer
-    G4double h_min, h_max;              // minimum and maximum altitudes in the atmosphere
-    G4double X_layer;                   // Integrated density for every layer
+    G4double delta_h;                   // thickness of each layer
     G4double h_sens;                    // altitude of sensitive layer
     G4double delta_sens;                // thichkness of the sensitive layer
     G4int sens_layer;                   // sensitive layer index
@@ -90,8 +85,8 @@ private:
     // Density profile model
     DensityModelBase *densityModel;
     std::vector<G4double> boundaries;
+    std::vector<G4double> densities;
 
-    void InitBoundaries();
     void ConstructAtmosphere();
     void ConstructSensitiveLayer();
 };
@@ -103,10 +98,9 @@ class SphericalEarth : public AtmosphereModelBase
     */
 public:
     SphericalEarth(DensityModelBase *densityModel,
-                   G4double h_min,   // Minimum height of the air layer
-                   G4double h_max,   // Maximum height of the air layer
-                   G4double h_sens,  // Height of the sensitive layer
-                   G4double X_layer  // Integrated density for the air layer
+                   G4double h_sens,                                     // Height of the sensitive layer
+                   G4double R_earth,
+                   std::string SDOutputDir = "output/sensitiveDetector" // Output directory for sensitive detector
     );
     ~SphericalEarth();
 
@@ -117,18 +111,14 @@ public:
 private:
     // Geometry
     G4double R_earth; // Radius of the Earth
-    G4double R_min, R_max;
-    G4double R_delta; // thickness of each layer
     G4double R_sens;
     G4double delta_sens; // thickness of sensitive layer
-    G4int sens_layer; // Index of the sensitive layer
-
-    // Integrated density for the air layer
-    G4double X_layer;
+    G4int sens_layer;    // Index of the sensitive layer
 
     // Density model
     DensityModelBase *densityModel;
     std::vector<G4double> boundaries;
+    std::vector<G4double> densities;
 
     // Volumes
     G4Sphere *solidWorld, *solidSensLayer;
@@ -142,8 +132,10 @@ private:
     G4Material *worldMat;
     std::vector<G4Material *> Air;
 
+    // Output directory
+    std::string SDOutputDir, SDOutputFile; 
+
     // Private Methods
-    void InitBoundaries();
     void ConstructAtmosphere();
     void ConstructSensitiveLayer();
 };

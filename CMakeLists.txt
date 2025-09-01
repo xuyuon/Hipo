@@ -31,6 +31,15 @@ file(GLOB MACRO_FILES
 )
 file(COPY ${MACRO_FILES} DESTINATION ${CMAKE_BINARY_DIR})
 
+
+#----------------------------------------------------------------------------
+# Copy all input data file to the build directory
+
+file(GLOB INPUT_FILES
+    "input/*"
+)
+file(COPY ${INPUT_FILES} DESTINATION ${CMAKE_BINARY_DIR})
+
 #----------------------------------------------------------------------------
 # Add program to the project targets
 # (this avoids the need of typing the program name after make)
