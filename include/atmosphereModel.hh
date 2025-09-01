@@ -99,6 +99,7 @@ class SphericalEarth : public AtmosphereModelBase
 public:
     SphericalEarth(DensityModelBase *densityModel,
                    G4double h_sens,                                     // Height of the sensitive layer
+                   G4double R_earth,
                    std::string SDOutputDir = "output/sensitiveDetector" // Output directory for sensitive detector
     );
     ~SphericalEarth();

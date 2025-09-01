@@ -172,9 +172,10 @@ void LayerAtmosphereModel::ConstructSDandField()
 
 SphericalEarth::SphericalEarth(DensityModelBase *densityModel,
                                G4double h_sens,
+                               G4double R_earth,
                                std::string SDOutputDir)
 {
-    R_earth = 6371.0 * km; // Global average number
+    this->R_earth = R_earth; // Global average number
 
     R_sens = h_sens + R_earth;
     delta_sens = 1. * cm;

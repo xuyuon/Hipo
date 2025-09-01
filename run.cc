@@ -17,33 +17,14 @@
 #include "parser.hh"
 #include "timer.hh"
 
+#include "runManager.hh"
+
 int main(int argc, char **argv)
 {
-    // Setting up Timer
-    Timer *timer = new Timer();
-    timer->start("Initialization and Run Manager Setup");
-
-    // Setting Up Parser
-    Parser *parser = new Parser();
     G4String config_file = argv[1];
-    parser->ReadConfig(config_file);
 
-    // construct the run manager
-    G4RunManager *runManager = nullptr;
-    G4int nThreads = parser->GetIValue("nThreads");
-    if (nThreads > 1)
-    {
-        runManager = new G4MTRunManager();
-        runManager->SetNumberOfThreads(nThreads);
-    }
-    else
-    {
-        runManager = new G4RunManager();
-    }
-
-    // set mandatory initialization classes
-    G4VModularPhysicsList *physicsList = new FTFP_BERT();
-    runManager->SetUserInitialization(physicsList);
+    G4EarthRunManager *manager = new G4EarthRunManager(config_file);
+    manager->run();
 
     // DensityModelBase *densityModel = new NRLMSIS_2("msis2.0_density_profile.txt");
     // LayerAtmosphereModel *atmosphereModel = new LayerAtmosphereModel(
@@ -60,57 +41,6 @@ int main(int argc, char **argv)
     // );
     // ActionInitialization *action = new ActionInitialization(generator);
 
-    G4double epsilon = 1e-6 * m;
-    DensityModelBase *densityModel = new NRLMSIS_2(parser->GetSValue("DensityProfileFile"));
-    SphericalEarth *atmosphereModel = new SphericalEarth(
-        densityModel,                    // density model
-        550. * km + epsilon,             // h_sens
-        parser->GetSValue("SDOutputDir") // output directory for sensitive detector
-    );
-    SphericalSurfaceSampling *generator = new SphericalSurfaceSampling(
-        parser->GetSValue("ParticleName"),                                              // particle name
-        new LogUniform(parser->GetDValue("Emin") * eV, parser->GetDValue("Emax") * eV), // energy spectrum sampling
-        new UniformSphericalSurface(atmosphereModel->GetCeiling() - epsilon),           // initial position sampling
-        new Scaled(new Sine(), 2.),                                                     // nadir angle sampling
-        new Uniform(0., 2. * PI),                                                       // azimuthal angle sampling
-        parser->GetSValue("GenOutputDir")                                               // output directory for analysis
-    );
-    ActionInitialization *action = new ActionInitialization(generator);
 
-    runManager->SetUserInitialization(atmosphereModel);
-    runManager->SetUserInitialization(action);
-
-    // initialize G4 kernel
-    runManager->Initialize();
-
-    G4UIExecutive *ui = nullptr;
-    // get the pointer to the UI manager and set verbosities
-    G4UImanager *UImanager = G4UImanager::GetUIpointer();
-
-    G4VisManager *visManager = new G4VisExecutive();
-    visManager->Initialize();
-
-    timer->stop();
-
-    if (parser->GetBValue("batch_mode"))
-    {
-        // batch mode
-        timer->start("Batch Mode Execution");
-        G4String command = "/control/execute ";
-        G4String fileName = parser->GetSValue("macro_file");
-        UImanager->ApplyCommand(command + fileName);
-        timer->stop();
-    }
-    else
-    {
-        // interactive mode
-        ui = new G4UIExecutive(argc, argv);
-        UImanager->ApplyCommand("/control/execute vis.mac");
-        ui->SessionStart();
-        delete ui;
-    }
-
-    // job termination
-    delete runManager;
     return 0;
 }

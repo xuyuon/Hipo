@@ -20,6 +20,11 @@ G4double Parser::GetDValue(std::string key)
     return G4UIcommand::ConvertToDouble(dict[key].c_str());
 }
 
+G4double Parser::GetDimensionedDValue(std::string key)
+{
+    return G4UIcommand::ConvertToDimensionedDouble(dict[key].c_str());
+}
+
 G4int Parser::GetIValue(std::string key)
 {
     return G4UIcommand::ConvertToInt(dict[key].c_str());
