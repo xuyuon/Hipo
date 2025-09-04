@@ -12,11 +12,11 @@
 #include <string>
 #include <sstream>
 
-class EarthMagneticField : public G4MagneticField
+class TabulatedEarthMagneticField : public G4MagneticField
 {
 public:
-    EarthMagneticField(const G4String datafile);
-    ~EarthMagneticField();
+    TabulatedEarthMagneticField(const G4String datafile);
+    ~TabulatedEarthMagneticField();
 
     void GetFieldValue(const G4double *Point, G4double *Bfield) const;
 

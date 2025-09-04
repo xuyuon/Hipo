@@ -103,9 +103,9 @@ void G4EarthRunManager::init_density_model()
 void G4EarthRunManager::init_field()
 {
     G4String model_name = parser->GetSValue("FieldModel");
-    if (model_name == "EarthMagneticField")
+    if (model_name == "TabulatedEarthMagneticField")
     {
-        field = new EarthMagneticField(
+        field = new TabulatedEarthMagneticField(
             parser->GetSValue("FieldTableFile")
         );
     }

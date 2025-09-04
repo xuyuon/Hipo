@@ -1,6 +1,6 @@
 #include "field.hh"
 
-EarthMagneticField::EarthMagneticField(const G4String datafile)
+TabulatedEarthMagneticField::TabulatedEarthMagneticField(const G4String datafile)
 {
     // Constructor
     // Assume the data file is a CSV with columns: r, theta, phi, Bx, By, Bz
@@ -59,12 +59,12 @@ EarthMagneticField::EarthMagneticField(const G4String datafile)
     this->dphi = (phi_max - phi_min) / (n_phi - 1);
 }
 
-EarthMagneticField::~EarthMagneticField()
+TabulatedEarthMagneticField::~TabulatedEarthMagneticField()
 {
     // Destructor
 }
 
-void EarthMagneticField::GetFieldValue(const G4double *Point, G4double *Bfield) const
+void TabulatedEarthMagneticField::GetFieldValue(const G4double *Point, G4double *Bfield) const
 {
     G4double x = Point[0];
     G4double y = Point[1];
