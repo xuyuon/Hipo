@@ -61,7 +61,7 @@ TabulatedEarthMagneticField::TabulatedEarthMagneticField(const G4String datafile
 
 TabulatedEarthMagneticField::~TabulatedEarthMagneticField()
 {
-    // Destructor
+    // Destructors
 }
 
 void TabulatedEarthMagneticField::GetFieldValue(const G4double *Point, G4double *Bfield) const
@@ -72,7 +72,7 @@ void TabulatedEarthMagneticField::GetFieldValue(const G4double *Point, G4double 
 
     // Convert position to spherical coordinates
     G4double r = sqrt(x * x + y * y + z * z);
-    G4double theta = acos(z / r); 
+    G4double theta = acos(z / r);
     G4double phi = atan2(y, x);
 
     // check if point is within the defined region
@@ -117,6 +117,171 @@ void TabulatedEarthMagneticField::GetFieldValue(const G4double *Point, G4double 
                                        c001, c101,
                                        c011, c111);
     }
+}
 
-   
+EarthMagneticField::EarthMagneticField(const std::string datafile,
+                                       G4int year,
+                                       G4int month,
+                                       G4int day,
+                                       int N_MAX)
+{
+    // Constructor
+    year_frac = datetime_to_yearfrac(year, month, day);
+
+    LoadData(datafile);
+
+    // overwrite N_MAX if specified
+    if (N_MAX != -1 && N_MAX <= this->N_MAX)
+    {
+        this->N_MAX = N_MAX;
+    }
+}
+
+EarthMagneticField::~EarthMagneticField()
+{
+    // Destructor
+}
+
+void EarthMagneticField::LoadData(const std::string datafile)
+{
+    // Open the data file
+    std::ifstream file(datafile);
+    if (!file.is_open())
+    {
+        G4cerr << "Error: Could not open data file " << datafile << G4endl;
+        return;
+    }
+
+    std::string line;
+
+    while (std::getline(file, line))
+    { // Skip the lines that start with #
+        if (line[0] != '#')
+            break;
+    }
+
+    // 1. Load metadata from first line
+    std::stringstream ss(line);
+    ss >> N_MIN >> N_MAX >> NTIMES >> SP_ORDER >> N_STEPS;
+    // initialize the g and h vectors to be of size (N_MAX+1) x (N_MAX+1) x NTIMES
+    g.resize(N_MAX + 1, std::vector<std::vector<G4double>>(N_MAX + 1, std::vector<G4double>(NTIMES, 0)));
+    h.resize(N_MAX + 1, std::vector<std::vector<G4double>>(N_MAX + 1, std::vector<G4double>(NTIMES, 0)));
+
+    // 2. Loading the time points
+    if (std::getline(file, line))
+    {
+        // turn the line into a stream
+        std::stringstream ss(line);
+        for (double v; ss >> v;)
+        {
+            times.push_back(v);
+        }
+    }
+
+    // 3. Loading the Gauss coefficients for the Spherical Harmonic
+    while (std::getline(file, line))
+    {
+        // turn the line into a stream
+        std::stringstream ss(line);
+        G4int n, m;
+        ss >> n >> m;
+
+        if (m >= 0)
+        {
+            for (G4int t = 0; t < NTIMES; t++)
+            {
+                ss >> g[n][m][t];
+            }
+        }
+        else
+        {
+            m = -m;
+            for (G4int t = 0; t < NTIMES; t++)
+            {
+                ss >> h[n][m][t];
+            }
+        }
+    }
+
+    file.close();
+
+    // 4. Check if the input year is within the valid range
+    if (year_frac < times.front() || year_frac > times.back())
+    {
+        G4cerr << "Error: year input " << year_frac << " is out of valid input range (" << times.front() << ", " << times.back() << ")" << G4endl;
+        return;
+    }
+
+    // 5. Fine t1 (the time point just before the input year) and
+    //    t2 (the time point just after the input year)
+    int t_1_index, t_2_index;
+    G4double t_1, t_2;
+
+    for (int i = 1; i < NTIMES; i++)
+    {
+        if (times[i] > year_frac)
+        {
+            t_2_index = i;
+            t_1_index = i - 1;
+            break;
+        }
+    }
+    t_1 = times[t_1_index];
+    t_2 = times[t_2_index];
+
+    // 6. Interpolate the Gauss coefficients for the input year
+    g_interp.resize(N_MAX + 1, std::vector<G4double>(N_MAX + 1, 0));
+    h_interp.resize(N_MAX + 1, std::vector<G4double>(N_MAX + 1, 0));
+    for (int n = 0; n <= N_MAX; n++)
+    {
+        for (int m = 0; m <= N_MAX; m++)
+        {
+            g_interp[n][m] = g[n][m][t_1_index] + (g[n][m][t_2_index] - g[n][m][t_1_index]) / (t_2 - t_1) * (year_frac - t_1);
+            h_interp[n][m] = h[n][m][t_1_index] + (h[n][m][t_2_index] - h[n][m][t_1_index]) / (t_2 - t_1) * (year_frac - t_1);
+        }
+    }
+}
+
+void EarthMagneticField::GetFieldValue(const G4double *Point, G4double *Bfield) const
+{
+    G4double x = Point[0];
+    G4double y = Point[1];
+    G4double z = Point[2];
+
+    // Convert position to spherical coordinates
+    G4double r = sqrt(x * x + y * y + z * z);
+    G4double theta = acos(z / r);
+    G4double phi = atan2(y, x);
+
+    std::vector<std::vector<double>> P(N_MAX + 1, std::vector<double>(N_MAX + 1, 0));
+    std::vector<std::vector<double>> dP(N_MAX + 1, std::vector<double>(N_MAX + 1, 0));
+
+    associated_legendre(N_MAX, N_MAX, theta, P, dP);
+
+    G4double Br = 0.0;
+    G4double Btheta = 0.0;
+    G4double Bphi = 0.0;
+
+    for (int n = 1; n <= N_MAX; n++)
+    {
+        G4double r_term = pow(RE / r, n + 2);
+        for (int m = 0; m <= n; m++)
+        {
+            G4double phi_term = (g_interp[n][m] * cos(m * phi) + h_interp[n][m] * sin(m * phi));
+            Br += (n + 1) * r_term * phi_term * P[n][m];
+            Btheta += -r_term * phi_term * dP[n][m];
+            Bphi += -r_term * (-(m * g_interp[n][m] * sin(m * phi)) + (m * h_interp[n][m] * cos(m * phi))) * P[n][m];
+        }
+    }
+    Bphi /= sin(theta);
+
+    // Convert from nT to Gauss
+    Br = Br * 1e-5 * gauss;
+    Btheta = Btheta * 1e-5 * gauss;
+    Bphi = Bphi * 1e-5 * gauss;
+
+    // Convert from spherical to Cartesian coordinates
+    Bfield[0] = sin(theta) * cos(phi) * Br + cos(theta) * cos(phi) * Btheta - sin(phi) * Bphi; // Bx
+    Bfield[1] = sin(theta) * sin(phi) * Br + cos(theta) * sin(phi) * Btheta + cos(phi) * Bphi; // By
+    Bfield[2] = cos(theta) * Br - sin(theta) * Btheta;                                         // Bz
 }

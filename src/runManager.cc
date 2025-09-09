@@ -109,6 +109,16 @@ void G4EarthRunManager::init_field()
             parser->GetSValue("FieldTableFile")
         );
     }
+    else if (model_name == "EarthMagneticField")
+    {
+        field = new EarthMagneticField(
+            parser->GetSValue("IGRFDataFile"),
+            parser->GetIValue("Year"),
+            parser->GetIValue("Month"),
+            parser->GetIValue("Day"),
+            parser->GetIValue("n_order_max")
+        );
+    }
     else if (model_name == "NoField")
     {
         field = nullptr;
