@@ -181,6 +181,12 @@ SphericalEarth::SphericalEarth(DensityModelBase *densityModel,
     R_sens = h_sens + R_earth;
     delta_sens = 1. * cm;
 
+    // Set maximum step length to avoid tracking looping particles
+    G4double MaxTrackLength = 2 * 3.141592653589793 * (10 * R_earth);
+    G4UserLimits *userLimits = new G4UserLimits();
+    userLimits -> SetUserMaxTrackLength(MaxTrackLength);
+
+    // Initialize density model
     this->densityModel = densityModel;
     this->boundaries = densityModel->GetBoundaries();
     this->densities = densityModel->GetDensities();
