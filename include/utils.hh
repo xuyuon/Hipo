@@ -4,6 +4,8 @@
 #include "G4Types.hh"
 #include "G4ios.hh"
 
+#include <vector>
+
 G4double trilinear_interp(G4double x_d, G4double y_d, G4double z_d,
                           G4double c000, G4double c100,
                           G4double c010, G4double c110,
