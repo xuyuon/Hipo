@@ -16,6 +16,7 @@
 #include "G4DormandPrince745.hh"
 #include "G4MagIntegratorDriver.hh"
 #include "G4ChordFinder.hh"
+#include "G4UserLimits.hh"
 
 #include <vector>
 #include <cmath>
