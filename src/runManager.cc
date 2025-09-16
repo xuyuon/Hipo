@@ -150,7 +150,9 @@ void G4EarthRunManager::init_atmosphere()
         atmosphere = new Magnetosphere(
             parser->GetDimensionedDValue("R_inner"),
             parser->GetDimensionedDValue("R_outer"),
-            field);
+            field,
+            parser->GetSValue("SDOutputDir")
+        );
     }
     else
     {
