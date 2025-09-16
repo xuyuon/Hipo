@@ -1,6 +1,5 @@
 #include "runManager.hh"
 
-
 G4EarthRunManager::G4EarthRunManager(G4String config_file)
 {
     this->config_file = config_file;
@@ -8,7 +7,7 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
     // Setting Up Parser
     parser = new Parser();
     parser->ReadConfig(config_file);
-    
+
     // Read project name
     project_name = parser->GetSValue("ProjectName");
 
@@ -94,6 +93,10 @@ void G4EarthRunManager::init_density_model()
     {
         densityModel = new NRLMSIS_2(parser->GetSValue("DensityProfileFile"));
     }
+    else if (model_name == "None")
+    {
+        densityModel = nullptr;
+    }
     else
     {
         G4cerr << "Error: Unsupported density model: " << model_name << G4endl;
@@ -106,8 +109,7 @@ void G4EarthRunManager::init_field()
     if (model_name == "TabulatedEarthMagneticField")
     {
         field = new TabulatedEarthMagneticField(
-            parser->GetSValue("FieldTableFile")
-        );
+            parser->GetSValue("FieldTableFile"));
     }
     else if (model_name == "EarthMagneticField")
     {
@@ -116,8 +118,7 @@ void G4EarthRunManager::init_field()
             parser->GetIValue("Year"),
             parser->GetIValue("Month"),
             parser->GetIValue("Day"),
-            parser->GetIValue("n_order_max")
-        );
+            parser->GetIValue("n_order_max"));
     }
     else if (model_name == "NoField")
     {
@@ -137,12 +138,19 @@ void G4EarthRunManager::init_atmosphere()
     {
         G4double epsilon = 1e-6 * m; // small offset to avoid numerical issues
         atmosphere = new SphericalEarth(
-            densityModel,                    // density model
+            densityModel,                                         // density model
             parser->GetDimensionedDValue("h_detector") + epsilon, // h_sens
             parser->GetDimensionedDValue("R_earth"),
             field,
             parser->GetSValue("SDOutputDir") // output directory for sensitive detector
         );
+    }
+    else if (model_name == "Magnetosphere")
+    {
+        atmosphere = new Magnetosphere(
+            parser->GetDimensionedDValue("R_inner"),
+            parser->GetDimensionedDValue("R_outer"),
+            field);
     }
     else
     {
@@ -156,20 +164,18 @@ void G4EarthRunManager::init_generator()
     if (model_name == "SphericalSurfaceSampling")
     {
         generator = new SphericalSurfaceSampling(
-            parser->GetSValue("ParticleName"), 
+            parser->GetSValue("ParticleName"),
             get_sampler(parser->GetSValue("EnergySpectrum"), "EnergySpectrum"),
             get_coordinates_sampler(parser->GetSValue("InitialPosition"), "InitialPosition"),
             get_sampler(parser->GetSValue("NadirAngle"), "NadirAngle"),
             get_sampler(parser->GetSValue("AzimuthAngle"), "AzimuthAngle"),
-            parser->GetSValue("GenOutputDir") 
-        );
+            parser->GetSValue("GenOutputDir"));
     }
     else
     {
         G4cerr << "Error: Unsupported generator model: " << model_name << G4endl;
     }
 }
-
 
 SamplingBase *G4EarthRunManager::get_sampler(G4String sampler_name, G4String label) const
 {
@@ -190,6 +196,12 @@ SamplingBase *G4EarthRunManager::get_sampler(G4String sampler_name, G4String lab
         SamplingBase *base_sampler = get_sampler(parser->GetSValue(label + "_base"), label + "_base");
         G4double scale_factor = parser->GetDValue(label + "_scale");
         return new Scaled(base_sampler, scale_factor);
+    }
+    else if (sampler_name == "Offset")
+    {
+        SamplingBase *base_sampler = get_sampler(parser->GetSValue(label + "_base"), label + "_base");
+        G4double offset = parser->GetDValue(label + "_offset");
+        return new Offset(base_sampler, offset);
     }
     else
     {

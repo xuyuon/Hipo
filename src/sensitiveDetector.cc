@@ -34,10 +34,13 @@ G4bool SensitiveDetectorBase::ProcessHits(G4Step *aStep, G4TouchableHistory *ROh
     return true;
 }
 
-SphericalShellSD::SphericalShellSD(G4String name, std::string SDOutputDir) : SensitiveDetectorBase(name)
+SphericalShellSD::SphericalShellSD(G4String name,
+                                   G4String particle,
+                                   std::string SDOutputDir) : SensitiveDetectorBase(name)
 {
     this->SDOutputDir = SDOutputDir;
     this->SDOutputFile = SDOutputDir + "/secondaries.csv";
+    this->particle = particle;
 
     // Create the output directory
     std::filesystem::create_directories(SDOutputDir);
@@ -56,6 +59,7 @@ SphericalShellSD::~SphericalShellSD()
 G4bool SphericalShellSD::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhist)
 {
     // Check if this is the first step in the volume
+    // TODO: maybe kill the particle?
     if (aStep->IsFirstStepInVolume() == false)
     {
         return true;
@@ -65,7 +69,7 @@ G4bool SphericalShellSD::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhist)
     G4String pName = track->GetDefinition()->GetParticleName();
 
     // we are only interested in recording photons
-    if (pName != "gamma")
+    if (pName != particle)
         return false;
 
     G4StepPoint *preStepPoint = aStep->GetPreStepPoint();   // when the particle enters the sensitive detector
@@ -78,7 +82,9 @@ G4bool SphericalShellSD::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhist)
     G4double energy = postStepPoint->GetKineticEnergy();
 
     // 3. Record the physical process that generated the photon
-    G4String processName = track->GetCreatorProcess()->GetProcessName();
+    G4String processName = "primary";
+    if (track->GetCreatorProcess() != nullptr)
+        G4String processName = track->GetCreatorProcess()->GetProcessName();
 
     // 4. Record the position of the photon
     G4ThreeVector p_pos = track->GetPosition();

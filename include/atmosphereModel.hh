@@ -107,7 +107,7 @@ class SphericalEarth : public AtmosphereModelBase
     */
 public:
     SphericalEarth(DensityModelBase *densityModel,
-                   G4double h_sens,                                     // Height of the sensitive layer
+                   G4double h_sens, // Height of the sensitive layer
                    G4double R_earth,
                    G4MagneticField *Bfield = nullptr,
                    std::string SDOutputDir = "output/sensitiveDetector" // Output directory for sensitive detector
@@ -146,10 +146,48 @@ private:
     G4MagneticField *Bfield;
 
     // Output directory
-    std::string SDOutputDir, SDOutputFile; 
+    std::string SDOutputDir, SDOutputFile;
 
     // Private Methods
     void ConstructAtmosphere();
+    void ConstructSensitiveLayer();
+};
+
+class Magnetosphere : public AtmosphereModelBase
+{
+    /*
+    The outer spherical shell of Earth
+    Only magnetic field is considered here
+    */
+public:
+    Magnetosphere(G4double R_inner,
+                  G4double R_outer,
+                  G4MagneticField *Bfield = nullptr,
+                  std::string SDOutputDir = "output/sensitiveDetector");
+    ~Magnetosphere();
+
+    virtual G4VPhysicalVolume *Construct() override;
+    void ConstructSDandField() override;
+
+private:
+    // Geometry
+    G4double R_inner, R_outer; // Inner and outer radius of the magnetosphere
+
+    // Volumes
+    G4Sphere *solidWorld, *solidSensLayer;
+    G4LogicalVolume *logicWorld, *logicSensLayer;
+    G4VPhysicalVolume *physWorld, *physSensLayer;
+
+    // Materials
+    G4Material *worldMat;
+
+    // Fields
+    G4MagneticField *Bfield;
+
+    // Output directory
+    std::string SDOutputDir, SDOutputFile;
+
+    // Private Methods
     void ConstructSensitiveLayer();
 };
 
