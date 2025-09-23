@@ -412,9 +412,9 @@ G4VPhysicalVolume *Magnetosphere::Construct()
 
 void Magnetosphere::ConstructSDandField()
 {
-    // Construct sensitive detectors
+    // Construct sensitive detectors that record anti-protons
     SensitiveDetectorBase *sd = new SphericalShellSD("SensitiveDetector",
-                                                     "proton",
+                                                     "anti_proton", 
                                                      SDOutputDir);
     logicSensLayer->SetSensitiveDetector(sd);
 

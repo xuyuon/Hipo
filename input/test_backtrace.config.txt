@@ -20,7 +20,7 @@ R_inner=7371.2 km
 R_outer=63712.0 km
 
 GeneratorModel=SphericalSurfaceSampling
-ParticleName=proton
+ParticleName=anti_proton
 EnergySpectrum=LogUniform
 EnergySpectrum_min=1e9 eV
 EnergySpectrum_max=1e10 eV
