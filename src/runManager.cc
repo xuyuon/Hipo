@@ -43,8 +43,8 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
     }
 
     // set physics list
-    // physicsList = new FTFP_BERT();
-    physicsList = new MagneticTransport();
+    physicsList = new FTFP_BERT();
+    // physicsList = new MagneticTransport();
     runManager->SetUserInitialization(physicsList);
 
     init_density_model();
@@ -80,9 +80,8 @@ void G4EarthRunManager::run()
     {
         // batch mode
         timer->start("Batch Mode Execution");
-        G4String command = "/control/execute ";
-        G4String fileName = parser->GetSValue("macro_file");
-        UImanager->ApplyCommand(command + fileName);
+        G4cout << "Starting Batch Execution" << G4endl;
+        runManager->BeamOn(parser->GetIValue("nEvents"));
         timer->stop();
     }
     else

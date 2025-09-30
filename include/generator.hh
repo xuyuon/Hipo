@@ -66,14 +66,13 @@ private:
 // {
 // public:
 //     FiniteDifferenceSampling(
-
+//         std::string data_file
 //     );
 //     ~FiniteDifferenceSampling();
 
 //     virtual void GeneratePrimaries(G4Event *);
 // private:
-//     G4double delta_theta;
-//     G4double delta_phi;
+//     G4int n_events;
 // };
 
 #endif
