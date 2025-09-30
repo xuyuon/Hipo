@@ -53,7 +53,7 @@ SphericalSurfaceSampling::SphericalSurfaceSampling(
     CoordinatesSamplingBase *pos_dist,
     SamplingBase *theta_dist,
     SamplingBase *phi_dist,
-    std::string GenOutputDir)
+    std::string OutputDir)
 {
     analysisManager = G4AnalysisManager::Instance(); // singleton instance of analysis manager
 
@@ -68,15 +68,11 @@ SphericalSurfaceSampling::SphericalSurfaceSampling(
     this->theta_dist = theta_dist;
     this->phi_dist = phi_dist;
 
-    this->GenOutputDir = GenOutputDir;
-    this->GenOutputFile = GenOutputDir + "/primaries.csv";
-
-    // Create the output directory
-    std::filesystem::create_directories(GenOutputDir);
+    this->OutputDir = OutputDir;
 
     // Create the output file
     std::ofstream ofs;
-    ofs.open(GenOutputFile, std::ofstream::out | std::ofstream::trunc);
+    ofs.open(OutputDir, std::ofstream::out | std::ofstream::trunc);
     ofs << "EventID,Energy,Position_mag,Position_phi,Position_theta,Nadir_phi,Nadir_theta\n"; // CSV header
     ofs.close();
 }
@@ -127,7 +123,7 @@ void SphericalSurfaceSampling::GeneratePrimaries(G4Event *anEvent)
 
     // Write the data to data file
     std::ofstream output_file;
-    output_file.open(GenOutputFile, std::ios::app);
+    output_file.open(OutputDir, std::ios::app);
     if (output_file.is_open())
     {
         output_file << event_id << ","

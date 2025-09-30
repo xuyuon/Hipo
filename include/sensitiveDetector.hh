@@ -9,7 +9,6 @@
 
 #include <iostream>
 #include <fstream>
-#include <filesystem>
 
 class SensitiveDetectorBase : public G4VSensitiveDetector
 {
@@ -28,13 +27,13 @@ class SphericalShellSD : public SensitiveDetectorBase
 public:
     SphericalShellSD(G4String name,
                      G4String particle = "gamma",
-                     std::string SDOutputDir = "output/sensitiveDetector");
+                     std::string OutputDir = "output/secondaries.csv");
     ~SphericalShellSD();
 
     G4bool ProcessHits(G4Step *step, G4TouchableHistory *history) override;
 
 private:
-    std::string SDOutputDir, SDOutputFile;
+    std::string OutputDir;
     G4String particle;
 };
 

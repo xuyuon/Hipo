@@ -5,6 +5,7 @@ macro_file=test_run.mac
 
 GenOutputDir=output/generator
 SDOutputDir=output/sensitiveDetector
+OutputDir=output
 
 DensityModel=None
 

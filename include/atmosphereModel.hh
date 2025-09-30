@@ -110,7 +110,7 @@ public:
                    G4double h_sens, // Height of the sensitive layer
                    G4double R_earth,
                    G4MagneticField *Bfield = nullptr,
-                   std::string SDOutputDir = "output/sensitiveDetector" // Output directory for sensitive detector
+                   std::string OutputDir = "output/secondaries.csv" // Output directory for sensitive detector
     );
     ~SphericalEarth();
 
@@ -146,7 +146,7 @@ private:
     G4MagneticField *Bfield;
 
     // Output directory
-    std::string SDOutputDir, SDOutputFile;
+    std::string OutputDir;
 
     // Private Methods
     void ConstructAtmosphere();
@@ -163,7 +163,7 @@ public:
     Magnetosphere(G4double R_inner,
                   G4double R_outer,
                   G4MagneticField *Bfield = nullptr,
-                  std::string SDOutputDir = "output/sensitiveDetector");
+                  std::string OutputDir = "output/secondaries.csv");
     ~Magnetosphere();
 
     virtual G4VPhysicalVolume *Construct() override;
@@ -185,7 +185,7 @@ private:
     G4MagneticField *Bfield;
 
     // Output directory
-    std::string SDOutputDir, SDOutputFile;
+    std::string OutputDir;
 
     // Private Methods
     void ConstructSensitiveLayer();

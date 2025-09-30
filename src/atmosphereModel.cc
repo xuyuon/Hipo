@@ -174,7 +174,7 @@ SphericalEarth::SphericalEarth(DensityModelBase *densityModel,
                                G4double h_sens,
                                G4double R_earth,
                                G4MagneticField *Bfield,
-                               std::string SDOutputDir)
+                               std::string OutputDir)
 {
     this->R_earth = R_earth; // Global average number
 
@@ -198,7 +198,7 @@ SphericalEarth::SphericalEarth(DensityModelBase *densityModel,
     }
 
     this->Bfield = Bfield;
-    this->SDOutputDir = SDOutputDir;
+    this->OutputDir = OutputDir;
 }
 
 SphericalEarth::~SphericalEarth()
@@ -323,7 +323,7 @@ void SphericalEarth::ConstructSDandField()
     // Construct sensitive detectors
     SensitiveDetectorBase *sd = new SphericalShellSD("SensitiveDetector",
                                                      "gamma",
-                                                     SDOutputDir);
+                                                     OutputDir);
     logicSensLayer->SetSensitiveDetector(sd);
 
     // Construct magnetic field
@@ -363,13 +363,13 @@ void SphericalEarth::ConstructSDandField()
 Magnetosphere::Magnetosphere(G4double R_inner,
                              G4double R_outer,
                              G4MagneticField *Bfield,
-                             std::string SDOutputDir)
+                             std::string OutputDir)
 {
     // User-defined variables
     this->R_inner = R_inner;
     this->R_outer = R_outer;
     this->Bfield = Bfield;
-    this->SDOutputDir = SDOutputDir;
+    this->OutputDir = OutputDir;
 
     // Set maximum step length to avoid tracking looping particles
     G4double MaxTrackLength = 2 * 3.141592653589793 * (2 * R_outer);
@@ -415,7 +415,7 @@ void Magnetosphere::ConstructSDandField()
     // Construct sensitive detectors that record anti-protons
     SensitiveDetectorBase *sd = new SphericalShellSD("SensitiveDetector",
                                                      "anti_proton", 
-                                                     SDOutputDir);
+                                                     OutputDir);
     logicSensLayer->SetSensitiveDetector(sd);
 
     // Construct magnetic field

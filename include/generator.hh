@@ -12,7 +12,7 @@
 
 #include <iostream>
 #include <fstream>
-#include <filesystem>
+
 
 class PrimaryGenerator : public G4VUserPrimaryGeneratorAction
 {
@@ -44,7 +44,7 @@ public:
         CoordinatesSamplingBase *pos_dist,            // distribution of initial position
         SamplingBase *theta_dist,                     // distribution of theta angle (nadir angle)
         SamplingBase *phi_dist,                       // distribution of phi angle (azimuthal angle)
-        std::string GenOutputDir = "output/generator" // output directory for analysis
+        std::string OutputDir = "output/primaries.csv" // output directory for analysis
     );
     ~SphericalSurfaceSampling();
 
@@ -59,7 +59,21 @@ private:
     SamplingBase *theta_dist;
     SamplingBase *phi_dist;
 
-    std::string GenOutputDir, GenOutputFile;
+    std::string OutputDir;
 };
+
+// class FiniteDifferenceSampling : public SphericalSurfaceSampling
+// {
+// public:
+//     FiniteDifferenceSampling(
+
+//     );
+//     ~FiniteDifferenceSampling();
+
+//     virtual void GeneratePrimaries(G4Event *);
+// private:
+//     G4double delta_theta;
+//     G4double delta_phi;
+// };
 
 #endif

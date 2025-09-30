@@ -11,8 +11,17 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
     // Read project name
     project_name = parser->GetSValue("ProjectName");
 
+    // Create output directories
+    output_dir = parser->GetSValue("OutputDir");
+    G4cout << "Output directory: " << output_dir << G4endl;
+    std::filesystem::create_directories(output_dir);
+    std::filesystem::create_directories(output_dir + "/primaries");
+    std::filesystem::create_directories(output_dir + "/secondaries");
+    std::filesystem::create_directories(output_dir + "/backtraced");
+    std::filesystem::create_directories(output_dir + "/runtime");
+
     // Setting up Timer
-    timer = new Timer(project_name + "_runtime.txt");
+    timer = new Timer(output_dir + "/runtime/" + project_name + "_runtime.txt");
     timer->start("Initialization and Run Manager Setup");
 
     // Set Random seed
@@ -142,16 +151,17 @@ void G4EarthRunManager::init_atmosphere()
             parser->GetDimensionedDValue("h_detector") + epsilon, // h_sens
             parser->GetDimensionedDValue("R_earth"),
             field,
-            parser->GetSValue("SDOutputDir") // output directory for sensitive detector
+            output_dir + "/secondaries/" + project_name + "_secondaries.csv" // output directory for sensitive detector
         );
     }
     else if (model_name == "Magnetosphere")
     {
+        // TODO: increase the order for better accuracy
         atmosphere = new Magnetosphere(
             parser->GetDimensionedDValue("R_inner"),
             parser->GetDimensionedDValue("R_outer"),
             field,
-            parser->GetSValue("SDOutputDir")
+            output_dir + "/backtraced/" + project_name + "_backtraced.csv"
         );
     }
     else
@@ -171,7 +181,8 @@ void G4EarthRunManager::init_generator()
             get_coordinates_sampler(parser->GetSValue("InitialPosition"), "InitialPosition"),
             get_sampler(parser->GetSValue("NadirAngle"), "NadirAngle"),
             get_sampler(parser->GetSValue("AzimuthAngle"), "AzimuthAngle"),
-            parser->GetSValue("GenOutputDir"));
+            output_dir + "/primaries/" + project_name + "_primaries.csv" // output directory for sensitive detector
+        );
     }
     else
     {

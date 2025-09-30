@@ -36,18 +36,14 @@ G4bool SensitiveDetectorBase::ProcessHits(G4Step *aStep, G4TouchableHistory *ROh
 
 SphericalShellSD::SphericalShellSD(G4String name,
                                    G4String particle,
-                                   std::string SDOutputDir) : SensitiveDetectorBase(name)
+                                   std::string OutputDir) : SensitiveDetectorBase(name)
 {
-    this->SDOutputDir = SDOutputDir;
-    this->SDOutputFile = SDOutputDir + "/secondaries.csv";
+    this->OutputDir = OutputDir;
     this->particle = particle;
-
-    // Create the output directory
-    std::filesystem::create_directories(SDOutputDir);
 
     // Create the output file
     std::ofstream ofs;
-    ofs.open(SDOutputFile, std::ofstream::out | std::ofstream::trunc);
+    ofs.open(OutputDir, std::ofstream::out | std::ofstream::trunc);
     ofs << "EventID,Energy,Process,Position_mag,Position_phi,Position_theta,Nadir_phi,Nadir_theta\n"; // CSV header
     ofs.close();
 }
@@ -108,7 +104,7 @@ G4bool SphericalShellSD::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhist)
 
     // Write the data to data file
     std::ofstream output_file;
-    output_file.open(SDOutputFile, std::ios::app);
+    output_file.open(OutputDir, std::ios::app);
     if (output_file.is_open())
     {
         output_file << eventID << ","

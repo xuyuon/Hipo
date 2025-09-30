@@ -20,6 +20,7 @@
 #include "action.hh"
 #include "field.hh"
 
+#include <filesystem>
 
 class G4EarthRunManager
 {
@@ -60,6 +61,7 @@ private:
 
     // directories
     G4String config_file;
+    std::string output_dir;
 };
 
 #endif
