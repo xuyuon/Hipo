@@ -43,7 +43,8 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
     }
 
     // set physics list
-    physicsList = new FTFP_BERT();
+    // physicsList = new FTFP_BERT();
+    physicsList = new MagneticTransport();
     runManager->SetUserInitialization(physicsList);
 
     init_density_model();

@@ -19,6 +19,7 @@
 #include "sampling.hh"
 #include "action.hh"
 #include "field.hh"
+#include "physicsList.hh"
 
 #include <filesystem>
 
