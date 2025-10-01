@@ -141,5 +141,80 @@ void SphericalSurfaceSampling::GeneratePrimaries(G4Event *anEvent)
     }
 
     // Generate the primary vertex for the event
-    fParticleGun->GeneratePrimaryVertex(anEvent); 
+    fParticleGun->GeneratePrimaryVertex(anEvent);
+}
+
+FiniteDifferenceSampling::FiniteDifferenceSampling(
+    G4String particleName,
+    std::string data_file,
+    std::string output_file)
+{
+    event_count = 0;
+
+    this->data_file = data_file;
+    this->output_file = output_file;
+
+    // Read the data file
+    std::ifstream file(data_file);
+    if (!file.is_open())
+    {
+        G4cerr << "Error: Could not open data file " << data_file << G4endl;
+        return;
+    }
+
+    std::string line;
+
+    // Create the output file
+    std::ofstream ofs;
+    ofs.open(output_file, std::ofstream::out | std::ofstream::trunc);
+    ofs << "EventID,Energy,Position_mag,Position_phi,Position_theta,Nadir_phi,Nadir_theta\n"; // CSV header
+    ofs.close();
+}
+
+FiniteDifferenceSampling::~FiniteDifferenceSampling()
+{
+    // Destructor implementation
+}
+
+void FiniteDifferenceSampling::init_primaries_params()
+{
+    // Read data file
+    // Read the first line to get the header information
+    // std::getline(file, line);
+    // TODO: check header format
+
+    // while (std::getline(file, line))
+    // {
+    //     std::stringstream ss(line);
+
+    //     std::string numstr;
+
+    //     std::getline(ss, numstr, ',');
+    //     boundaries.push_back(std::stod(numstr) * km);
+
+    //     std::getline(ss, numstr, ',');
+    //     h_percentage_mass.push_back(std::stod(numstr));
+
+    //     std::getline(ss, numstr, ',');
+    //     he_percentage_mass.push_back(std::stod(numstr));
+
+    //     std::getline(ss, numstr, ',');
+    //     n_percentage_mass.push_back(std::stod(numstr));
+
+    //     std::getline(ss, numstr, ',');
+    //     o_percentage_mass.push_back(std::stod(numstr));
+
+    //     std::getline(ss, numstr, ',');
+    //     ar_percentage_mass.push_back(std::stod(numstr));
+
+    //     std::getline(ss, numstr, ',');
+    //     densities.push_back(std::stod(numstr) * g / cm3);
+    // }
+    // file.close();
+
+}
+
+void FiniteDifferenceSampling::GeneratePrimaries(G4Event *anEvent)
+{
+
 }

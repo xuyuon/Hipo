@@ -62,17 +62,26 @@ private:
     std::string OutputDir;
 };
 
-// class FiniteDifferenceSampling : public SphericalSurfaceSampling
-// {
-// public:
-//     FiniteDifferenceSampling(
-//         std::string data_file
-//     );
-//     ~FiniteDifferenceSampling();
+class FiniteDifferenceSampling : public G4VUserPrimaryGeneratorAction
+{
+public:
+    FiniteDifferenceSampling(
+        G4String particleName, // name of the particle to be generated
+        std::string data_file,
+        std::string output_file = "output/primaries_fd.csv" // output directory for analysis
+    );
+    ~FiniteDifferenceSampling();
 
-//     virtual void GeneratePrimaries(G4Event *);
-// private:
-//     G4int n_events;
-// };
+    virtual void GeneratePrimaries(G4Event *);
+private:
+    void init_primaries_params();
+
+    // 
+    G4int event_count;
+
+    // Directories
+    std::string data_file;
+    std::string output_file;
+};
 
 #endif

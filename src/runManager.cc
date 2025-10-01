@@ -72,6 +72,8 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
 G4EarthRunManager::~G4EarthRunManager()
 {
     // destructor
+    delete visManager;
+    delete runManager;
 }
 
 void G4EarthRunManager::run()
@@ -82,6 +84,7 @@ void G4EarthRunManager::run()
         timer->start("Batch Mode Execution");
         G4cout << "Starting Batch Execution" << G4endl;
         runManager->BeamOn(parser->GetIValue("nEvents"));
+        G4cout << "Batch Execution Completed" << G4endl;
         timer->stop();
     }
     else
@@ -182,6 +185,14 @@ void G4EarthRunManager::init_generator()
             get_sampler(parser->GetSValue("NadirAngle"), "NadirAngle"),
             get_sampler(parser->GetSValue("AzimuthAngle"), "AzimuthAngle"),
             output_dir + "/primaries/" + project_name + "_primaries.csv" // output directory for sensitive detector
+        );
+    }
+    else if (model_name == "FiniteDifferenceSampling")
+    {
+        generator = new FiniteDifferenceSampling(
+            parser->GetSValue("ParticleName"),
+            parser->GetSValue("FDDataFile"),
+            output_dir + "/primaries/" + project_name + "_primaries_fd.csv" // output directory for sensitive detector
         );
     }
     else
