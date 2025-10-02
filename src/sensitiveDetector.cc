@@ -41,11 +41,15 @@ SphericalShellSD::SphericalShellSD(G4String name,
     this->OutputDir = OutputDir;
     this->particle = particle;
 
-    // Create the output file
-    std::ofstream ofs;
-    ofs.open(OutputDir, std::ofstream::out | std::ofstream::trunc);
-    ofs << "EventID,Energy,Process,Position_mag,Position_phi,Position_theta,Nadir_phi,Nadir_theta\n"; // CSV header
-    ofs.close();
+    G4int n_threads = G4RunManager::GetRunManager()->GetNumberOfThreads();
+    // Create the output file for each thread
+    for (int i = 0; i < n_threads; i++)
+    {
+        std::ofstream ofs;
+        ofs.open(OutputDir + "_" + std::to_string(i) + ".csv", std::ofstream::out | std::ofstream::trunc);
+        ofs << "EventID,Energy,Process,Position_mag,Position_phi,Position_theta,Nadir_phi,Nadir_theta\n"; // CSV header
+        ofs.close();
+    }
 }
 
 SphericalShellSD::~SphericalShellSD()
@@ -104,7 +108,7 @@ G4bool SphericalShellSD::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhist)
 
     // Write the data to data file
     std::ofstream output_file;
-    output_file.open(OutputDir, std::ios::app);
+    output_file.open(OutputDir + "_" + std::to_string(G4Threading::G4GetThreadId()) + ".csv", std::ios::app);
     if (output_file.is_open())
     {
         output_file << eventID << ","

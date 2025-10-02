@@ -72,7 +72,7 @@ SphericalSurfaceSampling::SphericalSurfaceSampling(
 
     // Create the output file
     std::ofstream ofs;
-    ofs.open(OutputDir, std::ofstream::out | std::ofstream::trunc);
+    ofs.open(OutputDir + "_" + std::to_string(G4Threading::G4GetThreadId()) + ".csv", std::ofstream::out | std::ofstream::trunc);
     ofs << "EventID,Energy,Position_mag,Position_phi,Position_theta,Nadir_phi,Nadir_theta\n"; // CSV header
     ofs.close();
 }
@@ -123,7 +123,7 @@ void SphericalSurfaceSampling::GeneratePrimaries(G4Event *anEvent)
 
     // Write the data to data file
     std::ofstream output_file;
-    output_file.open(OutputDir, std::ios::app);
+    output_file.open(OutputDir + "_" + std::to_string(G4Threading::G4GetThreadId()) + ".csv", std::ios::app);
     if (output_file.is_open())
     {
         output_file << event_id << ","

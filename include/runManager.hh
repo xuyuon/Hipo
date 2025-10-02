@@ -16,12 +16,12 @@
 #include "densityModel.hh"
 #include "atmosphereModel.hh"
 #include "generator.hh"
-#include "sampling.hh"
 #include "action.hh"
 #include "field.hh"
 #include "physicsList.hh"
 
 #include <filesystem>
+#include <vector>
 
 class G4EarthRunManager
 {
@@ -34,10 +34,6 @@ public:
     void init_density_model();
     void init_field();
     void init_atmosphere();
-    void init_generator();
-
-    SamplingBase *get_sampler(G4String sampler_name, G4String label) const;
-    CoordinatesSamplingBase *get_coordinates_sampler(G4String sampler_name, G4String label) const;
 
 private:
     // config

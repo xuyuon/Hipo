@@ -6,6 +6,7 @@
 #include "G4AnalysisManager.hh"
 #include "G4VProcess.hh"
 #include "G4EventManager.hh"
+#include "G4RunManager.hh"
 
 #include <iostream>
 #include <fstream>

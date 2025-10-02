@@ -7,6 +7,7 @@
 #include "G4ParticleTable.hh"
 #include "G4AnalysisManager.hh"
 #include "G4Event.hh"
+#include "G4RunManager.hh"
 
 #include "sampling.hh"
 
