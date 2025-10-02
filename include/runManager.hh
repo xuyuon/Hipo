@@ -34,11 +34,12 @@ public:
     void init_density_model();
     void init_field();
     void init_atmosphere();
-
+    void merge_output_files();
 private:
     // config
     std::string project_name;
     G4bool batch_mode;
+    G4int nThreads;
 
     // utility classes
     Timer *timer;
@@ -59,6 +60,7 @@ private:
     // directories
     G4String config_file;
     std::string output_dir;
+    std::string primaries_output_dir;
 };
 
 #endif

@@ -1,8 +1,9 @@
 #include "action.hh"
 
-ActionInitialization::ActionInitialization(Parser *parser)
+ActionInitialization::ActionInitialization(Parser *parser, std::string output_dir)
 {
     this->parser= parser;
+    this->output_dir = output_dir;
 }
 
 ActionInitialization::~ActionInitialization()
@@ -30,8 +31,6 @@ G4VUserPrimaryGeneratorAction *ActionInitialization::init_generator() const
     G4VUserPrimaryGeneratorAction *generator = nullptr;
 
     G4String model_name = parser->GetSValue("GeneratorModel");
-    std::string project_name = parser->GetSValue("ProjectName");
-    std::string output_dir = parser->GetSValue("OutputDir");
 
     if (model_name == "SphericalSurfaceSampling")
     {
@@ -41,7 +40,7 @@ G4VUserPrimaryGeneratorAction *ActionInitialization::init_generator() const
             get_coordinates_sampler(parser->GetSValue("InitialPosition"), "InitialPosition"),
             get_sampler(parser->GetSValue("NadirAngle"), "NadirAngle"),
             get_sampler(parser->GetSValue("AzimuthAngle"), "AzimuthAngle"),
-            output_dir + "/primaries/" + project_name + "_primaries" // output directory for sensitive detector
+            output_dir + "_primaries" // output directory for sensitive detector
         );
     }
     else if (model_name == "FiniteDifferenceSampling")
@@ -49,7 +48,7 @@ G4VUserPrimaryGeneratorAction *ActionInitialization::init_generator() const
         generator = new FiniteDifferenceSampling(
             parser->GetSValue("ParticleName"),
             parser->GetSValue("FDDataFile"),
-            output_dir + "/primaries/" + project_name + "_primaries_fd" // output directory for sensitive detector
+            output_dir + "_primaries_fd" // output directory for sensitive detector
         );
     }
     else

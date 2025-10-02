@@ -13,12 +13,13 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
 
     // Create output directories
     output_dir = parser->GetSValue("OutputDir");
-    G4cout << "Output directory: " << output_dir << G4endl;
     std::filesystem::create_directories(output_dir);
     std::filesystem::create_directories(output_dir + "/primaries");
     std::filesystem::create_directories(output_dir + "/secondaries");
     std::filesystem::create_directories(output_dir + "/backtraced");
     std::filesystem::create_directories(output_dir + "/runtime");
+
+    primaries_output_dir = output_dir + "/primaries/" + project_name;
 
     // Setting up Timer
     timer = new Timer(output_dir + "/runtime/" + project_name + "_runtime.txt");
@@ -31,7 +32,7 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
 
     // construct the run manager
     runManager = nullptr;
-    G4int nThreads = parser->GetIValue("nThreads");
+    nThreads = parser->GetIValue("nThreads");
     if (nThreads > 1)
     {
         runManager = new G4MTRunManager();
@@ -51,7 +52,7 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
     init_field();
     init_atmosphere();
 
-    action = new ActionInitialization(parser);
+    action = new ActionInitialization(parser, primaries_output_dir);
     runManager->SetUserInitialization(atmosphere);
     runManager->SetUserInitialization(action);
 
@@ -86,6 +87,8 @@ void G4EarthRunManager::run()
         runManager->BeamOn(parser->GetIValue("nEvents"));
         G4cout << "Batch Execution Completed" << G4endl;
         timer->stop();
+
+        merge_output_files();
     }
     else
     {
@@ -169,5 +172,126 @@ void G4EarthRunManager::init_atmosphere()
     else
     {
         G4cerr << "Error: Unsupported atmosphere model: " << model_name << G4endl;
+    }
+}
+
+void G4EarthRunManager::merge_output_files(){
+    G4cout << "Merging output files..." << G4endl;
+
+    G4String generator_model = parser->GetSValue("GeneratorModel");
+    if (generator_model == "SphericalSurfaceSampling")
+    {
+        // set up the merged output file
+        std::ofstream merged_file(primaries_output_dir + "_primaries.csv", std::ofstream::out | std::ofstream::trunc);
+
+        for (int i = 0; i < nThreads; i++)
+        {
+            std::string file_to_merge = 
+                primaries_output_dir + "_primaries_" + std::to_string(i) + ".csv";
+            if (std::filesystem::exists(file_to_merge))
+            {
+                std::ifstream src(file_to_merge, std::ios::binary);
+                std::ofstream dst(primaries_output_dir + "_primaries.csv", std::ios::binary | std::ios::app);
+                dst.seekp(0, std::ios_base::end);
+                if (i == 0)
+                {
+                    // copy header for the first file
+                    dst << src.rdbuf();
+                }
+                else
+                {
+                    // skip header for other files
+                    std::string line;
+                    std::getline(src, line); // skip header
+                    dst << src.rdbuf();
+                }
+                src.close();
+                dst.close();
+                // std::filesystem::remove(file_to_merge); // remove the individual file after merging
+            }
+            else
+            {
+                G4cerr << "Warning: File " << file_to_merge << " does not exist." << G4endl;
+            }
+        }
+    }else{
+        G4cout << "Output file merging not supported for generator model: " << generator_model << G4endl;
+    }
+
+
+    G4String atmosphere_model = parser->GetSValue("AtmosphereModel");
+    if (atmosphere_model == "SphericalEarth")
+    {
+        // set up the merged output file
+        std::ofstream merged_file(output_dir + "/secondaries/" + project_name + "_secondaries.csv", std::ofstream::out | std::ofstream::trunc);
+
+        for (int i = 0; i < nThreads; i++)
+        {
+            std::string file_to_merge = 
+                output_dir + "/secondaries/" + project_name + "_secondaries_" + std::to_string(i) + ".csv";
+            if (std::filesystem::exists(file_to_merge))
+            {
+                std::ifstream src(file_to_merge, std::ios::binary);
+                std::ofstream dst(output_dir + "/secondaries/" + project_name + "_secondaries.csv", std::ios::binary | std::ios::app);
+                dst.seekp(0, std::ios_base::end);
+                if (i == 0)
+                {
+                    // copy header for the first file
+                    dst << src.rdbuf();
+                }
+                else
+                {
+                    // skip header for other files
+                    std::string line;
+                    std::getline(src, line); // skip header
+                    dst << src.rdbuf();
+                }
+                src.close();
+                dst.close();
+                // std::filesystem::remove(file_to_merge); // remove the individual file after merging
+            }
+            else
+            {
+                G4cerr << "Warning: File " << file_to_merge << " does not exist." << G4endl;
+            }
+        }
+    }else if(atmosphere_model == "Magnetosphere"){
+        // set up the merged output file
+        std::ofstream merged_file(output_dir + "/backtraced/" + project_name + "_backtraced.csv", std::ofstream::out | std::ofstream::trunc);
+
+        for (int i = 0; i < nThreads; i++)
+        {
+            std::string file_to_merge = 
+                output_dir + "/backtraced/" + project_name + "_backtraced_" + std::to_string(i) + ".csv";
+            if (std::filesystem::exists(file_to_merge))
+            {
+                G4cout << "Merging file: " << file_to_merge << G4endl;
+                std::ifstream src(file_to_merge, std::ios::binary);
+                std::ofstream dst(output_dir + "/backtraced/" + project_name + "_backtraced.csv", std::ios::binary | std::ios::app);
+                dst.seekp(0, std::ios_base::end);
+                if (i == 0)
+                {
+                    // copy header for the first file
+                    dst << src.rdbuf();
+                }
+                else
+                {
+                    // skip header for other files
+                    std::string line;
+                    std::getline(src, line); // skip header
+                    G4cout << "Skipped header: " << line << G4endl;
+                    dst << src.rdbuf();
+                }
+                src.close();
+                dst.close();
+                // std::filesystem::remove(file_to_merge); // remove the individual file after merging
+            }
+            else
+            {
+                G4cerr << "Warning: File " << file_to_merge << " does not exist." << G4endl;
+            }
+        }
+    }else{
+        G4cout << "Output file merging not supported for atmosphere model: " << atmosphere_model << G4endl;
     }
 }
