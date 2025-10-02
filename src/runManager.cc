@@ -62,8 +62,8 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
     // get the pointer to the UI manager and set verbosities
     UImanager = G4UImanager::GetUIpointer();
 
-    visManager = new G4VisExecutive();
-    visManager->Initialize();
+    // visManager = new G4VisExecutive();
+    // visManager->Initialize();
 
     batch_mode = parser->GetBValue("batch_mode");
     timer->stop();
@@ -72,7 +72,7 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
 G4EarthRunManager::~G4EarthRunManager()
 {
     // destructor
-    delete visManager;
+    // delete visManager;
     delete runManager;
 }
 
