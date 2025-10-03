@@ -173,6 +173,7 @@ void LayerAtmosphereModel::ConstructSDandField()
 SphericalEarth::SphericalEarth(DensityModelBase *densityModel,
                                G4double h_sens,
                                G4double R_earth,
+                               G4MagneticField *Bfield,
                                std::string SDOutputDir)
 {
     this->R_earth = R_earth; // Global average number
@@ -180,6 +181,12 @@ SphericalEarth::SphericalEarth(DensityModelBase *densityModel,
     R_sens = h_sens + R_earth;
     delta_sens = 1. * cm;
 
+    // Set maximum step length to avoid tracking looping particles
+    G4double MaxTrackLength = 2 * 3.141592653589793 * (10 * R_earth);
+    G4UserLimits *userLimits = new G4UserLimits();
+    userLimits -> SetUserMaxTrackLength(MaxTrackLength);
+
+    // Initialize density model
     this->densityModel = densityModel;
     this->boundaries = densityModel->GetBoundaries();
     this->densities = densityModel->GetDensities();
@@ -190,6 +197,7 @@ SphericalEarth::SphericalEarth(DensityModelBase *densityModel,
         boundary += R_earth;
     }
 
+    this->Bfield = Bfield;
     this->SDOutputDir = SDOutputDir;
 }
 
@@ -284,6 +292,7 @@ void SphericalEarth::ConstructSensitiveLayer()
         G4cerr << "Error: Sensitive layer should be within a atmosphere layer." << G4endl;
     }
 
+    // Create the sensitive layer as a thin spherical shell
     solidSensLayer = new G4Sphere("solidSensLayer",
                                   R_sens,
                                   R_sens + delta_sens,
@@ -314,4 +323,37 @@ void SphericalEarth::ConstructSDandField()
     SensitiveDetectorBase *sd = new SphericalShellSD("SensitiveDetector",
                                                      SDOutputDir);
     logicSensLayer->SetSensitiveDetector(sd);
+
+    // Construct magnetic field
+    if (Bfield != nullptr)
+    {
+        G4double minStep = 1 * km; // minimal step of 1 km
+        G4double minEps = 1e-5;    //   Minimum & value for smallest steps
+        G4double maxEps = 1e-3;
+        G4bool allLocal = true;
+        G4double deltaStep = minStep;
+        G4double deltaChord = minStep;
+        G4double deltaIntersection = minStep;
+
+        // Create an equation of motion for this field
+        G4Mag_UsualEqRhs *fEquation = new G4Mag_UsualEqRhs(Bfield);
+
+        // Create the Runge-Kutta 'stepper' using the efficient 'DoPri5' method
+        G4MagIntegratorStepper *fstepper = new G4DormandPrince745(fEquation);
+
+        // Set this field to the global field manager
+        G4FieldManager *globalFieldMgr = G4TransportationManager::GetTransportationManager()->GetFieldManager();
+        globalFieldMgr->SetDetectorField(Bfield);
+
+        G4MagInt_Driver *pIntgrDriver = new G4MagInt_Driver(minStep, fstepper);
+        G4ChordFinder *pChordFinder = new G4ChordFinder(pIntgrDriver);
+        globalFieldMgr->SetChordFinder(pChordFinder);
+
+        globalFieldMgr->GetChordFinder()->SetDeltaChord(deltaChord);
+        globalFieldMgr->SetAccuraciesWithDeltaOneStep(deltaStep);
+        globalFieldMgr->SetMinimumEpsilonStep(minEps);
+        globalFieldMgr->SetMaximumEpsilonStep(maxEps);
+        globalFieldMgr->SetDeltaOneStep(deltaStep);
+        globalFieldMgr->SetDeltaIntersection(deltaIntersection);
+    }
 }

@@ -9,6 +9,7 @@
 #include "G4VisManager.hh"
 #include "G4VisExecutive.hh"
 #include "G4SystemOfUnits.hh"
+#include "G4MagneticField.hh"
 
 #include "parser.hh"
 #include "timer.hh"
@@ -17,6 +18,7 @@
 #include "generator.hh"
 #include "sampling.hh"
 #include "action.hh"
+#include "field.hh"
 
 
 class G4EarthRunManager
@@ -28,6 +30,7 @@ public:
     void run();
 
     void init_density_model();
+    void init_field();
     void init_atmosphere();
     void init_generator();
 
@@ -36,6 +39,7 @@ public:
 
 private:
     // config
+    std::string project_name;
     G4bool batch_mode;
 
     // utility classes
@@ -47,6 +51,7 @@ private:
     G4VModularPhysicsList *physicsList;
     DensityModelBase *densityModel;
     AtmosphereModelBase *atmosphere;
+    G4MagneticField *field;
     G4VUserPrimaryGeneratorAction *generator;
     ActionInitialization *action;
     G4UIExecutive *ui;

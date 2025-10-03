@@ -5,13 +5,21 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
 {
     this->config_file = config_file;
 
-    // Setting up Timer
-    timer = new Timer();
-    timer->start("Initialization and Run Manager Setup");
-
     // Setting Up Parser
     parser = new Parser();
     parser->ReadConfig(config_file);
+    
+    // Read project name
+    project_name = parser->GetSValue("ProjectName");
+
+    // Setting up Timer
+    timer = new Timer(project_name + "_runtime.txt");
+    timer->start("Initialization and Run Manager Setup");
+
+    // Set Random seed
+    G4long seed = 345354;
+    G4Random::setTheEngine(new CLHEP::RanluxEngine);
+    G4Random::setTheSeed(seed, 3);
 
     // construct the run manager
     runManager = nullptr;
@@ -31,6 +39,7 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
     runManager->SetUserInitialization(physicsList);
 
     init_density_model();
+    init_field();
     init_atmosphere();
     init_generator();
     action = new ActionInitialization(generator);
@@ -53,9 +62,7 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
 
 G4EarthRunManager::~G4EarthRunManager()
 {
-    delete timer;
-    delete parser;
-    delete runManager;
+    // destructor
 }
 
 void G4EarthRunManager::run()
@@ -93,9 +100,38 @@ void G4EarthRunManager::init_density_model()
     }
 }
 
+void G4EarthRunManager::init_field()
+{
+    G4String model_name = parser->GetSValue("FieldModel");
+    if (model_name == "TabulatedEarthMagneticField")
+    {
+        field = new TabulatedEarthMagneticField(
+            parser->GetSValue("FieldTableFile")
+        );
+    }
+    else if (model_name == "EarthMagneticField")
+    {
+        field = new EarthMagneticField(
+            parser->GetSValue("IGRFDataFile"),
+            parser->GetIValue("Year"),
+            parser->GetIValue("Month"),
+            parser->GetIValue("Day"),
+            parser->GetIValue("n_order_max")
+        );
+    }
+    else if (model_name == "NoField")
+    {
+        field = nullptr;
+    }
+    else
+    {
+        G4cerr << "Error: Unsupported field model: " << model_name << G4endl;
+    }
+}
+
 void G4EarthRunManager::init_atmosphere()
 {
-    // Must be called after init_density_model()
+    // Must be called after init_density_model(), init_field()
     G4String model_name = parser->GetSValue("AtmosphereModel");
     if (model_name == "SphericalEarth")
     {
@@ -104,6 +140,7 @@ void G4EarthRunManager::init_atmosphere()
             densityModel,                    // density model
             parser->GetDimensionedDValue("h_detector") + epsilon, // h_sens
             parser->GetDimensionedDValue("R_earth"),
+            field,
             parser->GetSValue("SDOutputDir") // output directory for sensitive detector
         );
     }
