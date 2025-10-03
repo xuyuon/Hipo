@@ -62,7 +62,7 @@ void associated_legendre(G4int n_max, G4int m_max, G4double theta,
             }
             else
             {
-                S[n][m] = S[n][m - 1] * sqrt((n - m + 1.) * (((m == 1) ? 1.0 : 0.0) + 1.) / (n + m));
+                S[n][m] = S[n][m - 1] * sqrt((n - m + 1.) * (m == 1 ? 2.0 : 1.0) / (n + m));
             }
 
             // apply Schmidt normalization
