@@ -1,9 +1,9 @@
-ProjectName=1e10eV-1e11eV
+ProjectName=1e9eV-1e10eV
 nThreads=4
 batch_mode=TRUE
 macro_file=test_run.mac
 OutputDir=output
-nEvents=20
+nEvents=15
 
 DensityModel=None
 
@@ -18,6 +18,9 @@ AtmosphereModel=Magnetosphere
 R_inner=7371.2 km
 R_outer=63712.0 km
 
-GeneratorModel=FiniteDifferenceSampling
+GeneratorModel=GenerateFromTable
 ParticleName=anti_proton
-FDDataFile=
+PrimariesDataFile=test_primaries.csv
+Insert_finite_diff=TRUE
+delta_E=0.01e9 eV
+delta_angle=0.01 degree

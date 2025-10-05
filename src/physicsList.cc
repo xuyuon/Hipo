@@ -7,6 +7,11 @@ MagneticTransport::MagneticTransport()
 
     // EM physics
     RegisterPhysics(new G4EmStandardPhysics());  
+
+    // Step limiter
+    G4StepLimiterPhysics* stepLimitPhys = new G4StepLimiterPhysics();
+    stepLimitPhys->SetApplyToAll(true); // activates step limit for ALL particles
+    RegisterPhysics(stepLimitPhys);
 }
 
 MagneticTransport::~MagneticTransport() {}

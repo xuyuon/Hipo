@@ -17,6 +17,7 @@
 #include "G4MagIntegratorDriver.hh"
 #include "G4ChordFinder.hh"
 #include "G4UserLimits.hh"
+#include "G4PropagatorInField.hh"
 
 #include <vector>
 #include <cmath>
@@ -170,6 +171,9 @@ public:
     void ConstructSDandField() override;
 
 private:
+    // User Limits
+    G4UserLimits *userLimits;
+
     // Geometry
     G4double R_inner, R_outer; // Inner and outer radius of the magnetosphere
 

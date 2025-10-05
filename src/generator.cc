@@ -144,16 +144,47 @@ void SphericalSurfaceSampling::GeneratePrimaries(G4Event *anEvent)
     fParticleGun->GeneratePrimaryVertex(anEvent);
 }
 
-FiniteDifferenceSampling::FiniteDifferenceSampling(
+GenerateFromTable::GenerateFromTable(
     G4String particleName,
     std::string data_file,
-    std::string output_file)
+    std::string output_file,
+    G4bool insert_finite_differences,
+    G4double delta_E,
+    G4double delta_angle)
 {
-    event_count = 0;
+    n_threads = G4RunManager::GetRunManager()->GetNumberOfThreads();
+    fParticleGun = new G4ParticleGun(1); // Create a particle gun with 1 particle
+
+    G4ParticleTable *particleTable = G4ParticleTable::GetParticleTable();
+    G4ParticleDefinition *particle = particleTable->FindParticle(particleName);
+    fParticleGun->SetParticleDefinition(particle);
 
     this->data_file = data_file;
     this->output_file = output_file;
 
+    init_table();
+
+    if (insert_finite_differences)
+    {
+        this->delta_E = delta_E;
+        this->delta_angle = delta_angle;
+        init_finite_differences();
+    }
+
+    // Create the output file
+    std::ofstream ofs;
+    ofs.open(output_file + "_" + std::to_string(G4Threading::G4GetThreadId()) + ".csv", std::ofstream::out | std::ofstream::trunc);
+    ofs << "EventID,Energy,Position_mag,Position_phi,Position_theta,Nadir_phi,Nadir_theta\n"; // CSV header
+    ofs.close();
+}
+
+GenerateFromTable::~GenerateFromTable()
+{
+    // Destructor implementation
+}
+
+void GenerateFromTable::init_table()
+{
     // Read the data file
     std::ifstream file(data_file);
     if (!file.is_open())
@@ -161,60 +192,163 @@ FiniteDifferenceSampling::FiniteDifferenceSampling(
         G4cerr << "Error: Could not open data file " << data_file << G4endl;
         return;
     }
-
     std::string line;
-
-    // Create the output file
-    std::ofstream ofs;
-    ofs.open(output_file, std::ofstream::out | std::ofstream::trunc);
-    ofs << "EventID,Energy,Position_mag,Position_phi,Position_theta,Nadir_phi,Nadir_theta\n"; // CSV header
-    ofs.close();
-}
-
-FiniteDifferenceSampling::~FiniteDifferenceSampling()
-{
-    // Destructor implementation
-}
-
-void FiniteDifferenceSampling::init_primaries_params()
-{
-    // Read data file
     // Read the first line to get the header information
-    // std::getline(file, line);
+    std::getline(file, line);
     // TODO: check header format
 
-    // while (std::getline(file, line))
-    // {
-    //     std::stringstream ss(line);
+    while (std::getline(file, line))
+    {
+        std::stringstream ss(line);
+        std::string numstr;
 
-    //     std::string numstr;
+        // eventid
+        std::getline(ss, numstr, ',');
 
-    //     std::getline(ss, numstr, ',');
-    //     boundaries.push_back(std::stod(numstr) * km);
+        // energies
+        std::getline(ss, numstr, ',');
+        energies.push_back(std::stod(numstr) * eV);
 
-    //     std::getline(ss, numstr, ',');
-    //     h_percentage_mass.push_back(std::stod(numstr));
+        // Position_mag
+        std::getline(ss, numstr, ',');
+        pos_mag.push_back(std::stod(numstr) * km);
 
-    //     std::getline(ss, numstr, ',');
-    //     he_percentage_mass.push_back(std::stod(numstr));
+        // Position_phi
+        std::getline(ss, numstr, ',');
+        pos_phi.push_back(std::stod(numstr) * radian);
 
-    //     std::getline(ss, numstr, ',');
-    //     n_percentage_mass.push_back(std::stod(numstr));
+        // Position_theta
+        std::getline(ss, numstr, ',');
+        pos_theta.push_back(std::stod(numstr) * radian);
 
-    //     std::getline(ss, numstr, ',');
-    //     o_percentage_mass.push_back(std::stod(numstr));
+        // Nadir_phi
+        std::getline(ss, numstr, ',');
+        nadir_phi.push_back(std::stod(numstr) * radian);
 
-    //     std::getline(ss, numstr, ',');
-    //     ar_percentage_mass.push_back(std::stod(numstr));
-
-    //     std::getline(ss, numstr, ',');
-    //     densities.push_back(std::stod(numstr) * g / cm3);
-    // }
-    // file.close();
-
+        // Nadir_theta
+        std::getline(ss, numstr, ',');
+        nadir_theta.push_back(std::stod(numstr) * radian);
+    }
+    file.close();
 }
 
-void FiniteDifferenceSampling::GeneratePrimaries(G4Event *anEvent)
+void GenerateFromTable::init_finite_differences()
 {
+    // Make 5 copies of the original data with small perturbations
+    G4int n = energies.size();
+    for (G4int i = 0; i < n; i++)
+    {
+        energies.push_back(energies[i] + delta_E);
+        pos_mag.push_back(pos_mag[i]);
+        pos_phi.push_back(pos_phi[i]);
+        pos_theta.push_back(pos_theta[i]);
+        nadir_phi.push_back(nadir_phi[i]);
+        nadir_theta.push_back(nadir_theta[i]);
 
+        energies.push_back(energies[i]);
+        pos_mag.push_back(pos_mag[i]);
+        pos_phi.push_back(pos_phi[i] + delta_angle);
+        pos_theta.push_back(pos_theta[i]);
+        nadir_phi.push_back(nadir_phi[i]);
+        nadir_theta.push_back(nadir_theta[i]);
+
+        energies.push_back(energies[i]);
+        pos_mag.push_back(pos_mag[i]);
+        pos_phi.push_back(pos_phi[i]);
+        pos_theta.push_back(pos_theta[i] + delta_angle);
+        nadir_phi.push_back(nadir_phi[i]);
+        nadir_theta.push_back(nadir_theta[i]);
+
+        energies.push_back(energies[i]);
+        pos_mag.push_back(pos_mag[i]);
+        pos_phi.push_back(pos_phi[i]);
+        pos_theta.push_back(pos_theta[i]);
+        nadir_phi.push_back(nadir_phi[i] + delta_angle);
+        nadir_theta.push_back(nadir_theta[i]);
+
+        energies.push_back(energies[i]);
+        pos_mag.push_back(pos_mag[i]);
+        pos_phi.push_back(pos_phi[i]);
+        pos_theta.push_back(pos_theta[i]);
+        nadir_phi.push_back(nadir_phi[i]);
+        nadir_theta.push_back(nadir_theta[i] + delta_angle);
+    }
+
+    // remove the first n entries
+    energies.erase(energies.begin(), energies.begin() + n);
+    pos_mag.erase(pos_mag.begin(), pos_mag.begin() + n);
+    pos_phi.erase(pos_phi.begin(), pos_phi.begin() + n);
+    pos_theta.erase(pos_theta.begin(), pos_theta.begin() + n);
+    nadir_phi.erase(nadir_phi.begin(), nadir_phi.begin() + n);
+    nadir_theta.erase(nadir_theta.begin(), nadir_theta.begin() + n);
+}
+
+int GenerateFromTable::get_n_events() const
+{
+    return energies.size();
+}
+
+void GenerateFromTable::GeneratePrimaries(G4Event *anEvent)
+{
+    G4ParticleDefinition *particle = fParticleGun->GetParticleDefinition(); // Find the particle definition
+
+    // Save the event id
+    G4int event_id = anEvent->GetEventID();
+
+    // Set the particle energy
+    G4double p_energy = energies[event_id];
+    fParticleGun->SetParticleEnergy(p_energy); // Set the energy of the particle
+
+    // Set the initial position
+    G4double p_pos_mag = pos_mag[event_id];
+    G4double p_pos_phi = pos_phi[event_id];
+    G4double p_pos_theta = pos_theta[event_id];
+    G4ThreeVector p_pos = G4ThreeVector(
+        p_pos_mag * sin(p_pos_theta) * cos(p_pos_phi),
+        p_pos_mag * sin(p_pos_theta) * sin(p_pos_phi),
+        p_pos_mag * cos(p_pos_theta));
+    fParticleGun->SetParticlePosition(p_pos);
+
+    // Set the momentum direction
+    G4double p_nadir_theta = nadir_theta[event_id];
+    G4double p_nadir_phi = nadir_phi[event_id];
+
+    // Transform the local coordinate into global coordinate
+    G4double local_x = sin(p_nadir_theta) * cos(p_nadir_phi);
+    G4double local_y = sin(p_nadir_theta) * sin(p_nadir_phi);
+    G4double local_z = -cos(p_nadir_theta); // reflected about x-y plane
+
+    G4double p_dir_x = local_x * cos(p_pos_theta) * cos(p_pos_phi) -
+                       local_y * sin(p_pos_phi) +
+                       local_z * sin(p_pos_theta) * cos(p_pos_phi);
+    G4double p_dir_y = local_x * cos(p_pos_theta) * sin(p_pos_phi) +
+                       local_y * cos(p_pos_phi) +
+                       local_z * sin(p_pos_theta) * sin(p_pos_phi);
+    G4double p_dir_z = -local_x * sin(p_pos_theta) +
+                       local_z * cos(p_pos_theta);
+
+    G4ThreeVector p_dir(p_dir_x, p_dir_y, p_dir_z);
+    fParticleGun->SetParticleMomentumDirection(p_dir);
+
+    // Write the data to data file
+    std::ofstream ofile;
+    ofile.open(output_file + "_" + std::to_string(G4Threading::G4GetThreadId()) + ".csv", std::ios::app);
+    if (ofile.is_open())
+    {
+        ofile << event_id << ","
+              << p_energy / eV << ","
+              << p_pos.mag() / km << ","
+              << p_pos.phi() / radian << ","
+              << p_pos.theta() / radian << ","
+              << p_nadir_phi / radian << ","
+              << p_nadir_theta / radian << "\n";
+        ofile.close();
+    }
+    else
+    {
+        G4cerr << "Unable to open file for writing output data." << G4endl;
+    }
+
+    // Generate the primary vertex for the event
+    fParticleGun->GeneratePrimaryVertex(anEvent);
 }

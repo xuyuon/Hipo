@@ -44,14 +44,15 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
     }
 
     // set physics list
-    physicsList = new FTFP_BERT();
-    // physicsList = new MagneticTransport();
+    // physicsList = new FTFP_BERT();
+    physicsList = new MagneticTransport();
     runManager->SetUserInitialization(physicsList);
 
     init_density_model();
     init_field();
     init_atmosphere();
 
+    // generator is initialized in ActionInitialization
     action = new ActionInitialization(parser, primaries_output_dir);
     runManager->SetUserInitialization(atmosphere);
     runManager->SetUserInitialization(action);
@@ -179,7 +180,7 @@ void G4EarthRunManager::merge_output_files(){
     G4cout << "Merging output files..." << G4endl;
 
     G4String generator_model = parser->GetSValue("GeneratorModel");
-    if (generator_model == "SphericalSurfaceSampling")
+    if (generator_model == "SphericalSurfaceSampling" || generator_model == "GenerateFromTable")
     {
         // set up the merged output file
         std::ofstream merged_file(primaries_output_dir + "_primaries.csv", std::ofstream::out | std::ofstream::trunc);
@@ -265,7 +266,6 @@ void G4EarthRunManager::merge_output_files(){
                 output_dir + "/backtraced/" + project_name + "_backtraced_" + std::to_string(i) + ".csv";
             if (std::filesystem::exists(file_to_merge))
             {
-                G4cout << "Merging file: " << file_to_merge << G4endl;
                 std::ifstream src(file_to_merge, std::ios::binary);
                 std::ofstream dst(output_dir + "/backtraced/" + project_name + "_backtraced.csv", std::ios::binary | std::ios::app);
                 dst.seekp(0, std::ios_base::end);
@@ -279,7 +279,6 @@ void G4EarthRunManager::merge_output_files(){
                     // skip header for other files
                     std::string line;
                     std::getline(src, line); // skip header
-                    G4cout << "Skipped header: " << line << G4endl;
                     dst << src.rdbuf();
                 }
                 src.close();

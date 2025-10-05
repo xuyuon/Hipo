@@ -43,12 +43,15 @@ G4VUserPrimaryGeneratorAction *ActionInitialization::init_generator() const
             output_dir + "_primaries" // output directory for sensitive detector
         );
     }
-    else if (model_name == "FiniteDifferenceSampling")
+    else if (model_name == "GenerateFromTable")
     {
-        generator = new FiniteDifferenceSampling(
+        generator = new GenerateFromTable(
             parser->GetSValue("ParticleName"),
-            parser->GetSValue("FDDataFile"),
-            output_dir + "_primaries_fd" // output directory for sensitive detector
+            parser->GetSValue("PrimariesDataFile"),
+            output_dir + "_primaries", // output directory for sensitive detector
+            parser->GetBValue("Insert_finite_diff"),
+            parser->GetDimensionedDValue("delta_E"),
+            parser->GetDimensionedDValue("delta_angle")
         );
     }
     else

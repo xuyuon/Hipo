@@ -372,9 +372,11 @@ Magnetosphere::Magnetosphere(G4double R_inner,
     this->OutputDir = OutputDir;
 
     // Set maximum step length to avoid tracking looping particles
-    G4double MaxTrackLength = 2 * 3.141592653589793 * (2 * R_outer);
-    G4UserLimits *userLimits = new G4UserLimits();
+    G4double MaxTrackLength = 2 * 3.141592653589793 * (5 * R_outer);
+    G4double MaxStepSize = 10 * km; // maximum step size of 10 km
+    userLimits = new G4UserLimits();
     userLimits->SetUserMaxTrackLength(MaxTrackLength);
+    userLimits->SetMaxAllowedStep(MaxStepSize);
 }
 
 Magnetosphere::~Magnetosphere()
@@ -398,6 +400,7 @@ G4VPhysicalVolume *Magnetosphere::Construct()
                               0. * degree,
                               180. * degree);
     logicWorld = new G4LogicalVolume(solidWorld, worldMat, "logicWorld");
+    logicWorld->SetUserLimits(userLimits);
     physWorld = new G4PVPlacement(0,
                                   G4ThreeVector(0., 0., 0.),
                                   logicWorld,
@@ -414,16 +417,16 @@ void Magnetosphere::ConstructSDandField()
 {
     // Construct sensitive detectors that record anti-protons
     SensitiveDetectorBase *sd = new SphericalShellSD("SensitiveDetector",
-                                                     "anti_proton", 
+                                                     "anti_proton",
                                                      OutputDir);
     logicSensLayer->SetSensitiveDetector(sd);
 
     // Construct magnetic field
     if (Bfield != nullptr)
     {
-        G4double minStep = 1. * km; // minimal step of 1 km
-        G4double minEps = 1e-5;    //   Minimum & value for smallest steps
-        G4double maxEps = 1e-3;
+        G4double minStep = 1.0 * km; // minimal step of 1 km
+        G4double minEps = 1e-5;      //   Minimum & value for smallest steps
+        G4double maxEps = 1e-3;      //   Minimum & value for largest steps
         G4bool allLocal = true;
         G4double deltaStep = minStep;
         G4double deltaChord = minStep;

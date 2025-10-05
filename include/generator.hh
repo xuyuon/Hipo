@@ -13,7 +13,7 @@
 
 #include <iostream>
 #include <fstream>
-
+#include <vector>
 
 class PrimaryGenerator : public G4VUserPrimaryGeneratorAction
 {
@@ -42,9 +42,9 @@ public:
     SphericalSurfaceSampling(
         G4String particleName, // name of the particle to be generated
         SamplingBase *energySpectrum,
-        CoordinatesSamplingBase *pos_dist,            // distribution of initial position
-        SamplingBase *theta_dist,                     // distribution of theta angle (nadir angle)
-        SamplingBase *phi_dist,                       // distribution of phi angle (azimuthal angle)
+        CoordinatesSamplingBase *pos_dist,             // distribution of initial position
+        SamplingBase *theta_dist,                      // distribution of theta angle (nadir angle)
+        SamplingBase *phi_dist,                        // distribution of phi angle (azimuthal angle)
         std::string OutputDir = "output/primaries.csv" // output directory for analysis
     );
     ~SphericalSurfaceSampling();
@@ -63,22 +63,41 @@ private:
     std::string OutputDir;
 };
 
-class FiniteDifferenceSampling : public G4VUserPrimaryGeneratorAction
+class GenerateFromTable : public G4VUserPrimaryGeneratorAction
 {
 public:
-    FiniteDifferenceSampling(
+    GenerateFromTable(
         G4String particleName, // name of the particle to be generated
         std::string data_file,
-        std::string output_file = "output/primaries_fd.csv" // output directory for analysis
-    );
-    ~FiniteDifferenceSampling();
+        std::string output_file = "output/primaries.csv", // output directory for analysis
+        G4bool insert_finite_differences = false,
+        G4double delta_E = 0.1 * GeV,
+        G4double delta_angle = 0.5 * degree);
+    ~GenerateFromTable();
 
     virtual void GeneratePrimaries(G4Event *);
-private:
-    void init_primaries_params();
+    int get_n_events() const;
 
-    // 
-    G4int event_count;
+private:
+    void init_table();
+    void init_finite_differences();
+
+    G4ParticleGun *fParticleGun; // Pointer to the particle gun
+
+    //
+    G4int n_threads;
+
+    // Primaries parameters
+    std::vector<G4double> energies;
+    std::vector<G4double> pos_mag;
+    std::vector<G4double> pos_phi;
+    std::vector<G4double> pos_theta;
+    std::vector<G4double> nadir_phi;
+    std::vector<G4double> nadir_theta;
+
+    // Finite differences
+    G4double delta_E;
+    G4double delta_angle;
 
     // Directories
     std::string data_file;
