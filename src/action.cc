@@ -18,6 +18,7 @@ ActionInitialization::ActionInitialization(Parser *parser, std::string output_di
             parser->GetDimensionedDValue("delta_angle")
         );
         this->n_events = generator->get_n_events();
+        delete generator; // clean up the dummy generator
     }
 }
 
