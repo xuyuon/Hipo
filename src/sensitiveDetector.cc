@@ -111,6 +111,7 @@ G4bool SphericalShellSD::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhist)
     output_file.open(OutputDir + "_" + std::to_string(G4Threading::G4GetThreadId()) + ".csv", std::ios::app);
     if (output_file.is_open())
     {
+        output_file << std::fixed << std::setprecision(10);
         output_file << eventID << ","
                     << energy / eV << ","
                     << processName << ","

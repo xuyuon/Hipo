@@ -126,6 +126,9 @@ void SphericalSurfaceSampling::GeneratePrimaries(G4Event *anEvent)
     output_file.open(OutputDir + "_" + std::to_string(G4Threading::G4GetThreadId()) + ".csv", std::ios::app);
     if (output_file.is_open())
     {
+        // set precision
+        output_file << std::fixed << std::setprecision(10);
+
         output_file << event_id << ","
                     << p_energy / eV << ","
                     << p_pos.mag() / km << ","
@@ -234,17 +237,10 @@ void GenerateFromTable::init_table()
 
 void GenerateFromTable::init_finite_differences()
 {
-    // Make 5 copies of the original data with small perturbations
+    // Make 4 copies of the original data with small perturbations
     G4int n = energies.size();
     for (G4int i = 0; i < n; i++)
     {
-        energies.push_back(energies[i] + delta_E);
-        pos_mag.push_back(pos_mag[i]);
-        pos_phi.push_back(pos_phi[i]);
-        pos_theta.push_back(pos_theta[i]);
-        nadir_phi.push_back(nadir_phi[i]);
-        nadir_theta.push_back(nadir_theta[i]);
-
         energies.push_back(energies[i]);
         pos_mag.push_back(pos_mag[i]);
         pos_phi.push_back(pos_phi[i] + delta_angle);
@@ -335,6 +331,9 @@ void GenerateFromTable::GeneratePrimaries(G4Event *anEvent)
     ofile.open(output_file + "_" + std::to_string(G4Threading::G4GetThreadId()) + ".csv", std::ios::app);
     if (ofile.is_open())
     {
+        // set precision
+        ofile << std::fixed << std::setprecision(10);
+
         ofile << event_id << ","
               << p_energy / eV << ","
               << p_pos.mag() / km << ","
