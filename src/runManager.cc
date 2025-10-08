@@ -85,7 +85,21 @@ void G4EarthRunManager::run()
         // batch mode
         timer->start("Batch Mode Execution");
         G4cout << "Starting Batch Execution" << G4endl;
-        runManager->BeamOn(parser->GetIValue("nEvents"));
+
+        // when the generator does not specify the number of events,
+        // use the nEvents from the config file
+        if (action->get_n_events() == -1)
+        {
+            G4cout << parser->GetIValue("nEvents") << " events will be generated." << G4endl;
+            runManager->BeamOn(parser->GetIValue("nEvents"));
+        }
+        else
+        {
+            // otherwise use the nEvents from the generator
+            G4cout << action->get_n_events() << " events will be generated." << G4endl;
+            runManager->BeamOn(action->get_n_events());
+        }
+
         G4cout << "Batch Execution Completed" << G4endl;
         timer->stop();
 
@@ -176,7 +190,8 @@ void G4EarthRunManager::init_atmosphere()
     }
 }
 
-void G4EarthRunManager::merge_output_files(){
+void G4EarthRunManager::merge_output_files()
+{
     G4cout << "Merging output files..." << G4endl;
 
     G4String generator_model = parser->GetSValue("GeneratorModel");
@@ -187,7 +202,7 @@ void G4EarthRunManager::merge_output_files(){
 
         for (int i = 0; i < nThreads; i++)
         {
-            std::string file_to_merge = 
+            std::string file_to_merge =
                 primaries_output_dir + "_primaries_" + std::to_string(i) + ".csv";
             if (std::filesystem::exists(file_to_merge))
             {
@@ -215,10 +230,11 @@ void G4EarthRunManager::merge_output_files(){
                 G4cerr << "Warning: File " << file_to_merge << " does not exist." << G4endl;
             }
         }
-    }else{
+    }
+    else
+    {
         G4cout << "Output file merging not supported for generator model: " << generator_model << G4endl;
     }
-
 
     G4String atmosphere_model = parser->GetSValue("AtmosphereModel");
     if (atmosphere_model == "SphericalEarth")
@@ -228,7 +244,7 @@ void G4EarthRunManager::merge_output_files(){
 
         for (int i = 0; i < nThreads; i++)
         {
-            std::string file_to_merge = 
+            std::string file_to_merge =
                 output_dir + "/secondaries/" + project_name + "_secondaries_" + std::to_string(i) + ".csv";
             if (std::filesystem::exists(file_to_merge))
             {
@@ -256,13 +272,15 @@ void G4EarthRunManager::merge_output_files(){
                 G4cerr << "Warning: File " << file_to_merge << " does not exist." << G4endl;
             }
         }
-    }else if(atmosphere_model == "Magnetosphere"){
+    }
+    else if (atmosphere_model == "Magnetosphere")
+    {
         // set up the merged output file
         std::ofstream merged_file(output_dir + "/backtraced/" + project_name + "_backtraced.csv", std::ofstream::out | std::ofstream::trunc);
 
         for (int i = 0; i < nThreads; i++)
         {
-            std::string file_to_merge = 
+            std::string file_to_merge =
                 output_dir + "/backtraced/" + project_name + "_backtraced_" + std::to_string(i) + ".csv";
             if (std::filesystem::exists(file_to_merge))
             {
@@ -290,7 +308,9 @@ void G4EarthRunManager::merge_output_files(){
                 G4cerr << "Warning: File " << file_to_merge << " does not exist." << G4endl;
             }
         }
-    }else{
+    }
+    else
+    {
         G4cout << "Output file merging not supported for atmosphere model: " << atmosphere_model << G4endl;
     }
 }

@@ -15,7 +15,17 @@
 #include <fstream>
 #include <vector>
 
-class PrimaryGenerator : public G4VUserPrimaryGeneratorAction
+class GeneratorBase : public G4VUserPrimaryGeneratorAction
+{
+public:
+    GeneratorBase(){};
+    virtual ~GeneratorBase(){};
+
+    virtual void GeneratePrimaries(G4Event *) = 0;
+    virtual int get_n_events() const = 0;
+};
+
+class PrimaryGenerator : public GeneratorBase
 {
 public:
     PrimaryGenerator(
@@ -26,6 +36,7 @@ public:
     ~PrimaryGenerator();
 
     virtual void GeneratePrimaries(G4Event *);
+    int get_n_events() const { return -1; }
 
 private:
     G4AnalysisManager *analysisManager;
@@ -36,7 +47,7 @@ private:
     CoordinatesSamplingBase *dir_dist;
 };
 
-class SphericalSurfaceSampling : public G4VUserPrimaryGeneratorAction
+class SphericalSurfaceSampling : public GeneratorBase
 {
 public:
     SphericalSurfaceSampling(
@@ -50,6 +61,7 @@ public:
     ~SphericalSurfaceSampling();
 
     virtual void GeneratePrimaries(G4Event *);
+    int get_n_events() const { return -1; }
 
 private:
     G4AnalysisManager *analysisManager;
@@ -63,7 +75,7 @@ private:
     std::string OutputDir;
 };
 
-class GenerateFromTable : public G4VUserPrimaryGeneratorAction
+class GenerateFromTable : public GeneratorBase
 {
 public:
     GenerateFromTable(

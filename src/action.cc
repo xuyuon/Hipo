@@ -4,6 +4,21 @@ ActionInitialization::ActionInitialization(Parser *parser, std::string output_di
 {
     this->parser= parser;
     this->output_dir = output_dir;
+
+    this->n_events = -1; // default value, if generator does not specify it
+    if (parser->GetSValue("GeneratorModel") == "GenerateFromTable")
+    {
+        // generate a dummy generator to get the number of events
+        GeneratorBase *generator = new GenerateFromTable(
+            parser->GetSValue("ParticleName"),
+            parser->GetSValue("PrimariesDataFile"),
+            output_dir + "_primaries", // output directory for sensitive detector
+            parser->GetBValue("Insert_finite_diff"),
+            parser->GetDimensionedDValue("delta_E"),
+            parser->GetDimensionedDValue("delta_angle")
+        );
+        this->n_events = generator->get_n_events();
+    }
 }
 
 ActionInitialization::~ActionInitialization()
@@ -13,7 +28,7 @@ ActionInitialization::~ActionInitialization()
 
 void ActionInitialization::Build() const
 {
-    G4VUserPrimaryGeneratorAction *generator = init_generator();
+    GeneratorBase *generator = init_generator();
     SetUserAction(generator); // Set the primary generator action
 
     RunAction *runAction = new RunAction();
@@ -26,9 +41,9 @@ void ActionInitialization::Build() const
     SetUserAction(steppingAction);
 }
 
-G4VUserPrimaryGeneratorAction *ActionInitialization::init_generator() const
+GeneratorBase *ActionInitialization::init_generator() const
 {
-    G4VUserPrimaryGeneratorAction *generator = nullptr;
+    GeneratorBase *generator = nullptr;
 
     G4String model_name = parser->GetSValue("GeneratorModel");
 
@@ -98,6 +113,11 @@ SamplingBase *ActionInitialization::get_sampler(G4String sampler_name, G4String 
         G4cerr << "Error: Unsupported sampler: " << sampler_name << G4endl;
         return nullptr;
     }
+}
+
+G4int ActionInitialization::get_n_events() const
+{
+    return n_events;
 }
 
 CoordinatesSamplingBase *ActionInitialization::get_coordinates_sampler(G4String sampler_name, G4String label) const

@@ -3,7 +3,7 @@ nThreads=4
 batch_mode=TRUE
 macro_file=test_run.mac
 OutputDir=output
-nEvents=15
+nEvents=8
 
 DensityModel=None
 
@@ -20,7 +20,7 @@ R_outer=63712.0 km
 
 GeneratorModel=GenerateFromTable
 ParticleName=anti_proton
-PrimariesDataFile=test_primaries.csv
+PrimariesDataFile=test_pr.csv
 Insert_finite_diff=TRUE
 delta_E=0.01e9 eV
-delta_angle=0.01 degree
+delta_angle=0.001 degree
