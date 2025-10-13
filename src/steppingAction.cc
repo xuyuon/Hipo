@@ -1,6 +1,6 @@
 #include "steppingAction.hh"
 
-SteppingAction::SteppingAction(EventAction *eventAction)
+SteppingAction::SteppingAction(EventAction *eventAction, bool record_tracks /*=false*/)
 {
     E_min = 100. * MeV;
 }
@@ -24,6 +24,25 @@ void SteppingAction::UserSteppingAction(const G4Step *step)
     if (E_kinetic < E_min && pName == "gamma")
     {
         track->SetTrackStatus(fStopAndKill);
+    }
+
+    // Record the trajectory of particles
+    G4int eID = G4EventManager::GetEventManager()->GetNonconstCurrentEvent()->GetEventID();
+    G4ThreeVector ppos = step -> GetPreStepPoint() -> GetPosition();
+
+    G4String foldername = "output/tracks/";
+    G4String filename = foldername + std::to_string(eID) + pName + ".txt";
+
+    std::ofstream SDfile;
+    SDfile.open(filename, std::ios::app);
+    if (SDfile.is_open())
+    {
+        // SDfile<< "  Step:"<<Stepid << "  track: " << aStep->GetTrack()->GetTrackID()
+        // SDfile<< "  name: " << pTrack ->GetDefinition()->GetParticleName()
+        SDfile << " " << ppos.getX() / km
+               << " " << ppos.getY() / km
+               << " " << ppos.getZ() / km
+               << G4endl;
     }
 
     // print step size (for debugging)

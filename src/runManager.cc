@@ -18,6 +18,8 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
     fs::create_directories(output_dir + "/secondaries");
     fs::create_directories(output_dir + "/backtraced");
     fs::create_directories(output_dir + "/runtime");
+    // TODO: tracking of particles
+    fs::create_directories(output_dir + "/tracks");
 
     primaries_output_dir = output_dir + "/primaries/" + project_name;
 
