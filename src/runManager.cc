@@ -13,11 +13,11 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
 
     // Create output directories
     output_dir = parser->GetSValue("OutputDir");
-    std::filesystem::create_directories(output_dir);
-    std::filesystem::create_directories(output_dir + "/primaries");
-    std::filesystem::create_directories(output_dir + "/secondaries");
-    std::filesystem::create_directories(output_dir + "/backtraced");
-    std::filesystem::create_directories(output_dir + "/runtime");
+    fs::create_directories(output_dir);
+    fs::create_directories(output_dir + "/primaries");
+    fs::create_directories(output_dir + "/secondaries");
+    fs::create_directories(output_dir + "/backtraced");
+    fs::create_directories(output_dir + "/runtime");
 
     primaries_output_dir = output_dir + "/primaries/" + project_name;
 
@@ -204,7 +204,7 @@ void G4EarthRunManager::merge_output_files()
         {
             std::string file_to_merge =
                 primaries_output_dir + "_primaries_" + std::to_string(i) + ".csv";
-            if (std::filesystem::exists(file_to_merge))
+            if (fs::exists(file_to_merge))
             {
                 std::ifstream src(file_to_merge, std::ios::binary);
                 std::ofstream dst(primaries_output_dir + "_primaries.csv", std::ios::binary | std::ios::app);
@@ -246,7 +246,7 @@ void G4EarthRunManager::merge_output_files()
         {
             std::string file_to_merge =
                 output_dir + "/secondaries/" + project_name + "_secondaries_" + std::to_string(i) + ".csv";
-            if (std::filesystem::exists(file_to_merge))
+            if (fs::exists(file_to_merge))
             {
                 std::ifstream src(file_to_merge, std::ios::binary);
                 std::ofstream dst(output_dir + "/secondaries/" + project_name + "_secondaries.csv", std::ios::binary | std::ios::app);
@@ -282,7 +282,7 @@ void G4EarthRunManager::merge_output_files()
         {
             std::string file_to_merge =
                 output_dir + "/backtraced/" + project_name + "_backtraced_" + std::to_string(i) + ".csv";
-            if (std::filesystem::exists(file_to_merge))
+            if (fs::exists(file_to_merge))
             {
                 std::ifstream src(file_to_merge, std::ios::binary);
                 std::ofstream dst(output_dir + "/backtraced/" + project_name + "_backtraced.csv", std::ios::binary | std::ios::app);

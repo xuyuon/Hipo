@@ -20,8 +20,14 @@
 #include "field.hh"
 #include "physicsList.hh"
 
-#include <filesystem>
 #include <vector>
+
+
+// #include <filesystem>
+// namespace fs = std::filesystem;
+
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
 
 class G4EarthRunManager
 {
