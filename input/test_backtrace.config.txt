@@ -26,11 +26,7 @@ EnergySpectrum_max=1e10 eV
 InitialPosition=UniformSphericalSurface
 InitialPosition_mag=7371.3 km
 
-NadirAngle=Offset
-NadirAngle_offset=-3.14159265359 radian
-NadirAngle_base=Scaled
-NadirAngle_base_scale=-2.0
-NadirAngle_base_base=Sine
+NadirAngle=Lambertian
 
 AzimuthAngle=Uniform
 AzimuthAngle_min=0.0 radian

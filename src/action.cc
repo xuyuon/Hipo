@@ -97,6 +97,10 @@ SamplingBase *ActionInitialization::get_sampler(G4String sampler_name, G4String 
     {
         return new Sine();
     }
+    else if (sampler_name == "Lambertian")
+    {
+        return new Lambertian();
+    }
     else if (sampler_name == "Scaled")
     {
         SamplingBase *base_sampler = get_sampler(parser->GetSValue(label + "_base"), label + "_base");
