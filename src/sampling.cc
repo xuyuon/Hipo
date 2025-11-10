@@ -188,6 +188,26 @@ G4double LogUniform::sample()
     return xmin * pow(xmax / xmin, u);
 }
 
+Lambertian::Lambertian()
+{
+}
+
+Lambertian::~Lambertian()
+{
+}
+
+G4double Lambertian::sample()
+{
+    /*
+    Samples a value from the Lambertian distribution.
+    The probability density function is given by:
+    P(x) ~ sin(2x) for 0 <= x <= pi/2
+    */
+    G4double u = G4UniformRand();
+    G4double x = acos(1.0 - 2.0 * u);
+    return x / 2.0;
+}
+
 ConstCoordinates::ConstCoordinates(G4double x,
                                    G4double y,
                                    G4double z)
