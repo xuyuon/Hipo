@@ -90,8 +90,10 @@ G4double datetime_to_yearfrac(G4int year, G4int month, G4int day)
     G4int days_in_year = 365;
 
     if (is_leap_year(year))
+    {
         days_in_month[1] = 29;
-    days_in_year = 366;
+        days_in_year = 366;
+    }
 
     G4int n_days = day;
     for (int m = 0; m < month - 1; m++)

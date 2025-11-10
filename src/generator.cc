@@ -98,25 +98,27 @@ void SphericalSurfaceSampling::GeneratePrimaries(G4Event *anEvent)
     fParticleGun->SetParticlePosition(p_pos);
 
     // Sample the momentum direction
-    G4double p_theta = theta_dist->sample();
-    G4double p_phi = phi_dist->sample();
+    G4double p_mom_theta = theta_dist->sample();
+    G4double p_mom_phi = phi_dist->sample();
 
     // Transform the local coordinate into global coordinate
     G4double p_pos_theta = p_pos.theta();
     G4double p_pos_phi = p_pos.phi();
 
-    G4double local_x = sin(p_theta) * cos(p_phi);
-    G4double local_y = sin(p_theta) * sin(p_phi);
-    G4double local_z = -cos(p_theta); // reflected about x-y plane
+    G4double p_mom_north = sin(p_mom_theta) * cos(p_mom_phi);
+    G4double p_mom_east = sin(p_mom_theta) * sin(p_mom_phi); 
+    G4double p_mom_down = -cos(p_mom_theta); // cos(pi - theta) = -cos(theta)
 
-    G4double p_dir_x = local_x * cos(p_pos_theta) * cos(p_pos_phi) -
-                       local_y * sin(p_pos_phi) +
-                       local_z * sin(p_pos_theta) * cos(p_pos_phi);
-    G4double p_dir_y = local_x * cos(p_pos_theta) * sin(p_pos_phi) +
-                       local_y * cos(p_pos_phi) +
-                       local_z * sin(p_pos_theta) * sin(p_pos_phi);
-    G4double p_dir_z = -local_x * sin(p_pos_theta) +
-                       local_z * cos(p_pos_theta);
+    G4double p_mom_up = -p_mom_down; 
+    G4double p_mom_south = -p_mom_north; 
+
+    G4double p_dir_x = sin(p_pos_theta) * cos(p_pos_phi) * p_mom_up +
+                       cos(p_pos_theta) * cos(p_pos_phi) * p_mom_south -
+                       sin(p_pos_phi) * p_mom_east;
+    G4double p_dir_y = sin(p_pos_theta) * sin(p_pos_phi) * p_mom_up +
+                        cos(p_pos_theta) * sin(p_pos_phi) * p_mom_south +
+                        cos(p_pos_phi) * p_mom_east;
+    G4double p_dir_z = cos(p_pos_theta) * p_mom_up - sin(p_pos_theta) * p_mom_south;
 
     G4ThreeVector p_dir(p_dir_x, p_dir_y, p_dir_z);
     fParticleGun->SetParticleMomentumDirection(p_dir);
@@ -134,8 +136,8 @@ void SphericalSurfaceSampling::GeneratePrimaries(G4Event *anEvent)
                     << p_pos.mag() / km << ","
                     << p_pos.phi() / radian << ","
                     << p_pos.theta() / radian << ","
-                    << p_phi / radian << ","
-                    << p_theta / radian << "\n";
+                    << p_mom_phi / radian << ","
+                    << p_mom_theta / radian << "\n";
         output_file.close();
     }
     else
@@ -310,18 +312,20 @@ void GenerateFromTable::GeneratePrimaries(G4Event *anEvent)
     G4double p_nadir_phi = nadir_phi[event_id];
 
     // Transform the local coordinate into global coordinate
-    G4double local_x = sin(p_nadir_theta) * cos(p_nadir_phi);
-    G4double local_y = sin(p_nadir_theta) * sin(p_nadir_phi);
-    G4double local_z = -cos(p_nadir_theta); // reflected about x-y plane
+    G4double p_mom_north = sin(p_nadir_theta) * cos(p_nadir_phi);
+    G4double p_mom_east = sin(p_nadir_theta) * sin(p_nadir_phi); 
+    G4double p_mom_down = -cos(p_nadir_theta); // cos(pi - theta) = -cos(theta)
 
-    G4double p_dir_x = local_x * cos(p_pos_theta) * cos(p_pos_phi) -
-                       local_y * sin(p_pos_phi) +
-                       local_z * sin(p_pos_theta) * cos(p_pos_phi);
-    G4double p_dir_y = local_x * cos(p_pos_theta) * sin(p_pos_phi) +
-                       local_y * cos(p_pos_phi) +
-                       local_z * sin(p_pos_theta) * sin(p_pos_phi);
-    G4double p_dir_z = -local_x * sin(p_pos_theta) +
-                       local_z * cos(p_pos_theta);
+    G4double p_mom_up = -p_mom_down; 
+    G4double p_mom_south = -p_mom_north; 
+
+    G4double p_dir_x = sin(p_pos_theta) * cos(p_pos_phi) * p_mom_up +
+                       cos(p_pos_theta) * cos(p_pos_phi) * p_mom_south -
+                       sin(p_pos_phi) * p_mom_east;
+    G4double p_dir_y = sin(p_pos_theta) * sin(p_pos_phi) * p_mom_up +
+                        cos(p_pos_theta) * sin(p_pos_phi) * p_mom_south +
+                        cos(p_pos_phi) * p_mom_east;
+    G4double p_dir_z = cos(p_pos_theta) * p_mom_up - sin(p_pos_theta) * p_mom_south;
 
     G4ThreeVector p_dir(p_dir_x, p_dir_y, p_dir_z);
     fParticleGun->SetParticleMomentumDirection(p_dir);
