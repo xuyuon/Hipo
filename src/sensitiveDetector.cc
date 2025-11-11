@@ -84,7 +84,7 @@ G4bool SphericalShellSD::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhist)
     // 3. Record the physical process that generated the photon
     G4String processName = "primary";
     if (track->GetCreatorProcess() != nullptr)
-        G4String processName = track->GetCreatorProcess()->GetProcessName();
+        processName = track->GetCreatorProcess()->GetProcessName();
 
     // 4. Record the position of the photon
     G4ThreeVector p_pos = track->GetPosition();
