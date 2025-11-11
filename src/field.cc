@@ -238,7 +238,6 @@ void EarthMagneticField::LoadData(const std::string datafile)
         {
             g_interp[n][m] = g[n][m][t_1_index] + (g[n][m][t_2_index] - g[n][m][t_1_index]) / (t_2 - t_1) * (year_frac - t_1);
             h_interp[n][m] = h[n][m][t_1_index] + (h[n][m][t_2_index] - h[n][m][t_1_index]) / (t_2 - t_1) * (year_frac - t_1);
-            G4cout << "n=" << n << " m=" << m << " g=" << g_interp[n][m] << " h=" << h_interp[n][m] << G4endl;
         }
     }
 }
