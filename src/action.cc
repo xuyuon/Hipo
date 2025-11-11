@@ -2,7 +2,7 @@
 
 ActionInitialization::ActionInitialization(Parser *parser, std::string output_dir)
 {
-    this->parser= parser;
+    this->parser = parser;
     this->output_dir = output_dir;
 
     this->n_events = -1; // default value, if generator does not specify it
