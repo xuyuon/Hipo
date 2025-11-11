@@ -387,7 +387,7 @@ Magnetosphere::~Magnetosphere()
 G4VPhysicalVolume *Magnetosphere::Construct()
 {
     // Define world material
-    // Density of G4_Galactic: 1.0-25 [g/cm3])
+    // Density of G4_Galactic: 1.0e-25 [g/cm3])
     G4NistManager *nist = G4NistManager::Instance();
     worldMat = nist->FindOrBuildMaterial("G4_Galactic");
 
