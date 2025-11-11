@@ -14,6 +14,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <sstream>
 #include <iomanip>
 
 class GeneratorBase : public G4VUserPrimaryGeneratorAction
