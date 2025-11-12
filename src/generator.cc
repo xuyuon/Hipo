@@ -177,6 +177,12 @@ GenerateFromTable::GenerateFromTable(
     }
 
     // Create the output file
+    /*
+    TODO: Potential thread safety issue in constructor. The constructor uses G4Threading::G4GetThreadId() to create thread-specific output files,
+    but constructors may be called from different contexts in multi-threaded Geant4 applications.
+    This could lead to incorrect file creation if the constructor is called before threads are properly initialized.
+    Consider creating the output files in the GeneratePrimaries method on first use instead.
+    */ 
     std::ofstream ofs;
     ofs.open(output_file + "_" + std::to_string(G4Threading::G4GetThreadId()) + ".csv", std::ofstream::out | std::ofstream::trunc);
     ofs << "EventID,Energy,Position_mag,Position_phi,Position_theta,Nadir_phi,Nadir_theta\n"; // CSV header

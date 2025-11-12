@@ -43,6 +43,16 @@ SphericalShellSD::SphericalShellSD(G4String name,
 
     G4int n_threads = G4RunManager::GetRunManager()->GetNumberOfThreads();
     // Create the output file for each thread
+    /*
+    TODO: Thread safety issue in file creation. The constructor creates 
+    output files for all threads upfront (lines 46-52), but this can cause 
+    race conditions if multiple threads instantiate this class simultaneously. 
+    In multi-threaded Geant4 simulations, the sensitive detector is typically 
+    constructed once per thread. Creating files for all threads in each 
+    instance's constructor will lead to files being overwritten. Consider 
+    creating only the file for the current thread, or move file creation 
+    to a master-thread-only initialization.
+    */
     for (int i = 0; i < n_threads; i++)
     {
         std::ofstream ofs;
