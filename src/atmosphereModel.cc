@@ -174,7 +174,7 @@ SphericalEarth::SphericalEarth(DensityModelBase *densityModel,
                                G4double h_sens,
                                G4double R_earth,
                                G4MagneticField *Bfield,
-                               std::string SDOutputDir)
+                               std::string OutputDir)
 {
     this->R_earth = R_earth; // Global average number
 
@@ -182,9 +182,9 @@ SphericalEarth::SphericalEarth(DensityModelBase *densityModel,
     delta_sens = 1. * cm;
 
     // Set maximum step length to avoid tracking looping particles
-    G4double MaxTrackLength = 2 * 3.141592653589793 * (10 * R_earth);
+    G4double MaxTrackLength = 2 * 3.141592653589793 * (2 * R_earth);
     G4UserLimits *userLimits = new G4UserLimits();
-    userLimits -> SetUserMaxTrackLength(MaxTrackLength);
+    userLimits->SetUserMaxTrackLength(MaxTrackLength);
 
     // Initialize density model
     this->densityModel = densityModel;
@@ -198,7 +198,7 @@ SphericalEarth::SphericalEarth(DensityModelBase *densityModel,
     }
 
     this->Bfield = Bfield;
-    this->SDOutputDir = SDOutputDir;
+    this->OutputDir = OutputDir;
 }
 
 SphericalEarth::~SphericalEarth()
@@ -320,8 +320,10 @@ G4double SphericalEarth::GetCeiling() const
 
 void SphericalEarth::ConstructSDandField()
 {
+    // Construct sensitive detectors
     SensitiveDetectorBase *sd = new SphericalShellSD("SensitiveDetector",
-                                                     SDOutputDir);
+                                                     "gamma",
+                                                     OutputDir);
     logicSensLayer->SetSensitiveDetector(sd);
 
     // Construct magnetic field
@@ -356,4 +358,125 @@ void SphericalEarth::ConstructSDandField()
         globalFieldMgr->SetDeltaOneStep(deltaStep);
         globalFieldMgr->SetDeltaIntersection(deltaIntersection);
     }
+}
+
+Magnetosphere::Magnetosphere(G4double R_inner,
+                             G4double R_outer,
+                             G4MagneticField *Bfield,
+                             std::string OutputDir)
+{
+    // User-defined variables
+    this->R_inner = R_inner;
+    this->R_outer = R_outer;
+    this->Bfield = Bfield;
+    this->OutputDir = OutputDir;
+
+    // Set maximum step length to avoid tracking looping particles
+    G4double MaxTrackLength = 2 * 3.141592653589793 * (5 * R_outer);
+    G4double MaxStepSize = 10 * km; // maximum step size of 10 km
+    userLimits = new G4UserLimits();
+    userLimits->SetUserMaxTrackLength(MaxTrackLength);
+    userLimits->SetMaxAllowedStep(MaxStepSize);
+}
+
+Magnetosphere::~Magnetosphere()
+{
+    // Destructor
+}
+
+G4VPhysicalVolume *Magnetosphere::Construct()
+{
+    // Define world material
+    // Density of G4_Galactic: 1.0e-25 [g/cm3])
+    G4NistManager *nist = G4NistManager::Instance();
+    worldMat = nist->FindOrBuildMaterial("G4_Galactic");
+
+    // Create the world volume
+    solidWorld = new G4Sphere("solidWorld",
+                              R_inner,
+                              R_outer,
+                              0 * degree,
+                              360 * degree,
+                              0. * degree,
+                              180. * degree);
+    logicWorld = new G4LogicalVolume(solidWorld, worldMat, "logicWorld");
+    logicWorld->SetUserLimits(userLimits);
+    physWorld = new G4PVPlacement(0,
+                                  G4ThreeVector(0., 0., 0.),
+                                  logicWorld,
+                                  "physWorld",
+                                  0,
+                                  false,
+                                  0,
+                                  true);
+    ConstructSensitiveLayer();
+    return physWorld;
+}
+
+void Magnetosphere::ConstructSDandField()
+{
+    // Construct sensitive detectors that record anti-protons
+    SensitiveDetectorBase *sd = new SphericalShellSD("SensitiveDetector",
+                                                     "anti_proton",
+                                                     OutputDir);
+    logicSensLayer->SetSensitiveDetector(sd);
+
+    // Construct magnetic field
+    if (Bfield != nullptr)
+    {
+        G4double minStep = 1.0 * km; // minimal step of 1 km
+        G4double minEps = 1e-5;      //   Minimum & value for smallest steps
+        G4double maxEps = 1e-3;      //   Minimum & value for largest steps
+        G4bool allLocal = true;
+        G4double deltaStep = minStep;
+        G4double deltaChord = minStep;
+        G4double deltaIntersection = minStep;
+
+        // Create an equation of motion for this field
+        G4Mag_UsualEqRhs *fEquation = new G4Mag_UsualEqRhs(Bfield);
+
+        // Create the Runge-Kutta 'stepper' using the efficient 'DoPri5' method
+        G4MagIntegratorStepper *fstepper = new G4DormandPrince745(fEquation);
+
+        // Set this field to the global field manager
+        G4FieldManager *globalFieldMgr = G4TransportationManager::GetTransportationManager()->GetFieldManager();
+        globalFieldMgr->SetDetectorField(Bfield);
+
+        G4MagInt_Driver *pIntgrDriver = new G4MagInt_Driver(minStep, fstepper);
+        G4ChordFinder *pChordFinder = new G4ChordFinder(pIntgrDriver);
+        globalFieldMgr->SetChordFinder(pChordFinder);
+
+        globalFieldMgr->GetChordFinder()->SetDeltaChord(deltaChord);
+        globalFieldMgr->SetAccuraciesWithDeltaOneStep(deltaStep);
+        globalFieldMgr->SetMinimumEpsilonStep(minEps);
+        globalFieldMgr->SetMaximumEpsilonStep(maxEps);
+        globalFieldMgr->SetDeltaOneStep(deltaStep);
+        globalFieldMgr->SetDeltaIntersection(deltaIntersection);
+    }
+}
+
+void Magnetosphere::ConstructSensitiveLayer()
+{
+    //
+    G4double epsilon = 1e-6 * m;  // small offset to avoid numerical issues
+    G4double delta_sens = 1. * m; // thickness of the sensitive layer
+    solidSensLayer = new G4Sphere(
+        "solidSensLayer",
+        R_outer - epsilon - delta_sens,
+        R_outer - epsilon,
+        0 * degree,
+        360 * degree,
+        0. * degree,
+        180. * degree);
+    logicSensLayer = new G4LogicalVolume(solidSensLayer,
+                                         worldMat,
+                                         "logicSensLayer");
+    physSensLayer = new G4PVPlacement(0,
+                                      G4ThreeVector(0., 0., 0.),
+                                      logicSensLayer,
+                                      "physSensLayer",
+                                      logicWorld,
+                                      false,
+                                      0,
+                                      true);
 }

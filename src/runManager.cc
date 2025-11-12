@@ -1,6 +1,5 @@
 #include "runManager.hh"
 
-
 G4EarthRunManager::G4EarthRunManager(G4String config_file)
 {
     this->config_file = config_file;
@@ -8,12 +7,24 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
     // Setting Up Parser
     parser = new Parser();
     parser->ReadConfig(config_file);
-    
+
     // Read project name
     project_name = parser->GetSValue("ProjectName");
 
+    // Create output directories
+    output_dir = parser->GetSValue("OutputDir");
+    fs::create_directories(output_dir);
+    fs::create_directories(output_dir + "/primaries");
+    fs::create_directories(output_dir + "/secondaries");
+    fs::create_directories(output_dir + "/backtraced");
+    fs::create_directories(output_dir + "/runtime");
+    // TODO: tracking of particles
+    fs::create_directories(output_dir + "/tracks");
+
+    primaries_output_dir = output_dir + "/primaries/" + project_name;
+
     // Setting up Timer
-    timer = new Timer(project_name + "_runtime.txt");
+    timer = new Timer(output_dir + "/runtime/" + project_name + "_runtime.txt");
     timer->start("Initialization and Run Manager Setup");
 
     // Set Random seed
@@ -23,7 +34,7 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
 
     // construct the run manager
     runManager = nullptr;
-    G4int nThreads = parser->GetIValue("nThreads");
+    nThreads = parser->GetIValue("nThreads");
     if (nThreads > 1)
     {
         runManager = new G4MTRunManager();
@@ -35,14 +46,16 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
     }
 
     // set physics list
-    physicsList = new FTFP_BERT();
+    // physicsList = new FTFP_BERT();
+    physicsList = new MagneticTransport();
     runManager->SetUserInitialization(physicsList);
 
     init_density_model();
     init_field();
     init_atmosphere();
-    init_generator();
-    action = new ActionInitialization(generator);
+
+    // generator is initialized in ActionInitialization
+    action = new ActionInitialization(parser, primaries_output_dir);
     runManager->SetUserInitialization(atmosphere);
     runManager->SetUserInitialization(action);
 
@@ -53,8 +66,8 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
     // get the pointer to the UI manager and set verbosities
     UImanager = G4UImanager::GetUIpointer();
 
-    visManager = new G4VisExecutive();
-    visManager->Initialize();
+    // visManager = new G4VisExecutive();
+    // visManager->Initialize();
 
     batch_mode = parser->GetBValue("batch_mode");
     timer->stop();
@@ -63,6 +76,8 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
 G4EarthRunManager::~G4EarthRunManager()
 {
     // destructor
+    // delete visManager;
+    delete runManager;
 }
 
 void G4EarthRunManager::run()
@@ -71,10 +86,26 @@ void G4EarthRunManager::run()
     {
         // batch mode
         timer->start("Batch Mode Execution");
-        G4String command = "/control/execute ";
-        G4String fileName = parser->GetSValue("macro_file");
-        UImanager->ApplyCommand(command + fileName);
+        G4cout << "Starting Batch Execution" << G4endl;
+
+        // when the generator does not specify the number of events,
+        // use the nEvents from the config file
+        if (action->get_n_events() == -1)
+        {
+            G4cout << parser->GetIValue("nEvents") << " events will be generated." << G4endl;
+            runManager->BeamOn(parser->GetIValue("nEvents"));
+        }
+        else
+        {
+            // otherwise use the nEvents from the generator
+            G4cout << action->get_n_events() << " events will be generated." << G4endl;
+            runManager->BeamOn(action->get_n_events());
+        }
+
+        G4cout << "Batch Execution Completed" << G4endl;
         timer->stop();
+
+        merge_output_files();
     }
     else
     {
@@ -94,6 +125,10 @@ void G4EarthRunManager::init_density_model()
     {
         densityModel = new NRLMSIS_2(parser->GetSValue("DensityProfileFile"));
     }
+    else if (model_name == "None")
+    {
+        densityModel = nullptr;
+    }
     else
     {
         G4cerr << "Error: Unsupported density model: " << model_name << G4endl;
@@ -106,8 +141,7 @@ void G4EarthRunManager::init_field()
     if (model_name == "TabulatedEarthMagneticField")
     {
         field = new TabulatedEarthMagneticField(
-            parser->GetSValue("FieldTableFile")
-        );
+            parser->GetSValue("FieldTableFile"));
     }
     else if (model_name == "EarthMagneticField")
     {
@@ -116,8 +150,7 @@ void G4EarthRunManager::init_field()
             parser->GetIValue("Year"),
             parser->GetIValue("Month"),
             parser->GetIValue("Day"),
-            parser->GetIValue("n_order_max")
-        );
+            parser->GetIValue("n_order_max"));
     }
     else if (model_name == "NoField")
     {
@@ -137,12 +170,21 @@ void G4EarthRunManager::init_atmosphere()
     {
         G4double epsilon = 1e-6 * m; // small offset to avoid numerical issues
         atmosphere = new SphericalEarth(
-            densityModel,                    // density model
+            densityModel,                                         // density model
             parser->GetDimensionedDValue("h_detector") + epsilon, // h_sens
             parser->GetDimensionedDValue("R_earth"),
             field,
-            parser->GetSValue("SDOutputDir") // output directory for sensitive detector
+            output_dir + "/secondaries/" + project_name + "_secondaries" // output directory for sensitive detector
         );
+    }
+    else if (model_name == "Magnetosphere")
+    {
+        // TODO: increase the order for better accuracy
+        atmosphere = new Magnetosphere(
+            parser->GetDimensionedDValue("R_inner"),
+            parser->GetDimensionedDValue("R_outer"),
+            field,
+            output_dir + "/backtraced/" + project_name + "_backtraced");
     }
     else
     {
@@ -150,63 +192,127 @@ void G4EarthRunManager::init_atmosphere()
     }
 }
 
-void G4EarthRunManager::init_generator()
+void G4EarthRunManager::merge_output_files()
 {
-    G4String model_name = parser->GetSValue("GeneratorModel");
-    if (model_name == "SphericalSurfaceSampling")
+    G4cout << "Merging output files..." << G4endl;
+
+    G4String generator_model = parser->GetSValue("GeneratorModel");
+    if (generator_model == "SphericalSurfaceSampling" || generator_model == "GenerateFromTable")
     {
-        generator = new SphericalSurfaceSampling(
-            parser->GetSValue("ParticleName"), 
-            get_sampler(parser->GetSValue("EnergySpectrum"), "EnergySpectrum"),
-            get_coordinates_sampler(parser->GetSValue("InitialPosition"), "InitialPosition"),
-            get_sampler(parser->GetSValue("NadirAngle"), "NadirAngle"),
-            get_sampler(parser->GetSValue("AzimuthAngle"), "AzimuthAngle"),
-            parser->GetSValue("GenOutputDir") 
-        );
+        // set up the merged output file
+        std::ofstream merged_file(primaries_output_dir + "_primaries.csv", std::ofstream::out | std::ofstream::trunc);
+
+        for (int i = 0; i < nThreads; i++)
+        {
+            std::string file_to_merge =
+                primaries_output_dir + "_primaries_" + std::to_string(i) + ".csv";
+            if (fs::exists(file_to_merge))
+            {
+                std::ifstream src(file_to_merge, std::ios::binary);
+                std::ofstream dst(primaries_output_dir + "_primaries.csv", std::ios::binary | std::ios::app);
+                dst.seekp(0, std::ios_base::end);
+                if (i == 0)
+                {
+                    // copy header for the first file
+                    dst << src.rdbuf();
+                }
+                else
+                {
+                    // skip header for other files
+                    std::string line;
+                    std::getline(src, line); // skip header
+                    dst << src.rdbuf();
+                }
+                src.close();
+                dst.close();
+                // std::filesystem::remove(file_to_merge); // remove the individual file after merging
+            }
+            else
+            {
+                G4cerr << "Warning: File " << file_to_merge << " does not exist." << G4endl;
+            }
+        }
     }
     else
     {
-        G4cerr << "Error: Unsupported generator model: " << model_name << G4endl;
+        G4cout << "Output file merging not supported for generator model: " << generator_model << G4endl;
     }
-}
 
+    G4String atmosphere_model = parser->GetSValue("AtmosphereModel");
+    if (atmosphere_model == "SphericalEarth")
+    {
+        // set up the merged output file
+        std::ofstream merged_file(output_dir + "/secondaries/" + project_name + "_secondaries.csv", std::ofstream::out | std::ofstream::trunc);
 
-SamplingBase *G4EarthRunManager::get_sampler(G4String sampler_name, G4String label) const
-{
-    if (sampler_name == "LogUniform")
-    {
-        return new LogUniform(parser->GetDimensionedDValue(label + "_min"), parser->GetDimensionedDValue(label + "_max"));
+        for (int i = 0; i < nThreads; i++)
+        {
+            std::string file_to_merge =
+                output_dir + "/secondaries/" + project_name + "_secondaries_" + std::to_string(i) + ".csv";
+            if (fs::exists(file_to_merge))
+            {
+                std::ifstream src(file_to_merge, std::ios::binary);
+                std::ofstream dst(output_dir + "/secondaries/" + project_name + "_secondaries.csv", std::ios::binary | std::ios::app);
+                dst.seekp(0, std::ios_base::end);
+                if (i == 0)
+                {
+                    // copy header for the first file
+                    dst << src.rdbuf();
+                }
+                else
+                {
+                    // skip header for other files
+                    std::string line;
+                    std::getline(src, line); // skip header
+                    dst << src.rdbuf();
+                }
+                src.close();
+                dst.close();
+                // std::filesystem::remove(file_to_merge); // remove the individual file after merging
+            }
+            else
+            {
+                G4cerr << "Warning: File " << file_to_merge << " does not exist." << G4endl;
+            }
+        }
     }
-    else if (sampler_name == "Uniform")
+    else if (atmosphere_model == "Magnetosphere")
     {
-        return new Uniform(parser->GetDimensionedDValue(label + "_min"), parser->GetDimensionedDValue(label + "_max"));
-    }
-    else if (sampler_name == "Sine")
-    {
-        return new Sine();
-    }
-    else if (sampler_name == "Scaled")
-    {
-        SamplingBase *base_sampler = get_sampler(parser->GetSValue(label + "_base"), label + "_base");
-        G4double scale_factor = parser->GetDValue(label + "_scale");
-        return new Scaled(base_sampler, scale_factor);
+        // set up the merged output file
+        std::ofstream merged_file(output_dir + "/backtraced/" + project_name + "_backtraced.csv", std::ofstream::out | std::ofstream::trunc);
+
+        for (int i = 0; i < nThreads; i++)
+        {
+            std::string file_to_merge =
+                output_dir + "/backtraced/" + project_name + "_backtraced_" + std::to_string(i) + ".csv";
+            if (fs::exists(file_to_merge))
+            {
+                std::ifstream src(file_to_merge, std::ios::binary);
+                std::ofstream dst(output_dir + "/backtraced/" + project_name + "_backtraced.csv", std::ios::binary | std::ios::app);
+                dst.seekp(0, std::ios_base::end);
+                if (i == 0)
+                {
+                    // copy header for the first file
+                    dst << src.rdbuf();
+                }
+                else
+                {
+                    // skip header for other files
+                    std::string line;
+                    std::getline(src, line); // skip header
+                    dst << src.rdbuf();
+                }
+                src.close();
+                dst.close();
+                // std::filesystem::remove(file_to_merge); // remove the individual file after merging
+            }
+            else
+            {
+                G4cerr << "Warning: File " << file_to_merge << " does not exist." << G4endl;
+            }
+        }
     }
     else
     {
-        G4cerr << "Error: Unsupported sampler: " << sampler_name << G4endl;
-        return nullptr;
-    }
-}
-
-CoordinatesSamplingBase *G4EarthRunManager::get_coordinates_sampler(G4String sampler_name, G4String label) const
-{
-    if (sampler_name == "UniformSphericalSurface")
-    {
-        return new UniformSphericalSurface(parser->GetDimensionedDValue(label + "_mag"));
-    }
-    else
-    {
-        G4cerr << "Error: Unsupported coordinates sampler: " << sampler_name << G4endl;
-        return nullptr;
+        G4cout << "Output file merging not supported for atmosphere model: " << atmosphere_model << G4endl;
     }
 }
