@@ -4,6 +4,7 @@ batch_mode=TRUE
 macro_file=test_run.mac
 OutputDir=output
 nEvents=20
+Enable_interaction=FALSE
 
 DensityModel=None
 

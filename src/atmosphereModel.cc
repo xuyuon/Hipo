@@ -329,7 +329,7 @@ void SphericalEarth::ConstructSDandField()
     // Construct magnetic field
     if (Bfield != nullptr)
     {
-        G4double minStep = 1 * km; // minimal step of 1 km
+        G4double minStep = 1.0 * km; // minimal step of 1 km
         G4double minEps = 1e-5;    //   Minimum & value for smallest steps
         G4double maxEps = 1e-3;
         G4bool allLocal = true;
