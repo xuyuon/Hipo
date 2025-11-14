@@ -27,7 +27,8 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
     timer->start("Initialization and Run Manager Setup");
 
     // Set Random seed
-    G4long seed = 345354;
+    // G4long seed = 345354;
+    G4int seed = parser->GetIValue("Seed");
     G4Random::setTheEngine(new CLHEP::RanluxEngine);
     G4Random::setTheSeed(seed, 3);
 

@@ -4,6 +4,7 @@ batch_mode=TRUE
 OutputDir=output
 nEvents=10
 Enable_interaction=TRUE
+Seed=345354
 
 DensityModel=NRLMSIS_2
 DensityProfileFile=msis2.0_density_profile.txt

@@ -3,8 +3,9 @@ nThreads=4
 batch_mode=TRUE
 macro_file=test_run.mac
 OutputDir=output
-nEvents=20
+nEvents=4
 Enable_interaction=FALSE
+Seed=345355
 
 DensityModel=None
 
