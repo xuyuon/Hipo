@@ -183,8 +183,10 @@ SphericalEarth::SphericalEarth(DensityModelBase *densityModel,
 
     // Set maximum step length to avoid tracking looping particles
     G4double MaxTrackLength = 2 * 3.141592653589793 * (2 * R_earth);
-    G4UserLimits *userLimits = new G4UserLimits();
+    G4double MaxStepSize = 10 * km; // maximum step size of 10 km
+    userLimits = new G4UserLimits();
     userLimits->SetUserMaxTrackLength(MaxTrackLength);
+    userLimits->SetMaxAllowedStep(MaxStepSize);
 
     // Initialize density model
     this->densityModel = densityModel;
@@ -273,6 +275,7 @@ void SphericalEarth::ConstructAtmosphere()
                                                0. * degree,
                                                180. * degree));
         logicAtmosphere.push_back(new G4LogicalVolume(solidAtmosphere[i], Air[i], "logicAtmosphere"));
+        logicAtmosphere[i]->SetUserLimits(userLimits); // I wonder if it works
         physAtmosphere.push_back(new G4PVPlacement(0,
                                                    G4ThreeVector(0., 0., 0.),
                                                    logicAtmosphere[i],

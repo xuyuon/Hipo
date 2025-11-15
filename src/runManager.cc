@@ -54,7 +54,7 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
     else
     {
         G4cout << "Interaction physics enabled." << G4endl;
-        physicsList = new FTFP_BERT();
+        physicsList = new FTFP_BERT_Physics();
     }
     runManager->SetUserInitialization(physicsList);
 

@@ -149,6 +149,9 @@ private:
     // Output directory
     std::string OutputDir;
 
+    // User Limits
+    G4UserLimits *userLimits;
+
     // Private Methods
     void ConstructAtmosphere();
     void ConstructSensitiveLayer();
