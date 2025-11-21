@@ -19,6 +19,8 @@ n_order_max=5
 AtmosphereModel=Magnetosphere
 R_inner=7371.2 km
 R_outer=63712.0 km
+R_sens=63711.9 km
+DetectingParticleName=anti_proton
 
 GeneratorModel=SphericalSurfaceSampling
 ParticleName=anti_proton

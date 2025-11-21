@@ -166,7 +166,9 @@ class Magnetosphere : public AtmosphereModelBase
 public:
     Magnetosphere(G4double R_inner,
                   G4double R_outer,
+                  G4double R_sens,
                   G4MagneticField *Bfield = nullptr,
+                  std::string particle_name = "anti_proton",
                   std::string OutputDir = "output/secondaries.csv");
     ~Magnetosphere();
 
@@ -178,7 +180,7 @@ private:
     G4UserLimits *userLimits;
 
     // Geometry
-    G4double R_inner, R_outer; // Inner and outer radius of the magnetosphere
+    G4double R_inner, R_outer, R_sens; // Inner and outer radius of the magnetosphere
 
     // Volumes
     G4Sphere *solidWorld, *solidSensLayer;
@@ -190,6 +192,9 @@ private:
 
     // Fields
     G4MagneticField *Bfield;
+
+    // Particle to be detected
+    std::string particle_name;
 
     // Output directory
     std::string OutputDir;

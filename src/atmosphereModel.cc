@@ -365,13 +365,17 @@ void SphericalEarth::ConstructSDandField()
 
 Magnetosphere::Magnetosphere(G4double R_inner,
                              G4double R_outer,
+                             G4double R_sens,
                              G4MagneticField *Bfield,
+                             std::string particle_name,
                              std::string OutputDir)
 {
     // User-defined variables
     this->R_inner = R_inner;
     this->R_outer = R_outer;
+    this->R_sens = R_sens;
     this->Bfield = Bfield;
+    this->particle_name = particle_name;
     this->OutputDir = OutputDir;
 
     // Set maximum step length to avoid tracking looping particles
@@ -420,7 +424,7 @@ void Magnetosphere::ConstructSDandField()
 {
     // Construct sensitive detectors that record anti-protons
     SensitiveDetectorBase *sd = new SphericalShellSD("SensitiveDetector",
-                                                     "anti_proton",
+                                                     particle_name,
                                                      OutputDir);
     logicSensLayer->SetSensitiveDetector(sd);
 
@@ -465,8 +469,8 @@ void Magnetosphere::ConstructSensitiveLayer()
     G4double delta_sens = 1. * m; // thickness of the sensitive layer
     solidSensLayer = new G4Sphere(
         "solidSensLayer",
-        R_outer - epsilon - delta_sens,
-        R_outer - epsilon,
+        R_sens + epsilon,
+        R_sens + delta_sens - epsilon,
         0 * degree,
         360 * degree,
         0. * degree,

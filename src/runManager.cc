@@ -193,7 +193,9 @@ void G4EarthRunManager::init_atmosphere()
         atmosphere = new Magnetosphere(
             parser->GetDimensionedDValue("R_inner"),
             parser->GetDimensionedDValue("R_outer"),
+            parser->GetDimensionedDValue("R_sens"),
             field,
+            parser->GetSValue("DetectingParticleName"),
             output_dir + "/backtraced/" + project_name + "_backtraced");
     }
     else
