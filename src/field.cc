@@ -212,7 +212,7 @@ void EarthMagneticField::LoadData(const std::string datafile)
         return;
     }
 
-    // 5. Fine t1 (the time point just before the input year) and
+    // 5. Find t1 (the time point just before the input year) and
     //    t2 (the time point just after the input year)
     int t_1_index, t_2_index;
     G4double t_1, t_2;

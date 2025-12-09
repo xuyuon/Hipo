@@ -1,0 +1,37 @@
+ProjectName=1e9eV-1e10eV
+nThreads=4
+batch_mode=TRUE
+macro_file=test_run.mac
+OutputDir=output
+nEvents=4
+Enable_interaction=FALSE
+Seed=345355
+
+DensityModel=None
+
+FieldModel=EarthMagneticField
+IGRFDataFile=IGRF14.shc
+Year=2011
+Month=4
+Day=28
+n_order_max=5
+
+AtmosphereModel=Magnetosphere
+R_inner=7371.2 km
+R_outer=63712.0 km
+R_sens=63711.9 km
+DetectingParticleName=anti_proton
+
+GeneratorModel=SphericalSurfaceSampling
+ParticleName=anti_proton
+EnergySpectrum=LogUniform
+EnergySpectrum_min=1e9 eV
+EnergySpectrum_max=1e10 eV
+InitialPosition=UniformSphericalSurface
+InitialPosition_mag=7371.3 km
+
+NadirAngle=Lambertian
+
+AzimuthAngle=Uniform
+AzimuthAngle_min=0.0 radian
+AzimuthAngle_max=6.28318530718 radian

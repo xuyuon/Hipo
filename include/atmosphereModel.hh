@@ -17,6 +17,7 @@
 #include "G4MagIntegratorDriver.hh"
 #include "G4ChordFinder.hh"
 #include "G4UserLimits.hh"
+#include "G4PropagatorInField.hh"
 
 #include <vector>
 #include <cmath>
@@ -107,10 +108,10 @@ class SphericalEarth : public AtmosphereModelBase
     */
 public:
     SphericalEarth(DensityModelBase *densityModel,
-                   G4double h_sens,                                     // Height of the sensitive layer
+                   G4double h_sens, // Height of the sensitive layer
                    G4double R_earth,
                    G4MagneticField *Bfield = nullptr,
-                   std::string SDOutputDir = "output/sensitiveDetector" // Output directory for sensitive detector
+                   std::string OutputDir = "output/secondaries.csv" // Output directory for sensitive detector
     );
     ~SphericalEarth();
 
@@ -146,10 +147,59 @@ private:
     G4MagneticField *Bfield;
 
     // Output directory
-    std::string SDOutputDir, SDOutputFile; 
+    std::string OutputDir;
+
+    // User Limits
+    G4UserLimits *userLimits;
 
     // Private Methods
     void ConstructAtmosphere();
+    void ConstructSensitiveLayer();
+};
+
+class Magnetosphere : public AtmosphereModelBase
+{
+    /*
+    The outer spherical shell of Earth
+    Only magnetic field is considered here
+    */
+public:
+    Magnetosphere(G4double R_inner,
+                  G4double R_outer,
+                  G4double R_sens,
+                  G4MagneticField *Bfield = nullptr,
+                  std::string particle_name = "anti_proton",
+                  std::string OutputDir = "output/secondaries.csv");
+    ~Magnetosphere();
+
+    virtual G4VPhysicalVolume *Construct() override;
+    void ConstructSDandField() override;
+
+private:
+    // User Limits
+    G4UserLimits *userLimits;
+
+    // Geometry
+    G4double R_inner, R_outer, R_sens; // Inner and outer radius of the magnetosphere
+
+    // Volumes
+    G4Sphere *solidWorld, *solidSensLayer;
+    G4LogicalVolume *logicWorld, *logicSensLayer;
+    G4VPhysicalVolume *physWorld, *physSensLayer;
+
+    // Materials
+    G4Material *worldMat;
+
+    // Fields
+    G4MagneticField *Bfield;
+
+    // Particle to be detected
+    std::string particle_name;
+
+    // Output directory
+    std::string OutputDir;
+
+    // Private Methods
     void ConstructSensitiveLayer();
 };
 

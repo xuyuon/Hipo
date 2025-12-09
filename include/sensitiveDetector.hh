@@ -6,10 +6,11 @@
 #include "G4AnalysisManager.hh"
 #include "G4VProcess.hh"
 #include "G4EventManager.hh"
+#include "G4RunManager.hh"
 
 #include <iostream>
 #include <fstream>
-#include <filesystem>
+#include <iomanip>
 
 class SensitiveDetectorBase : public G4VSensitiveDetector
 {
@@ -26,13 +27,16 @@ protected:
 class SphericalShellSD : public SensitiveDetectorBase
 {
 public:
-    SphericalShellSD(G4String name, std::string SDOutputDir = "output/sensitiveDetector");
+    SphericalShellSD(G4String name,
+                     G4String particle = "gamma",
+                     std::string OutputDir = "output/secondaries.csv");
     ~SphericalShellSD();
 
     G4bool ProcessHits(G4Step *step, G4TouchableHistory *history) override;
 
 private:
-    std::string SDOutputDir, SDOutputFile;
+    std::string OutputDir;
+    G4String particle;
 };
 
 #endif
