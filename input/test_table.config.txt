@@ -1,11 +1,13 @@
 ProjectName=1e9eV-1e10eV
 nThreads=4
 batch_mode=TRUE
-macro_file=test_run.mac
 OutputDir=output
-nEvents=8
+nEvents=-1
+Enable_interaction=TRUE
+Seed=345354
 
-DensityModel=None
+DensityModel=NRLMSIS_2
+DensityProfileFile=msis2.0_density_profile.txt
 
 FieldModel=EarthMagneticField
 IGRFDataFile=IGRF14.shc
@@ -14,13 +16,13 @@ Month=4
 Day=28
 n_order_max=5
 
-AtmosphereModel=Magnetosphere
-R_inner=7371.2 km
-R_outer=63712.0 km
+AtmosphereModel=SphericalEarth
+h_detector=550.0 km
+R_earth=6371.2 km
 
 GeneratorModel=GenerateFromTable
-ParticleName=anti_proton
-PrimariesDataFile=test_pr.csv
-Insert_finite_diff=TRUE
+ParticleName=proton
+PrimariesDataFile=1e9eV-1e10eV_pr_selected.csv
+Insert_finite_diff=FALSE
 delta_E=0.01e9 eV
 delta_angle=0.001 degree

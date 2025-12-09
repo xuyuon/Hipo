@@ -7,7 +7,6 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
     // Setting Up Parser
     parser = new Parser();
     parser->ReadConfig(config_file);
-
     // Read project name
     project_name = parser->GetSValue("ProjectName");
 
@@ -28,7 +27,8 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
     timer->start("Initialization and Run Manager Setup");
 
     // Set Random seed
-    G4long seed = 345354;
+    // G4long seed = 345354;
+    G4int seed = parser->GetIValue("Seed");
     G4Random::setTheEngine(new CLHEP::RanluxEngine);
     G4Random::setTheSeed(seed, 3);
 
@@ -46,8 +46,16 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
     }
 
     // set physics list
-    // physicsList = new FTFP_BERT();
-    physicsList = new MagneticTransport();
+    if (parser->GetBValue("Enable_interaction") == false)
+    {
+        G4cout << "Interaction physics disabled." << G4endl;
+        physicsList = new MagneticTransport();
+    }
+    else
+    {
+        G4cout << "Interaction physics enabled." << G4endl;
+        physicsList = new FTFP_BERT_Physics();
+    }
     runManager->SetUserInitialization(physicsList);
 
     init_density_model();
@@ -123,10 +131,12 @@ void G4EarthRunManager::init_density_model()
     G4String model_name = parser->GetSValue("DensityModel");
     if (model_name == "NRLMSIS_2")
     {
+        G4cout << "Density model NRLMSIS_2 initialized." << G4endl;
         densityModel = new NRLMSIS_2(parser->GetSValue("DensityProfileFile"));
     }
     else if (model_name == "None")
     {
+        G4cout << "No density model selected." << G4endl;
         densityModel = nullptr;
     }
     else
@@ -183,7 +193,9 @@ void G4EarthRunManager::init_atmosphere()
         atmosphere = new Magnetosphere(
             parser->GetDimensionedDValue("R_inner"),
             parser->GetDimensionedDValue("R_outer"),
+            parser->GetDimensionedDValue("R_sens"),
             field,
+            parser->GetSValue("DetectingParticleName"),
             output_dir + "/backtraced/" + project_name + "_backtraced");
     }
     else

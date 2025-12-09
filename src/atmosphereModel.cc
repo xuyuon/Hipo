@@ -183,8 +183,10 @@ SphericalEarth::SphericalEarth(DensityModelBase *densityModel,
 
     // Set maximum step length to avoid tracking looping particles
     G4double MaxTrackLength = 2 * 3.141592653589793 * (2 * R_earth);
-    G4UserLimits *userLimits = new G4UserLimits();
+    G4double MaxStepSize = 10 * km; // maximum step size of 10 km
+    userLimits = new G4UserLimits();
     userLimits->SetUserMaxTrackLength(MaxTrackLength);
+    userLimits->SetMaxAllowedStep(MaxStepSize);
 
     // Initialize density model
     this->densityModel = densityModel;
@@ -273,6 +275,7 @@ void SphericalEarth::ConstructAtmosphere()
                                                0. * degree,
                                                180. * degree));
         logicAtmosphere.push_back(new G4LogicalVolume(solidAtmosphere[i], Air[i], "logicAtmosphere"));
+        logicAtmosphere[i]->SetUserLimits(userLimits); // I wonder if it works
         physAtmosphere.push_back(new G4PVPlacement(0,
                                                    G4ThreeVector(0., 0., 0.),
                                                    logicAtmosphere[i],
@@ -329,7 +332,7 @@ void SphericalEarth::ConstructSDandField()
     // Construct magnetic field
     if (Bfield != nullptr)
     {
-        G4double minStep = 1 * km; // minimal step of 1 km
+        G4double minStep = 1.0 * km; // minimal step of 1 km
         G4double minEps = 1e-5;    //   Minimum & value for smallest steps
         G4double maxEps = 1e-3;
         G4bool allLocal = true;
@@ -362,13 +365,17 @@ void SphericalEarth::ConstructSDandField()
 
 Magnetosphere::Magnetosphere(G4double R_inner,
                              G4double R_outer,
+                             G4double R_sens,
                              G4MagneticField *Bfield,
+                             std::string particle_name,
                              std::string OutputDir)
 {
     // User-defined variables
     this->R_inner = R_inner;
     this->R_outer = R_outer;
+    this->R_sens = R_sens;
     this->Bfield = Bfield;
+    this->particle_name = particle_name;
     this->OutputDir = OutputDir;
 
     // Set maximum step length to avoid tracking looping particles
@@ -417,7 +424,7 @@ void Magnetosphere::ConstructSDandField()
 {
     // Construct sensitive detectors that record anti-protons
     SensitiveDetectorBase *sd = new SphericalShellSD("SensitiveDetector",
-                                                     "anti_proton",
+                                                     particle_name,
                                                      OutputDir);
     logicSensLayer->SetSensitiveDetector(sd);
 
@@ -462,8 +469,8 @@ void Magnetosphere::ConstructSensitiveLayer()
     G4double delta_sens = 1. * m; // thickness of the sensitive layer
     solidSensLayer = new G4Sphere(
         "solidSensLayer",
-        R_outer - epsilon - delta_sens,
-        R_outer - epsilon,
+        R_sens + epsilon,
+        R_sens + delta_sens - epsilon,
         0 * degree,
         360 * degree,
         0. * degree,
