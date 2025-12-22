@@ -64,6 +64,11 @@ public:
 
     virtual void GeneratePrimaries(G4Event *);
     int get_n_events() const { return -1; }
+    static G4ThreeVector nadir_angles_to_p_dir(
+        G4double pos_theta,
+        G4double pos_phi,
+        G4double nadir_theta,
+        G4double nadir_phi);    
 
 private:
     G4AnalysisManager *analysisManager;
@@ -91,6 +96,11 @@ public:
 
     virtual void GeneratePrimaries(G4Event *);
     int get_n_events() const;
+    static G4ThreeVector nadir_angles_to_p_dir(
+        G4double pos_theta,
+        G4double pos_phi,
+        G4double nadir_theta,
+        G4double nadir_phi);   
 
 private:
     void init_table();

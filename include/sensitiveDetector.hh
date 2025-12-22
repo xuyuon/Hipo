@@ -33,6 +33,9 @@ public:
     ~SphericalShellSD();
 
     G4bool ProcessHits(G4Step *step, G4TouchableHistory *history) override;
+    static void p_mom_to_nadir_angles(const G4ThreeVector *p_pos,
+                               const G4ThreeVector *p_mom,
+                               G4double *nadir_angles);
 
 private:
     std::string OutputDir;

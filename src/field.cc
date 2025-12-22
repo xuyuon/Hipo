@@ -279,7 +279,6 @@ void IGRF::GetFieldValue(const G4double *Point, G4double *Bfield) const
     Br = Br * 1e-5 * gauss;
     Btheta = Btheta * 1e-5 * gauss;
     Bphi = Bphi * 1e-5 * gauss;
-    G4cout << Br / gauss / 1e-5 << " " << Btheta / gauss / 1e-5 << " " << Bphi / gauss / 1e-5 << G4endl;
 
     // Convert from spherical to Cartesian coordinates
     Bfield[0] = sin(theta) * cos(phi) * Br + cos(theta) * cos(phi) * Btheta - sin(phi) * Bphi; // Bx
@@ -581,20 +580,15 @@ void TA16::GetFieldValue(const G4double *Point, G4double *Bfield) const
     // Get the outer field in GSM coordinates
     double gsw_point[3];
     coord->geo_to_gsw(Point, gsw_point);
-    G4cout << "GSW Point: " << gsw_point[0] / km << ", " << gsw_point[1] / km << ", " << gsw_point[2] / km << G4endl;
     double gsw_ta16_bfield[3];
     GetField_GSM(gsw_point, gsw_ta16_bfield);
-    G4cout << "GSW TA16 field: " << gsw_ta16_bfield[0] / gauss << ", " << gsw_ta16_bfield[1] / gauss << ", " << gsw_ta16_bfield[2] / gauss << G4endl;
     double geo_ta16_bfield[3];
     coord->gsw_to_geo(gsw_ta16_bfield, geo_ta16_bfield);
 
     // Get the inner field in GEO coordinates
     inner_field->GetFieldValue(Point, Bfield);
-    G4cout << "Inner field: " << Bfield[0] << ", " << Bfield[1] << ", " << Bfield[2] << G4endl;
     // Sum the inner and outer fields in GEO coordinates
     Bfield[0] += geo_ta16_bfield[0];
     Bfield[1] += geo_ta16_bfield[1];
     Bfield[2] += geo_ta16_bfield[2];
-
-    G4cout << "Outer field: " << geo_ta16_bfield[0] << ", " << geo_ta16_bfield[1] << ", " << geo_ta16_bfield[2] << G4endl;
 }
