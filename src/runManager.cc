@@ -153,13 +153,31 @@ void G4EarthRunManager::init_field()
         field = new TabulatedEarthMagneticField(
             parser->GetSValue("FieldTableFile"));
     }
-    else if (model_name == "EarthMagneticField")
+    else if (model_name == "IGRF")
     {
-        field = new EarthMagneticField(
+        field = new IGRF(
             parser->GetSValue("IGRFDataFile"),
             parser->GetIValue("Year"),
             parser->GetIValue("Month"),
             parser->GetIValue("Day"),
+            parser->GetIValue("n_order_max"));
+    }
+    else if (model_name == "TA16")
+    {
+        field = new TA16(
+            parser->GetIValue("Year"),
+            parser->GetIValue("Month"),
+            parser->GetIValue("Day"),
+            parser->GetDValue("pdyn"),
+            parser->GetDValue("symhc"),
+            parser->GetDValue("xind"),
+            parser->GetDValue("by_imf"),
+            parser->GetDimensionedDValue("ps"),
+            parser->GetDValue("vxgse"),
+            parser->GetDValue("vygse"),
+            parser->GetDValue("vzgse"),
+            parser->GetSValue("TA16ParamFile"),
+            parser->GetSValue("IGRFDataFile"),
             parser->GetIValue("n_order_max"));
     }
     else if (model_name == "NoField")

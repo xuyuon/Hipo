@@ -17,7 +17,7 @@ void associated_legendre(G4int n, G4int m, G4double theta,
                          std::vector<std::vector<double>> &dP);
 
 bool is_leap_year(G4int year);
-
+double datetime_to_utc(int year, int month, double day);
 G4double datetime_to_yearfrac(G4int year, G4int month, G4int day);
 
 #endif
