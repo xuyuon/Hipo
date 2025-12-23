@@ -208,6 +208,25 @@ G4double Lambertian::sample()
     return x / 2.0;
 }
 
+UpwardLambertian::UpwardLambertian()
+{
+}
+
+UpwardLambertian::~UpwardLambertian()
+{
+}
+
+G4double UpwardLambertian::sample()
+{
+    /*
+    Samples a value from the Upward Lambertian distribution.
+    The probability density function is given by:
+    P(x) ~ sin(2x) for pi/2 <= x <= pi
+    */
+    G4double u = G4UniformRand();
+    return 0.5 * (PI + acos(2.0 * u - 1.0));
+}
+
 ConstCoordinates::ConstCoordinates(G4double x,
                                    G4double y,
                                    G4double z)

@@ -158,6 +158,19 @@ public:
     virtual G4double sample() override;
 };
 
+class UpwardLambertian : public SamplingBase
+{
+    /*
+    The probability density function is given by:
+    P(x) ~ sin(2x) for pi/2 <= x <= pi
+    */
+public:
+    UpwardLambertian();
+    ~UpwardLambertian();
+
+    virtual G4double sample() override;
+};
+
 class CoordinatesSamplingBase
 {
 public:
