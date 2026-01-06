@@ -129,10 +129,18 @@ void G4EarthRunManager::run()
 void G4EarthRunManager::init_density_model()
 {
     G4String model_name = parser->GetSValue("DensityModel");
-    if (model_name == "NRLMSIS_2")
+    if (model_name == "TabulatedDensity")
     {
-        G4cout << "Density model NRLMSIS_2 initialized." << G4endl;
-        densityModel = new NRLMSIS_2(parser->GetSValue("DensityProfileFile"));
+        G4cout << "Density model TabulatedDensity initialized." << G4endl;
+        densityModel = new TabulatedDensity(
+            parser->GetDimensionedDValue("r_min"),
+            parser->GetDimensionedDValue("r_pause"),
+            parser->GetDimensionedDValue("r_max"),
+            parser->GetDimensionedDValue("delta_r1"),
+            parser->GetDimensionedDValue("delta_r2"),
+            parser->GetDimensionedDValue("delta_theta"),
+            parser->GetDimensionedDValue("delta_phi"),
+            parser->GetSValue("DensityProfileFile"));
     }
     else if (model_name == "None")
     {
@@ -198,8 +206,8 @@ void G4EarthRunManager::init_atmosphere()
     {
         G4double epsilon = 1e-6 * m; // small offset to avoid numerical issues
         atmosphere = new SphericalEarth(
-            densityModel,                                         // density model
-            parser->GetDimensionedDValue("h_detector") + epsilon, // h_sens
+            densityModel,                           // density model
+            parser->GetDimensionedDValue("R_sens"), // h_sens
             parser->GetDimensionedDValue("R_earth"),
             field,
             output_dir + "/secondaries/" + project_name + "_secondaries" // output directory for sensitive detector
