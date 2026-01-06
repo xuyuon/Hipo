@@ -1,0 +1,45 @@
+ProjectName=bt_2011_06_12_1e12ev_1e13ev_1
+nThreads=64
+batch_mode=TRUE
+OutputDir=/users/s1155157363/workdir/G4Earth/build/bt_2011_06_12_1e12ev_1e13ev_1
+nEvents=10000
+Enable_interaction=FALSE
+Seed=345355
+
+DensityModel=None
+
+FieldModel=TA16
+Year=2011
+Month=6
+Day=12
+pdyn=1.23
+symhc=-18.0
+xind=0.4715
+by_imf=1.94
+ps=-0.3348 radian
+vxgse=-455.4
+vygse=-10.0
+vzgse=7.4
+TA16ParamFile=/users/s1155157363/workdir/G4Earth/build/TA16_RBF.par
+IGRFDataFile=/users/s1155157363/workdir/G4Earth/build/IGRF14.shc
+n_order_max=13
+
+AtmosphereModel=Magnetosphere
+R_inner=6854.1 km
+R_outer=63712.1 km
+R_sens=63712.0 km
+DetectingParticleName=anti_proton
+
+GeneratorModel=SphericalSurfaceSampling
+ParticleName=anti_proton
+EnergySpectrum=LogUniform
+EnergySpectrum_min=1e12 eV
+EnergySpectrum_max=1e13 eV
+InitialPosition=UniformSphericalSurface
+InitialPosition_mag=6854.2 km
+
+NadirAngle=UpwardLambertian
+
+AzimuthAngle=Uniform
+AzimuthAngle_min=0.0 radian
+AzimuthAngle_max=6.28318530718 radian

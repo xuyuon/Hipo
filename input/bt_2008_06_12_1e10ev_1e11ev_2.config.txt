@@ -1,7 +1,7 @@
 ProjectName=bt_2008_06_12_1e10ev_1e11ev_2
 nThreads=64
 batch_mode=TRUE
-OutputDir=bt_2008_06_12_1e10ev_1e11ev_2
+OutputDir=/users/s1155157363/workdir/G4Earth/build/bt_2008_06_12_1e10ev_1e11ev_2
 nEvents=10000
 Enable_interaction=FALSE
 Seed=289638
@@ -20,8 +20,8 @@ ps=-0.3583 radian
 vxgse=-640.2
 vygse=16.1
 vzgse=14.4
-TA16ParamFile=TA16_RBF.par
-IGRFDataFile=IGRF14.shc
+TA16ParamFile=/users/s1155157363/workdir/G4Earth/build/TA16_RBF.par
+IGRFDataFile=/users/s1155157363/workdir/G4Earth/build/IGRF14.shc
 n_order_max=13
 
 AtmosphereModel=Magnetosphere

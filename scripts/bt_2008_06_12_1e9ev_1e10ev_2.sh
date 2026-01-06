@@ -11,4 +11,5 @@ module list
 
 cd $SLURM_SUBMIT_DIR
 cd build
+ldd --version
 ./run bt_2008_06_12_1e9ev_1e10ev_2.config.txt
