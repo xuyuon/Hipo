@@ -68,7 +68,7 @@ public:
         G4double pos_theta,
         G4double pos_phi,
         G4double nadir_theta,
-        G4double nadir_phi);    
+        G4double nadir_phi);
 
 private:
     G4AnalysisManager *analysisManager;
@@ -88,10 +88,8 @@ public:
     GenerateFromTable(
         G4String particleName, // name of the particle to be generated
         std::string data_file,
-        std::string output_file = "output/primaries.csv", // output directory for analysis
-        G4bool insert_finite_differences = false,
-        G4double delta_E = 0.1 * GeV,
-        G4double delta_angle = 0.5 * degree);
+        std::string output_file = "output/primaries.csv" // output directory for analysis
+    );
     ~GenerateFromTable();
 
     virtual void GeneratePrimaries(G4Event *);
@@ -100,11 +98,10 @@ public:
         G4double pos_theta,
         G4double pos_phi,
         G4double nadir_theta,
-        G4double nadir_phi);   
+        G4double nadir_phi);
 
 private:
     void init_table();
-    void init_finite_differences();
 
     G4ParticleGun *fParticleGun; // Pointer to the particle gun
 
@@ -118,10 +115,6 @@ private:
     std::vector<G4double> pos_theta;
     std::vector<G4double> nadir_phi;
     std::vector<G4double> nadir_theta;
-
-    // Finite differences
-    G4double delta_E;
-    G4double delta_angle;
 
     // Directories
     std::string data_file;

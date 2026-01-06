@@ -12,10 +12,7 @@ ActionInitialization::ActionInitialization(Parser *parser, std::string output_di
         GeneratorBase *generator = new GenerateFromTable(
             parser->GetSValue("ParticleName"),
             parser->GetSValue("PrimariesDataFile"),
-            output_dir + "_primaries", // output directory for sensitive detector
-            parser->GetBValue("Insert_finite_diff"),
-            parser->GetDimensionedDValue("delta_E"),
-            parser->GetDimensionedDValue("delta_angle")
+            output_dir + "_primaries" // output directory for sensitive detector
         );
         this->n_events = generator->get_n_events();
         delete generator; // clean up the dummy generator
@@ -64,10 +61,7 @@ GeneratorBase *ActionInitialization::init_generator() const
         generator = new GenerateFromTable(
             parser->GetSValue("ParticleName"),
             parser->GetSValue("PrimariesDataFile"),
-            output_dir + "_primaries", // output directory for sensitive detector
-            parser->GetBValue("Insert_finite_diff"),
-            parser->GetDimensionedDValue("delta_E"),
-            parser->GetDimensionedDValue("delta_angle")
+            output_dir + "_primaries" // output directory for sensitive detector
         );
     }
     else

@@ -163,10 +163,7 @@ G4ThreeVector SphericalSurfaceSampling::nadir_angles_to_p_dir(
 GenerateFromTable::GenerateFromTable(
     G4String particleName,
     std::string data_file,
-    std::string output_file,
-    G4bool insert_finite_differences,
-    G4double delta_E,
-    G4double delta_angle)
+    std::string output_file)
 {
     n_threads = G4RunManager::GetRunManager()->GetNumberOfThreads();
     fParticleGun = new G4ParticleGun(1); // Create a particle gun with 1 particle
@@ -179,13 +176,6 @@ GenerateFromTable::GenerateFromTable(
     this->output_file = output_file;
 
     init_table();
-
-    if (insert_finite_differences)
-    {
-        this->delta_E = delta_E;
-        this->delta_angle = delta_angle;
-        init_finite_differences();
-    }
 
     // Create the output file
     /*
@@ -252,50 +242,6 @@ void GenerateFromTable::init_table()
         nadir_theta.push_back(std::stod(numstr) * radian);
     }
     file.close();
-}
-
-void GenerateFromTable::init_finite_differences()
-{
-    // Make 4 copies of the original data with small perturbations
-    G4int n = energies.size();
-    for (G4int i = 0; i < n; i++)
-    {
-        energies.push_back(energies[i]);
-        pos_mag.push_back(pos_mag[i]);
-        pos_phi.push_back(pos_phi[i] + delta_angle);
-        pos_theta.push_back(pos_theta[i]);
-        nadir_phi.push_back(nadir_phi[i]);
-        nadir_theta.push_back(nadir_theta[i]);
-
-        energies.push_back(energies[i]);
-        pos_mag.push_back(pos_mag[i]);
-        pos_phi.push_back(pos_phi[i]);
-        pos_theta.push_back(pos_theta[i] + delta_angle);
-        nadir_phi.push_back(nadir_phi[i]);
-        nadir_theta.push_back(nadir_theta[i]);
-
-        energies.push_back(energies[i]);
-        pos_mag.push_back(pos_mag[i]);
-        pos_phi.push_back(pos_phi[i]);
-        pos_theta.push_back(pos_theta[i]);
-        nadir_phi.push_back(nadir_phi[i] + delta_angle);
-        nadir_theta.push_back(nadir_theta[i]);
-
-        energies.push_back(energies[i]);
-        pos_mag.push_back(pos_mag[i]);
-        pos_phi.push_back(pos_phi[i]);
-        pos_theta.push_back(pos_theta[i]);
-        nadir_phi.push_back(nadir_phi[i]);
-        nadir_theta.push_back(nadir_theta[i] + delta_angle);
-    }
-
-    // remove the first n entries
-    energies.erase(energies.begin(), energies.begin() + n);
-    pos_mag.erase(pos_mag.begin(), pos_mag.begin() + n);
-    pos_phi.erase(pos_phi.begin(), pos_phi.begin() + n);
-    pos_theta.erase(pos_theta.begin(), pos_theta.begin() + n);
-    nadir_phi.erase(nadir_phi.begin(), nadir_phi.begin() + n);
-    nadir_theta.erase(nadir_theta.begin(), nadir_theta.begin() + n);
 }
 
 int GenerateFromTable::get_n_events() const
