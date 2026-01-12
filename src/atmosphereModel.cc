@@ -61,6 +61,13 @@ G4VPhysicalVolume *SphericalEarth::Construct()
                                   true);
     ConstructAtmosphere();
     ConstructSensitiveLayer();
+
+    // // Set world region
+    // G4Region *worldRegion = new G4Region("WorldRegion");
+    // worldRegion->AddRootLogicalVolume(logicWorld);
+
+    // // Assign user limits to all logical volumes in the world region
+    // worldRegion->SetUserLimits(userLimits);
     return physWorld;
 }
 
@@ -113,6 +120,7 @@ void SphericalEarth::ConstructAtmosphere()
                                                         densityModel->Get_theta(j),                                   // starting theta
                                                         densityModel->Get_theta(j + 1) - densityModel->Get_theta(j)); // delta theta
                 logicAtmosphere[i][j][k] = new G4LogicalVolume(solidAtmosphere[i][j][k], Air[i][j][k], "logicAtmosphere");
+                logicAtmosphere[i][j][k]->SetUserLimits(userLimits);
                 physAtmosphere[i][j][k] = new G4PVPlacement(0,
                                                             G4ThreeVector(0., 0., 0.),
                                                             logicAtmosphere[i][j][k],

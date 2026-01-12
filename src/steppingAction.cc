@@ -50,6 +50,6 @@ void SteppingAction::UserSteppingAction(const G4Step *step)
     // }
 
     // print step size (for debugging)
-    // G4double step_size = step->GetStepLength();
-    // G4cout << "Step size: " << step_size / km << " km" << G4endl;
+    G4double step_size = step->GetStepLength();
+    G4cout << "Step size: " << step_size / km << " km" << G4endl;
 }
