@@ -21,7 +21,7 @@ void SteppingAction::UserSteppingAction(const G4Step *step)
 
     // Kill particles with energy below E_min
     G4double E_kinetic = track->GetKineticEnergy();
-    if (E_kinetic < E_min && pName == "gamma")
+    if (E_kinetic < E_min)
     {
         track->SetTrackStatus(fStopAndKill);
     }
