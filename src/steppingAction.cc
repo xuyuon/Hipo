@@ -14,14 +14,21 @@ void SteppingAction::UserSteppingAction(const G4Step *step)
     G4Track *track = step->GetTrack();
     G4String pName = track->GetParticleDefinition()->GetParticleName();
 
+    // Kill all neutrinos
     if (pName == "nu_e" || pName == "anti_nu_e" || pName == "nu_mu" || pName == "anti_nu_mu" || pName == "nu_tau" || pName == "anti_nu_tau")
     {
         track->SetTrackStatus(fStopAndKill);
     }
 
     // Kill particles with energy below E_min
+    // or below 0.1 percentage of E_primary
+    const G4Event *aevent = G4RunManager::GetRunManager()->GetCurrentEvent();
+    G4PrimaryVertex* primaryVertex = aevent->GetPrimaryVertex();
+    G4PrimaryParticle* primaryParticle = primaryVertex->GetPrimary();
+    G4double E_primary = primaryParticle->GetKineticEnergy();
+
     G4double E_kinetic = track->GetKineticEnergy();
-    if (E_kinetic < E_min)
+    if (E_kinetic < E_min || E_kinetic < 1e-3 * E_primary)
     {
         track->SetTrackStatus(fStopAndKill);
     }
@@ -50,6 +57,6 @@ void SteppingAction::UserSteppingAction(const G4Step *step)
     // }
 
     // print step size (for debugging)
-    G4double step_size = step->GetStepLength();
-    G4cout << "Step size: " << step_size / km << " km" << G4endl;
+    // G4double step_size = step->GetStepLength();
+    // G4cout << "Step size: " << step_size / km << " km" << G4endl;
 }
