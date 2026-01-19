@@ -9,9 +9,9 @@ Seed=345354
 DensityModel=TabulatedDensity
 r_min=6371.2 km
 r_pause=6471.2 km
-r_max=6871.2 km
+r_max=6931.2 km
 delta_r1=1.0 km
-delta_r2=10.0 km
+delta_r2=20.0 km
 delta_theta=10.0 degree
 delta_phi=20.0 degree
 DensityProfileFile=/users/s1155157363/workdir/G4Earth/build/msis2.0_2008_06_14.txt
@@ -24,7 +24,7 @@ Day=12
 n_order_max=13
 
 AtmosphereModel=SphericalEarth
-R_sens= 6791.3 km
+R_sens= 6921.2 km
 R_earth=6371.2 km
 
 GeneratorModel=GenerateFromTable
