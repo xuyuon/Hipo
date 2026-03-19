@@ -12,4 +12,4 @@ module list
 cd $SLURM_SUBMIT_DIR
 cd build
 ldd --version
-./run cs_2011_06_12_1e12ev_1e13ev.config.txt
+./run bt_local_2008_06_12_1e9eV-1e10eV_1.config.txt
