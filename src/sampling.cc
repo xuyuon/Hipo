@@ -297,3 +297,11 @@ G4ThreeVector UniformSphericalSurface::sample()
 
     return G4ThreeVector(x, y, z);
 }
+
+// UniformCircularRegionOnSphericalSurface::UniformCircularRegionOnSphericalSurface(
+//     G4double r,
+//     G4double theta_min,
+//     G4double theta_max,
+//     G4double phi_min,
+//     G4double phi_max
+// )

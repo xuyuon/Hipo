@@ -57,7 +57,7 @@ SphericalShellSD::SphericalShellSD(G4String name,
     {
         std::ofstream ofs;
         ofs.open(OutputDir + "_" + std::to_string(i) + ".csv", std::ofstream::out | std::ofstream::trunc);
-        ofs << "EventID,Energy,Process,Position_mag,Position_phi,Position_theta,Nadir_phi,Nadir_theta\n"; // CSV header
+        ofs << "EventID,Energy,Process,Position_mag,Position_phi,Position_theta,Nadir_phi,Nadir_theta,Production_mag,Production_phi,Production_theta,Production_nadir_phi,Production_nadir_theta\n"; // CSV header
         ofs.close();
     }
 }
@@ -105,6 +105,15 @@ G4bool SphericalShellSD::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhist)
     G4double nadir_angles[2];
     p_mom_to_nadir_angles(&p_pos, &p_mom, nadir_angles);
 
+    // 6. Record the production position of the photon
+    G4ThreeVector vertex_pos = track->GetVertexPosition();
+
+    // 7. Record the momentum direction of the photon at production height
+    G4ThreeVector vertex_mom = track->GetVertexMomentumDirection();
+    // Transform to local coordinates
+    G4double vertex_nadir_angles[2];
+    p_mom_to_nadir_angles(&vertex_pos, &vertex_mom, vertex_nadir_angles);
+
     // Write the data to data file
     std::ofstream output_file;
     output_file.open(OutputDir + "_" + std::to_string(G4Threading::G4GetThreadId()) + ".csv", std::ios::app);
@@ -118,7 +127,12 @@ G4bool SphericalShellSD::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhist)
                     << p_pos.phi() / radian << ","
                     << p_pos.theta() / radian << ","
                     << nadir_angles[1] / radian << ","
-                    << nadir_angles[0] / radian << "\n";
+                    << nadir_angles[0] / radian << ","
+                    << vertex_pos.mag() / km << ","
+                    << vertex_pos.phi() / radian << ","
+                    << vertex_pos.theta() / radian << ","
+                    << vertex_nadir_angles[1] / radian << ","
+                    << vertex_nadir_angles[0] / radian << "\n";
         output_file.close();
     }
     else
