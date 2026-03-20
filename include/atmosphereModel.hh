@@ -42,7 +42,7 @@ class SphericalEarth : public AtmosphereModelBase
     */
 public:
     SphericalEarth(DensityModelBase *densityModel,
-                   G4double R_sens, // Height of the sensitive layer
+                   std::vector<G4double> R_sens, // Height of the sensitive layer
                    G4double R_earth,
                    G4MagneticField *Bfield = nullptr,
                    std::string OutputDir = "output/secondaries.csv" // Output directory for sensitive detector
@@ -55,9 +55,10 @@ public:
 private:
     // Geometry
     G4double R_earth; // Radius of the Earth
-    G4double R_sens;
+    std::vector<G4double> R_sens; // List of position of sensitive layers
     G4double delta_sens; // thickness of sensitive layer
-    G4int sens_layer;    // Index of the sensitive layer
+    std::vector<int> sens_layer;    // Indices of the sensitive layers
+    int nSensLayers; // Number of sensitive detector layers
 
     // Density model
     DensityModelBase *densityModel;
@@ -72,9 +73,9 @@ private:
     std::vector<std::vector<std::vector<G4Sphere *>>> solidAtmosphere;
     std::vector<std::vector<std::vector<G4LogicalVolume *>>> logicAtmosphere;
     std::vector<std::vector<std::vector<G4VPhysicalVolume *>>> physAtmosphere;
-    std::vector<std::vector<G4Sphere *>> solidSensLayer;
-    std::vector<std::vector<G4LogicalVolume *>> logicSensLayer;
-    std::vector<std::vector<G4VPhysicalVolume *>> physSensLayer;
+    std::vector<std::vector<std::vector<G4Sphere *>>> solidSensLayer; // [n_layer][nLayers_theta][nLayers_phi]
+    std::vector<std::vector<std::vector<G4LogicalVolume *>>> logicSensLayer;
+    std::vector<std::vector<std::vector<G4VPhysicalVolume *>>> physSensLayer;
 
     // Materials
     G4Material *worldMat;

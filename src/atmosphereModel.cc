@@ -1,15 +1,15 @@
 #include "atmosphereModel.hh"
 
 SphericalEarth::SphericalEarth(DensityModelBase *densityModel,
-                               G4double R_sens,
+                               std::vector<G4double> R_sens,
                                G4double R_earth,
                                G4MagneticField *Bfield,
                                std::string OutputDir)
 {
     this->R_earth = R_earth; // Global average number
     this->R_sens = R_sens;   // radial position of the sensitive layer
-
-    sens_layer = -1; // Index of the sensitive layer
+    this->nSensLayers = R_sens.size(); 
+    sens_layer.resize(nSensLayers, -1); 
 
     delta_sens = 1. * cm; // thickness of the sensitive layer
 
@@ -107,9 +107,11 @@ void SphericalEarth::ConstructAtmosphere()
                 Air[i][j][k]->AddElement(H, densityModel->GetHPercentageMass(i, j, k));
 
                 // Set the sensitive layer index
-                if (R_sens > densityModel->Get_r(i) && R_sens < densityModel->Get_r(i + 1))
-                {
-                    sens_layer = i;
+                for (int l = 0; l < nSensLayers; l++){
+                    if (R_sens[l] > densityModel->Get_r(i) && R_sens[l] < densityModel->Get_r(i + 1))
+                    {
+                        sens_layer[l] = i;
+                    }
                 }
 
                 solidAtmosphere[i][j][k] = new G4Sphere("solidAtmosphere_" + std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k),
@@ -136,53 +138,60 @@ void SphericalEarth::ConstructAtmosphere()
 
 void SphericalEarth::ConstructSensitiveLayer()
 {
-    // Check if the sensitive layer is within a layer
-    if (R_sens < densityModel->Get_r(0) || R_sens > densityModel->Get_r(nLayers_r - 1))
-    {
-        G4cerr << "Error: Sensitive layer should be within the atmosphere layers." << G4endl;
-    }
-
     // Create the sensitive layer as a thin spherical shell
-    solidSensLayer.resize(nLayers_theta, std::vector<G4Sphere *>(nLayers_phi, nullptr));
-    logicSensLayer.resize(nLayers_theta, std::vector<G4LogicalVolume *>(nLayers_phi, nullptr));
-    physSensLayer.resize(nLayers_theta, std::vector<G4VPhysicalVolume *>(nLayers_phi, nullptr));
-    for (G4int j = 0; j < nLayers_theta; ++j)
+    solidSensLayer.resize(nSensLayers, std::vector<std::vector<G4Sphere *>>(nLayers_theta, std::vector<G4Sphere *>(nLayers_phi, nullptr)));
+    logicSensLayer.resize(nSensLayers, std::vector<std::vector<G4LogicalVolume *>>(nLayers_theta, std::vector<G4LogicalVolume *>(nLayers_phi, nullptr)));
+    physSensLayer.resize(nSensLayers, std::vector<std::vector<G4VPhysicalVolume *>>(nLayers_theta, std::vector<G4VPhysicalVolume *>(nLayers_phi, nullptr)));
+
+    for (int l = 0; l < nSensLayers; l++)
     {
-        for (G4int k = 0; k < nLayers_phi; ++k)
+        // Check if the sensitive layer is within a layer
+        if (R_sens[l] < densityModel->Get_r(0) || R_sens[l] > densityModel->Get_r(nLayers_r - 1))
         {
-            solidSensLayer[j][k] = new G4Sphere("solidSensLayer_" + std::to_string(j) + "_" + std::to_string(k),
-                                                R_sens,
-                                                R_sens + delta_sens,
-                                                densityModel->Get_phi(k),                                     // starting phi
-                                                densityModel->Get_phi(k + 1) - densityModel->Get_phi(k),      // delta phi
-                                                densityModel->Get_theta(j),                                   // starting theta
-                                                densityModel->Get_theta(j + 1) - densityModel->Get_theta(j)); // delta theta
-            logicSensLayer[j][k] = new G4LogicalVolume(solidSensLayer[j][k],
-                                                       Air[sens_layer][j][k],
-                                                       "logicSensLayer_" + std::to_string(j) + "_" + std::to_string(k));
-            physSensLayer[j][k] = new G4PVPlacement(0,
-                                                    G4ThreeVector(0., 0., 0.),
-                                                    logicSensLayer[j][k],
-                                                    "physSensLayer_" + std::to_string(j) + "_" + std::to_string(k),
-                                                    logicAtmosphere[sens_layer][j][k],
-                                                    false,
-                                                    j * nLayers_phi + k,
-                                                    true);
+            G4cerr << "Error: Sensitive layer should be within the atmosphere layers." << G4endl;
+        }
+
+        for (G4int j = 0; j < nLayers_theta; ++j)
+        {
+            for (G4int k = 0; k < nLayers_phi; ++k)
+            {
+                solidSensLayer[l][j][k] = new G4Sphere("solidSensLayer_" + std::to_string(l) + "_" + std::to_string(j) + "_" + std::to_string(k),
+                                                    R_sens[l],
+                                                    R_sens[l] + delta_sens,
+                                                    densityModel->Get_phi(k),                                     // starting phi
+                                                    densityModel->Get_phi(k + 1) - densityModel->Get_phi(k),      // delta phi
+                                                    densityModel->Get_theta(j),                                   // starting theta
+                                                    densityModel->Get_theta(j + 1) - densityModel->Get_theta(j)); // delta theta
+                logicSensLayer[l][j][k] = new G4LogicalVolume(solidSensLayer[l][j][k],
+                                                        Air[sens_layer[l]][j][k],
+                                                        "logicSensLayer_" + std::to_string(l) + "_" + std::to_string(j) + "_" + std::to_string(k));
+                physSensLayer[l][j][k] = new G4PVPlacement(0,
+                                                        G4ThreeVector(0., 0., 0.),
+                                                        logicSensLayer[l][j][k],
+                                                        "physSensLayer_" + std::to_string(l) + "_" + std::to_string(j) + "_" + std::to_string(k),
+                                                        logicAtmosphere[sens_layer[l]][j][k],
+                                                        false,
+                                                        j * nLayers_phi + k,
+                                                        true);
+            }
         }
     }
+
 }
 
 void SphericalEarth::ConstructSDandField()
 {
     // Construct sensitive detectors
-    SensitiveDetectorBase *sd = new SphericalShellSD("SensitiveDetector",
-                                                     "gamma",
-                                                     OutputDir);
-    for (G4int j = 0; j < nLayers_theta; ++j)
-    {
-        for (G4int k = 0; k < nLayers_phi; ++k)
+    for (int l = 0; l < nSensLayers; l++){
+        SensitiveDetectorBase *sd = new SphericalShellSD("SensitiveDetector_" + std::to_string(l),
+                                                        "gamma",
+                                                        OutputDir);
+        for (G4int j = 0; j < nLayers_theta; ++j)
         {
-            logicSensLayer[j][k]->SetSensitiveDetector(sd);
+            for (G4int k = 0; k < nLayers_phi; ++k)
+            {
+                logicSensLayer[l][j][k]->SetSensitiveDetector(sd);
+            }
         }
     }
 

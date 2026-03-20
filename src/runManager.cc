@@ -14,7 +14,7 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
     output_dir = parser->GetSValue("OutputDir");
     fs::create_directories(output_dir);
     fs::create_directories(output_dir + "/primaries");
-    fs::create_directories(output_dir + "/secondaries");
+    // fs::create_directories(output_dir + "/secondaries");
     fs::create_directories(output_dir + "/backtraced");
     fs::create_directories(output_dir + "/runtime");
     // TODO: tracking of particles
@@ -205,9 +205,18 @@ void G4EarthRunManager::init_atmosphere()
     if (model_name == "SphericalEarth")
     {
         G4double epsilon = 1e-6 * m; // small offset to avoid numerical issues
+        int nSensLayer = parser->GetIValue("nSensitiveLayer");
+
+        std::vector<G4double> R_sens;
+        for (int i=1; i<=nSensLayer; i++)
+        {
+            fs::create_directories(output_dir + "/secondaries_" + std::to_string(i));
+            R_sens.push_back(parser->GetDimensionedDValue("R_sens_"+std::to_string(i)));
+        }
+
         atmosphere = new SphericalEarth(
             densityModel,                           // density model
-            parser->GetDimensionedDValue("R_sens"), // h_sens
+            R_sens, // h_sens
             parser->GetDimensionedDValue("R_earth"),
             field,
             output_dir + "/secondaries/" + project_name + "_secondaries" // output directory for sensitive detector
@@ -215,7 +224,8 @@ void G4EarthRunManager::init_atmosphere()
     }
     else if (model_name == "Magnetosphere")
     {
-        // TODO: increase the order for better accuracy
+        fs::create_directories(output_dir + "/secondaries");
+
         atmosphere = new Magnetosphere(
             parser->GetDimensionedDValue("R_inner"),
             parser->GetDimensionedDValue("R_outer"),
@@ -232,6 +242,7 @@ void G4EarthRunManager::init_atmosphere()
 
 void G4EarthRunManager::merge_output_files()
 {
+    // TODO: we are coding this function in a brute force way. Change it later
     G4cout << "Merging output files..." << G4endl;
 
     G4String generator_model = parser->GetSValue("GeneratorModel");
@@ -279,39 +290,45 @@ void G4EarthRunManager::merge_output_files()
     G4String atmosphere_model = parser->GetSValue("AtmosphereModel");
     if (atmosphere_model == "SphericalEarth")
     {
-        // set up the merged output file
-        std::ofstream merged_file(output_dir + "/secondaries/" + project_name + "_secondaries.csv", std::ofstream::out | std::ofstream::trunc);
+        int nSensLayer = parser->GetIValue("nSensitiveLayer");
 
-        for (int i = 0; i < nThreads; i++)
+        for (int l = 0; l < nSensLayer; l++)
         {
-            std::string file_to_merge =
-                output_dir + "/secondaries/" + project_name + "_secondaries_" + std::to_string(i) + ".csv";
-            if (fs::exists(file_to_merge))
+            // set up the merged output file
+            std::ofstream merged_file(output_dir + "/secondaries/" + project_name + "_secondaries.csv", std::ofstream::out | std::ofstream::trunc);
+
+            for (int i = 0; i < nThreads; i++)
             {
-                std::ifstream src(file_to_merge, std::ios::binary);
-                std::ofstream dst(output_dir + "/secondaries/" + project_name + "_secondaries.csv", std::ios::binary | std::ios::app);
-                dst.seekp(0, std::ios_base::end);
-                if (i == 0)
+                std::string file_to_merge =
+                    output_dir + "/secondaries/" + project_name + "_secondaries_" + std::to_string(i) + ".csv";
+                if (fs::exists(file_to_merge))
                 {
-                    // copy header for the first file
-                    dst << src.rdbuf();
+                    std::ifstream src(file_to_merge, std::ios::binary);
+                    std::ofstream dst(output_dir + "/secondaries/" + project_name + "_secondaries.csv", std::ios::binary | std::ios::app);
+                    dst.seekp(0, std::ios_base::end);
+                    if (i == 0)
+                    {
+                        // copy header for the first file
+                        dst << src.rdbuf();
+                    }
+                    else
+                    {
+                        // skip header for other files
+                        std::string line;
+                        std::getline(src, line); // skip header
+                        dst << src.rdbuf();
+                    }
+                    src.close();
+                    dst.close();
+                    // std::filesystem::remove(file_to_merge); // remove the individual file after merging
                 }
                 else
                 {
-                    // skip header for other files
-                    std::string line;
-                    std::getline(src, line); // skip header
-                    dst << src.rdbuf();
+                    G4cerr << "Warning: File " << file_to_merge << " does not exist." << G4endl;
                 }
-                src.close();
-                dst.close();
-                // std::filesystem::remove(file_to_merge); // remove the individual file after merging
-            }
-            else
-            {
-                G4cerr << "Warning: File " << file_to_merge << " does not exist." << G4endl;
             }
         }
+
     }
     else if (atmosphere_model == "Magnetosphere")
     {
