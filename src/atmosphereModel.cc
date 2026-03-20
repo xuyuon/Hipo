@@ -4,12 +4,14 @@ SphericalEarth::SphericalEarth(DensityModelBase *densityModel,
                                std::vector<G4double> R_sens,
                                G4double R_earth,
                                G4MagneticField *Bfield,
-                               std::string OutputDir)
+                               std::string particle_name,
+                               FileManager *fileManager)
 {
     this->R_earth = R_earth; // Global average number
     this->R_sens = R_sens;   // radial position of the sensitive layer
-    this->nSensLayers = R_sens.size(); 
-    sens_layer.resize(nSensLayers, -1); 
+    this->particle_name = particle_name;
+    this->nSensLayers = R_sens.size();
+    sens_layer.resize(nSensLayers, -1);
 
     delta_sens = 1. * cm; // thickness of the sensitive layer
 
@@ -24,7 +26,7 @@ SphericalEarth::SphericalEarth(DensityModelBase *densityModel,
     this->densityModel = densityModel;
 
     this->Bfield = Bfield;
-    this->OutputDir = OutputDir;
+    this->fileManager = fileManager;
 
     nLayers_r = densityModel->Get_r_boundaries_size() - 1;         // Number of altitude layers
     nLayers_theta = densityModel->Get_theta_boundaries_size() - 1; // Number of latitude layers
@@ -107,7 +109,8 @@ void SphericalEarth::ConstructAtmosphere()
                 Air[i][j][k]->AddElement(H, densityModel->GetHPercentageMass(i, j, k));
 
                 // Set the sensitive layer index
-                for (int l = 0; l < nSensLayers; l++){
+                for (int l = 0; l < nSensLayers; l++)
+                {
                     if (R_sens[l] > densityModel->Get_r(i) && R_sens[l] < densityModel->Get_r(i + 1))
                     {
                         sens_layer[l] = i;
@@ -156,36 +159,37 @@ void SphericalEarth::ConstructSensitiveLayer()
             for (G4int k = 0; k < nLayers_phi; ++k)
             {
                 solidSensLayer[l][j][k] = new G4Sphere("solidSensLayer_" + std::to_string(l) + "_" + std::to_string(j) + "_" + std::to_string(k),
-                                                    R_sens[l],
-                                                    R_sens[l] + delta_sens,
-                                                    densityModel->Get_phi(k),                                     // starting phi
-                                                    densityModel->Get_phi(k + 1) - densityModel->Get_phi(k),      // delta phi
-                                                    densityModel->Get_theta(j),                                   // starting theta
-                                                    densityModel->Get_theta(j + 1) - densityModel->Get_theta(j)); // delta theta
+                                                       R_sens[l],
+                                                       R_sens[l] + delta_sens,
+                                                       densityModel->Get_phi(k),                                     // starting phi
+                                                       densityModel->Get_phi(k + 1) - densityModel->Get_phi(k),      // delta phi
+                                                       densityModel->Get_theta(j),                                   // starting theta
+                                                       densityModel->Get_theta(j + 1) - densityModel->Get_theta(j)); // delta theta
                 logicSensLayer[l][j][k] = new G4LogicalVolume(solidSensLayer[l][j][k],
-                                                        Air[sens_layer[l]][j][k],
-                                                        "logicSensLayer_" + std::to_string(l) + "_" + std::to_string(j) + "_" + std::to_string(k));
+                                                              Air[sens_layer[l]][j][k],
+                                                              "logicSensLayer_" + std::to_string(l) + "_" + std::to_string(j) + "_" + std::to_string(k));
                 physSensLayer[l][j][k] = new G4PVPlacement(0,
-                                                        G4ThreeVector(0., 0., 0.),
-                                                        logicSensLayer[l][j][k],
-                                                        "physSensLayer_" + std::to_string(l) + "_" + std::to_string(j) + "_" + std::to_string(k),
-                                                        logicAtmosphere[sens_layer[l]][j][k],
-                                                        false,
-                                                        j * nLayers_phi + k,
-                                                        true);
+                                                           G4ThreeVector(0., 0., 0.),
+                                                           logicSensLayer[l][j][k],
+                                                           "physSensLayer_" + std::to_string(l) + "_" + std::to_string(j) + "_" + std::to_string(k),
+                                                           logicAtmosphere[sens_layer[l]][j][k],
+                                                           false,
+                                                           j * nLayers_phi + k,
+                                                           true);
             }
         }
     }
-
 }
 
 void SphericalEarth::ConstructSDandField()
 {
     // Construct sensitive detectors
-    for (int l = 0; l < nSensLayers; l++){
+    for (int l = 0; l < nSensLayers; l++)
+    {
         SensitiveDetectorBase *sd = new SphericalShellSD("SensitiveDetector_" + std::to_string(l),
-                                                        "gamma",
-                                                        OutputDir);
+                                                         particle_name,
+                                                         fileManager,
+                                                         l);
         for (G4int j = 0; j < nLayers_theta; ++j)
         {
             for (G4int k = 0; k < nLayers_phi; ++k)
@@ -231,10 +235,10 @@ void SphericalEarth::ConstructSDandField()
 
 Magnetosphere::Magnetosphere(G4double R_inner,
                              G4double R_outer,
-                             G4double R_sens,
+                             std::vector<G4double> R_sens,
                              G4MagneticField *Bfield,
                              std::string particle_name,
-                             std::string OutputDir)
+                             FileManager *fileManager)
 {
     // User-defined variables
     this->R_inner = R_inner;
@@ -242,7 +246,12 @@ Magnetosphere::Magnetosphere(G4double R_inner,
     this->R_sens = R_sens;
     this->Bfield = Bfield;
     this->particle_name = particle_name;
-    this->OutputDir = OutputDir;
+    this->fileManager = fileManager;
+
+    if (R_sens.size() != 1)
+    {
+        G4cerr << "Error: Only one sensitive layer is supported in the Magnetosphere model." << G4endl;
+    }
 
     // Set maximum step length to avoid tracking looping particles
     G4double MaxTrackLength = 2 * 3.141592653589793 * (5 * R_outer);
@@ -291,7 +300,8 @@ void Magnetosphere::ConstructSDandField()
     // Construct sensitive detectors that record anti-protons
     SensitiveDetectorBase *sd = new SphericalShellSD("SensitiveDetector",
                                                      particle_name,
-                                                     OutputDir);
+                                                     fileManager,
+                                                     0);
     logicSensLayer->SetSensitiveDetector(sd);
 
     // Construct magnetic field
@@ -335,8 +345,8 @@ void Magnetosphere::ConstructSensitiveLayer()
     G4double delta_sens = 1. * m; // thickness of the sensitive layer
     solidSensLayer = new G4Sphere(
         "solidSensLayer",
-        R_sens + epsilon,
-        R_sens + delta_sens - epsilon,
+        R_sens[0] + epsilon,
+        R_sens[0] + delta_sens - epsilon,
         0 * degree,
         360 * degree,
         0. * degree,

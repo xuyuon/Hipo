@@ -25,6 +25,7 @@
 #include "sensitiveDetector.hh"
 #include "densityModel.hh"
 #include "field.hh"
+#include "fileManager.hh"
 
 class AtmosphereModelBase : public G4VUserDetectorConstruction
 {
@@ -45,7 +46,8 @@ public:
                    std::vector<G4double> R_sens, // Height of the sensitive layer
                    G4double R_earth,
                    G4MagneticField *Bfield = nullptr,
-                   std::string OutputDir = "output/secondaries.csv" // Output directory for sensitive detector
+                   std::string particle_name = "gamma",
+                   FileManager *fileManager = nullptr
     );
     ~SphericalEarth();
 
@@ -83,9 +85,12 @@ private:
 
     // Fields
     G4MagneticField *Bfield;
+    
+    // Particle to be detected
+    std::string particle_name;
 
-    // Output directory
-    std::string OutputDir;
+    // File manager
+    FileManager *fileManager;
 
     // User Limits
     G4UserLimits *userLimits;
@@ -104,10 +109,10 @@ class Magnetosphere : public AtmosphereModelBase
 public:
     Magnetosphere(G4double R_inner,
                   G4double R_outer,
-                  G4double R_sens,
+                  std::vector<G4double> R_sens,
                   G4MagneticField *Bfield = nullptr,
                   std::string particle_name = "anti_proton",
-                  std::string OutputDir = "output/secondaries.csv");
+                  FileManager *fileManager = nullptr);
     ~Magnetosphere();
 
     virtual G4VPhysicalVolume *Construct() override;
@@ -118,7 +123,8 @@ private:
     G4UserLimits *userLimits;
 
     // Geometry
-    G4double R_inner, R_outer, R_sens; // Inner and outer radius of the magnetosphere
+    G4double R_inner, R_outer; // Inner and outer radius of the magnetosphere
+    std::vector<G4double> R_sens;
 
     // Volumes
     G4Sphere *solidWorld, *solidSensLayer;
@@ -135,7 +141,7 @@ private:
     std::string particle_name;
 
     // Output directory
-    std::string OutputDir;
+    FileManager *fileManager;
 
     // Private Methods
     void ConstructSensitiveLayer();

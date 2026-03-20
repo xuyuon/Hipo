@@ -36,13 +36,13 @@ G4bool SensitiveDetectorBase::ProcessHits(G4Step *aStep, G4TouchableHistory *ROh
 
 SphericalShellSD::SphericalShellSD(G4String name,
                                    G4String particle,
-                                   std::string OutputDir) : SensitiveDetectorBase(name)
+                                   FileManager *fileManager,
+                                   int sens_layer_id) : SensitiveDetectorBase(name)
 {
-    this->OutputDir = OutputDir;
+    this->fileManager = fileManager;
     this->particle = particle;
+    this->sens_layer_id = sens_layer_id;
 
-    G4int n_threads = G4RunManager::GetRunManager()->GetNumberOfThreads();
-    // Create the output file for each thread
     /*
     TODO: Thread safety issue in file creation. The constructor creates
     output files for all threads upfront (lines 46-52), but this can cause
@@ -53,13 +53,6 @@ SphericalShellSD::SphericalShellSD(G4String name,
     creating only the file for the current thread, or move file creation
     to a master-thread-only initialization.
     */
-    for (int i = 0; i < n_threads; i++)
-    {
-        std::ofstream ofs;
-        ofs.open(OutputDir + "_" + std::to_string(i) + ".csv", std::ofstream::out | std::ofstream::trunc);
-        ofs << "EventID,Energy,Process,Position_mag,Position_phi,Position_theta,Nadir_phi,Nadir_theta,Production_mag,Production_phi,Production_theta,Production_nadir_phi,Production_nadir_theta\n"; // CSV header
-        ofs.close();
-    }
 }
 
 SphericalShellSD::~SphericalShellSD()
@@ -116,7 +109,7 @@ G4bool SphericalShellSD::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhist)
 
     // Write the data to data file
     std::ofstream output_file;
-    output_file.open(OutputDir + "_" + std::to_string(G4Threading::G4GetThreadId()) + ".csv", std::ios::app);
+    output_file.open(fileManager->getSecondariesFilesDir(sens_layer_id, G4Threading::G4GetThreadId()), std::ios::app);
     if (output_file.is_open())
     {
         output_file << std::fixed << std::setprecision(10);
