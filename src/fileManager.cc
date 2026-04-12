@@ -68,9 +68,9 @@ void FileManager::merge_output_files(std::string data_folder, std::string data_t
 
     for (const auto &file_for_merge : fs::recursive_directory_iterator(data_folder))
     {
-        if (file_for_merge.is_regular_file() && file_for_merge.path().extension() == ".csv")
+        if (file_for_merge.path().extension() == ".csv")
         {
-            std::ifstream src(file_for_merge, std::ios::binary);
+            std::ifstream src(file_for_merge.path().string(), std::ios::binary);
             std::ofstream dst(result_file_name, std::ios::binary | std::ios::app);
             dst.seekp(0, std::ios_base::end);
 
