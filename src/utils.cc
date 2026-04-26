@@ -23,7 +23,7 @@ void associated_legendre(G4int n_max, G4int m_max, G4double theta,
     G4double sinth = sin(theta);
     G4double costh = cos(theta);
 
-    std::vector<std::vector<double>> S(n_max + 1, std::vector<double>(m_max + 1, 0));
+    G4ThreadLocal std::vector<std::vector<double>> S(n_max + 1, std::vector<double>(m_max + 1, 0));
 
     P[0][0] = 1.0;
     S[0][0] = 1.0;

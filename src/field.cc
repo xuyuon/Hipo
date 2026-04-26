@@ -253,8 +253,8 @@ void IGRF::GetFieldValue(const G4double *Point, G4double *Bfield) const
     G4double theta = acos(z / r);
     G4double phi = atan2(y, x);
 
-    std::vector<std::vector<double>> P(N_MAX + 1, std::vector<double>(N_MAX + 1, 0));
-    std::vector<std::vector<double>> dP(N_MAX + 1, std::vector<double>(N_MAX + 1, 0));
+    G4ThreadLocal std::vector<std::vector<double>> P(N_MAX + 1, std::vector<double>(N_MAX + 1, 0));
+    G4ThreadLocal std::vector<std::vector<double>> dP(N_MAX + 1, std::vector<double>(N_MAX + 1, 0));
 
     associated_legendre(N_MAX, N_MAX, theta, P, dP);
 
@@ -262,16 +262,26 @@ void IGRF::GetFieldValue(const G4double *Point, G4double *Bfield) const
     G4double Btheta = 0.0;
     G4double Bphi = 0.0;
 
+    double cos_m_phi[N_MAX + 1];
+    double sin_m_phi[N_MAX + 1];
+    for (int m = 0; m <= N_MAX; m++) {
+        cos_m_phi[m] = cos(m * phi);
+        sin_m_phi[m] = sin(m * phi);
+    }
+
+    G4double r_ratio = RE / r;
+    G4double r_term = r_ratio * r_ratio * r_ratio; // (RE/r)^3 for n=1
+
     for (int n = 1; n <= N_MAX; n++)
     {
-        G4double r_term = pow(RE / r, n + 2);
         for (int m = 0; m <= n; m++)
         {
-            G4double phi_term = (g_interp[n][m] * cos(m * phi) + h_interp[n][m] * sin(m * phi));
+            G4double phi_term = (g_interp[n][m] * cos_m_phi[m] + h_interp[n][m] * sin_m_phi[m]);
             Br += (n + 1) * r_term * phi_term * P[n][m];
             Btheta += -r_term * phi_term * dP[n][m];
-            Bphi += -r_term * (-(m * g_interp[n][m] * sin(m * phi)) + (m * h_interp[n][m] * cos(m * phi))) * P[n][m];
+            Bphi += -r_term * (-(m * g_interp[n][m] * sin_m_phi[m]) + (m * h_interp[n][m] * cos_m_phi[m])) * P[n][m];
         }
+        r_term *= r_ratio; // (RE/r)^(n+2) for the next n
     }
     Bphi /= sin(theta);
 
@@ -526,27 +536,27 @@ void TA16::GetField_GSM(const G4double *Point, G4double *Bfield) const
         double ym_term = ysm + dym_term[i];
         double zm_term = zsm + dzm_term[i];
 
-        double cp = sqrt(xp_term * xp_term + yp_term * yp_term + zp_term * zp_term + d * d); // RBF Ch_i+
-        double cm = sqrt(xm_term * xm_term + ym_term * ym_term + zm_term * zm_term + d * d); // RBF Ch_i-
-        double dcpx = xp_term / cp;
-        double dcmx = xm_term / cm;
-        double dcpy = yp_term / cp;
-        double dcmy = ym_term / cm;
-        double dcpz = zp_term / cp;
-        double dcmz = zm_term / cm;
+        double cp_inv = 1.0 / sqrt(xp_term * xp_term + yp_term * yp_term + zp_term * zp_term + d * d); // RBF Ch_i+
+        double cm_inv = 1.0 / sqrt(xm_term * xm_term + ym_term * ym_term + zm_term * zm_term + d * d); // RBF Ch_i-
+        double dcpx = xp_term * cp_inv;
+        double dcmx = xm_term * cm_inv;
+        double dcpy = yp_term * cp_inv;
+        double dcmy = ym_term * cm_inv;
+        double dcpz = zp_term * cp_inv;
+        double dcmz = zm_term * cm_inv;
 
-        double dcpx2 = 1.0 / cp - dcpx * dcpx / cp;
-        double dcmx2 = 1.0 / cm - dcmx * dcmx / cm;
-        double dcpy2 = 1.0 / cp - dcpy * dcpy / cp;
-        double dcmy2 = 1.0 / cm - dcmy * dcmy / cm;
-        double dcpz2 = 1.0 / cp - dcpz * dcpz / cp;
-        double dcmz2 = 1.0 / cm - dcmz * dcmz / cm;
-        double dcpxy = -dcpx * dcpy / cp;
-        double dcmxy = -dcmx * dcmy / cm;
-        double dcpxz = -dcpx * dcpz / cp;
-        double dcmxz = -dcmx * dcmz / cm;
-        double dcpyz = -dcpy * dcpz / cp;
-        double dcmyz = -dcmy * dcmz / cm;
+        double dcpx2 = cp_inv - dcpx * dcpx * cp_inv;
+        double dcmx2 = cm_inv - dcmx * dcmx * cm_inv;
+        double dcpy2 = cp_inv - dcpy * dcpy * cp_inv;
+        double dcmy2 = cm_inv - dcmy * dcmy * cm_inv;
+        double dcpz2 = cp_inv - dcpz * dcpz * cp_inv;
+        double dcmz2 = cm_inv - dcmz * dcmz * cm_inv;
+        double dcpxy = -dcpx * dcpy * cp_inv;
+        double dcmxy = -dcmx * dcmy * cm_inv;
+        double dcpxz = -dcpx * dcpz * cp_inv;
+        double dcmxz = -dcmx * dcmz * cm_inv;
+        double dcpyz = -dcpy * dcpz * cp_inv;
+        double dcmyz = -dcmy * dcmz * cm_inv;
 
         double txcp = zsm * dcpy - ysm * dcpz;
         double tycp = xsm * dcpz - zsm * dcpx;
