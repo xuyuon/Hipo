@@ -19,15 +19,10 @@
 #include "action.hh"
 #include "field.hh"
 #include "physicsList.hh"
+#include "fileManager.hh"
 
 #include <vector>
 
-
-#include <filesystem>
-namespace fs = std::filesystem;
-
-// #include <experimental/filesystem>
-// namespace fs = std::experimental::filesystem;
 
 class G4EarthRunManager
 {
@@ -40,12 +35,12 @@ public:
     void init_density_model();
     void init_field();
     void init_atmosphere();
-    void merge_output_files();
 private:
     // config
     std::string project_name;
     G4bool batch_mode;
     G4int nThreads;
+    int nSensLayer;
 
     // utility classes
     Timer *timer;
@@ -64,6 +59,8 @@ private:
     G4VisManager *visManager;
 
     // directories
+    FileManager *fileManager;
+
     G4String config_file;
     std::string output_dir;
     std::string primaries_output_dir;

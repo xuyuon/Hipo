@@ -8,6 +8,8 @@
 #include "G4EventManager.hh"
 #include "G4RunManager.hh"
 
+#include "fileManager.hh"
+
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -29,13 +31,18 @@ class SphericalShellSD : public SensitiveDetectorBase
 public:
     SphericalShellSD(G4String name,
                      G4String particle = "gamma",
-                     std::string OutputDir = "output/secondaries.csv");
+                     FileManager *fileManager = nullptr,
+                     int sens_layer_id = 0);
     ~SphericalShellSD();
 
     G4bool ProcessHits(G4Step *step, G4TouchableHistory *history) override;
+    static void p_mom_to_nadir_angles(const G4ThreeVector *p_pos,
+                               const G4ThreeVector *p_mom,
+                               G4double *nadir_angles);
 
 private:
-    std::string OutputDir;
+    FileManager *fileManager;
+    int sens_layer_id;
     G4String particle;
 };
 

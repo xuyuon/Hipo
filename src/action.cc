@@ -12,10 +12,7 @@ ActionInitialization::ActionInitialization(Parser *parser, std::string output_di
         GeneratorBase *generator = new GenerateFromTable(
             parser->GetSValue("ParticleName"),
             parser->GetSValue("PrimariesDataFile"),
-            output_dir + "_primaries", // output directory for sensitive detector
-            parser->GetBValue("Insert_finite_diff"),
-            parser->GetDimensionedDValue("delta_E"),
-            parser->GetDimensionedDValue("delta_angle")
+            output_dir + "_primaries" // output directory for sensitive detector
         );
         this->n_events = generator->get_n_events();
         delete generator; // clean up the dummy generator
@@ -64,10 +61,7 @@ GeneratorBase *ActionInitialization::init_generator() const
         generator = new GenerateFromTable(
             parser->GetSValue("ParticleName"),
             parser->GetSValue("PrimariesDataFile"),
-            output_dir + "_primaries", // output directory for sensitive detector
-            parser->GetBValue("Insert_finite_diff"),
-            parser->GetDimensionedDValue("delta_E"),
-            parser->GetDimensionedDValue("delta_angle")
+            output_dir + "_primaries" // output directory for sensitive detector
         );
     }
     else
@@ -101,6 +95,10 @@ SamplingBase *ActionInitialization::get_sampler(G4String sampler_name, G4String 
     {
         return new Lambertian();
     }
+    else if (sampler_name == "UpwardLambertian")
+    {
+        return new UpwardLambertian();
+    }
     else if (sampler_name == "Scaled")
     {
         SamplingBase *base_sampler = get_sampler(parser->GetSValue(label + "_base"), label + "_base");
@@ -129,7 +127,13 @@ CoordinatesSamplingBase *ActionInitialization::get_coordinates_sampler(G4String 
 {
     if (sampler_name == "UniformSphericalSurface")
     {
-        return new UniformSphericalSurface(parser->GetDimensionedDValue(label + "_mag"));
+        return new UniformSphericalSurface(
+            parser->GetDimensionedDValue(label + "_mag"),
+            parser->GetDimensionedDValue(label + "_theta_min"),
+            parser->GetDimensionedDValue(label + "_theta_max"),
+            parser->GetDimensionedDValue(label + "_phi_min"),
+            parser->GetDimensionedDValue(label + "_phi_max")            
+            );
     }
     else
     {

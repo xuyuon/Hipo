@@ -102,25 +102,11 @@ void SphericalSurfaceSampling::GeneratePrimaries(G4Event *anEvent)
     G4double p_mom_phi = phi_dist->sample();
 
     // Transform the local coordinate into global coordinate
-    G4double p_pos_theta = p_pos.theta();
-    G4double p_pos_phi = p_pos.phi();
-
-    G4double p_mom_north = sin(p_mom_theta) * cos(p_mom_phi);
-    G4double p_mom_east = sin(p_mom_theta) * sin(p_mom_phi); 
-    G4double p_mom_down = -cos(p_mom_theta); // cos(pi - theta) = -cos(theta)
-
-    G4double p_mom_up = -p_mom_down; 
-    G4double p_mom_south = -p_mom_north; 
-
-    G4double p_dir_x = sin(p_pos_theta) * cos(p_pos_phi) * p_mom_up +
-                       cos(p_pos_theta) * cos(p_pos_phi) * p_mom_south -
-                       sin(p_pos_phi) * p_mom_east;
-    G4double p_dir_y = sin(p_pos_theta) * sin(p_pos_phi) * p_mom_up +
-                        cos(p_pos_theta) * sin(p_pos_phi) * p_mom_south +
-                        cos(p_pos_phi) * p_mom_east;
-    G4double p_dir_z = cos(p_pos_theta) * p_mom_up - sin(p_pos_theta) * p_mom_south;
-
-    G4ThreeVector p_dir(p_dir_x, p_dir_y, p_dir_z);
+    G4ThreeVector p_dir = nadir_angles_to_p_dir(
+        p_pos.theta(),
+        p_pos.phi(),
+        p_mom_theta,
+        p_mom_phi);
     fParticleGun->SetParticleMomentumDirection(p_dir);
 
     // Write the data to data file
@@ -149,13 +135,35 @@ void SphericalSurfaceSampling::GeneratePrimaries(G4Event *anEvent)
     fParticleGun->GeneratePrimaryVertex(anEvent);
 }
 
+G4ThreeVector SphericalSurfaceSampling::nadir_angles_to_p_dir(
+    G4double pos_theta,
+    G4double pos_phi,
+    G4double nadir_theta,
+    G4double nadir_phi)
+{
+    G4double p_mom_north = sin(nadir_theta) * cos(nadir_phi);
+    G4double p_mom_east = sin(nadir_theta) * sin(nadir_phi);
+    G4double p_mom_down = cos(nadir_theta);
+
+    G4double p_mom_up = -p_mom_down;
+    G4double p_mom_south = -p_mom_north;
+
+    G4double p_dir_x = sin(pos_theta) * cos(pos_phi) * p_mom_up +
+                       cos(pos_theta) * cos(pos_phi) * p_mom_south -
+                       sin(pos_phi) * p_mom_east;
+    G4double p_dir_y = sin(pos_theta) * sin(pos_phi) * p_mom_up +
+                       cos(pos_theta) * sin(pos_phi) * p_mom_south +
+                       cos(pos_phi) * p_mom_east;
+    G4double p_dir_z = cos(pos_theta) * p_mom_up - sin(pos_theta) * p_mom_south;
+
+    G4ThreeVector p_dir(p_dir_x, p_dir_y, p_dir_z);
+    return p_dir;
+}
+
 GenerateFromTable::GenerateFromTable(
     G4String particleName,
     std::string data_file,
-    std::string output_file,
-    G4bool insert_finite_differences,
-    G4double delta_E,
-    G4double delta_angle)
+    std::string output_file)
 {
     n_threads = G4RunManager::GetRunManager()->GetNumberOfThreads();
     fParticleGun = new G4ParticleGun(1); // Create a particle gun with 1 particle
@@ -169,20 +177,13 @@ GenerateFromTable::GenerateFromTable(
 
     init_table();
 
-    if (insert_finite_differences)
-    {
-        this->delta_E = delta_E;
-        this->delta_angle = delta_angle;
-        init_finite_differences();
-    }
-
     // Create the output file
     /*
     TODO: Potential thread safety issue in constructor. The constructor uses G4Threading::G4GetThreadId() to create thread-specific output files,
     but constructors may be called from different contexts in multi-threaded Geant4 applications.
     This could lead to incorrect file creation if the constructor is called before threads are properly initialized.
     Consider creating the output files in the GeneratePrimaries method on first use instead.
-    */ 
+    */
     std::ofstream ofs;
     ofs.open(output_file + "_" + std::to_string(G4Threading::G4GetThreadId()) + ".csv", std::ofstream::out | std::ofstream::trunc);
     ofs << "EventID,Energy,Position_mag,Position_phi,Position_theta,Nadir_phi,Nadir_theta\n"; // CSV header
@@ -243,50 +244,6 @@ void GenerateFromTable::init_table()
     file.close();
 }
 
-void GenerateFromTable::init_finite_differences()
-{
-    // Make 4 copies of the original data with small perturbations
-    G4int n = energies.size();
-    for (G4int i = 0; i < n; i++)
-    {
-        energies.push_back(energies[i]);
-        pos_mag.push_back(pos_mag[i]);
-        pos_phi.push_back(pos_phi[i] + delta_angle);
-        pos_theta.push_back(pos_theta[i]);
-        nadir_phi.push_back(nadir_phi[i]);
-        nadir_theta.push_back(nadir_theta[i]);
-
-        energies.push_back(energies[i]);
-        pos_mag.push_back(pos_mag[i]);
-        pos_phi.push_back(pos_phi[i]);
-        pos_theta.push_back(pos_theta[i] + delta_angle);
-        nadir_phi.push_back(nadir_phi[i]);
-        nadir_theta.push_back(nadir_theta[i]);
-
-        energies.push_back(energies[i]);
-        pos_mag.push_back(pos_mag[i]);
-        pos_phi.push_back(pos_phi[i]);
-        pos_theta.push_back(pos_theta[i]);
-        nadir_phi.push_back(nadir_phi[i] + delta_angle);
-        nadir_theta.push_back(nadir_theta[i]);
-
-        energies.push_back(energies[i]);
-        pos_mag.push_back(pos_mag[i]);
-        pos_phi.push_back(pos_phi[i]);
-        pos_theta.push_back(pos_theta[i]);
-        nadir_phi.push_back(nadir_phi[i]);
-        nadir_theta.push_back(nadir_theta[i] + delta_angle);
-    }
-
-    // remove the first n entries
-    energies.erase(energies.begin(), energies.begin() + n);
-    pos_mag.erase(pos_mag.begin(), pos_mag.begin() + n);
-    pos_phi.erase(pos_phi.begin(), pos_phi.begin() + n);
-    pos_theta.erase(pos_theta.begin(), pos_theta.begin() + n);
-    nadir_phi.erase(nadir_phi.begin(), nadir_phi.begin() + n);
-    nadir_theta.erase(nadir_theta.begin(), nadir_theta.begin() + n);
-}
-
 int GenerateFromTable::get_n_events() const
 {
     return energies.size();
@@ -318,22 +275,11 @@ void GenerateFromTable::GeneratePrimaries(G4Event *anEvent)
     G4double p_nadir_phi = nadir_phi[event_id];
 
     // Transform the local coordinate into global coordinate
-    G4double p_mom_north = sin(p_nadir_theta) * cos(p_nadir_phi);
-    G4double p_mom_east = sin(p_nadir_theta) * sin(p_nadir_phi); 
-    G4double p_mom_down = -cos(p_nadir_theta); // cos(pi - theta) = -cos(theta)
-
-    G4double p_mom_up = -p_mom_down; 
-    G4double p_mom_south = -p_mom_north; 
-
-    G4double p_dir_x = sin(p_pos_theta) * cos(p_pos_phi) * p_mom_up +
-                       cos(p_pos_theta) * cos(p_pos_phi) * p_mom_south -
-                       sin(p_pos_phi) * p_mom_east;
-    G4double p_dir_y = sin(p_pos_theta) * sin(p_pos_phi) * p_mom_up +
-                        cos(p_pos_theta) * sin(p_pos_phi) * p_mom_south +
-                        cos(p_pos_phi) * p_mom_east;
-    G4double p_dir_z = cos(p_pos_theta) * p_mom_up - sin(p_pos_theta) * p_mom_south;
-
-    G4ThreeVector p_dir(p_dir_x, p_dir_y, p_dir_z);
+    G4ThreeVector p_dir = nadir_angles_to_p_dir(
+        p_pos_theta,
+        p_pos_phi,
+        p_nadir_theta,
+        p_nadir_phi);
     fParticleGun->SetParticleMomentumDirection(p_dir);
 
     // Write the data to data file
@@ -360,4 +306,29 @@ void GenerateFromTable::GeneratePrimaries(G4Event *anEvent)
 
     // Generate the primary vertex for the event
     fParticleGun->GeneratePrimaryVertex(anEvent);
+}
+
+G4ThreeVector GenerateFromTable::nadir_angles_to_p_dir(
+    G4double pos_theta,
+    G4double pos_phi,
+    G4double nadir_theta,
+    G4double nadir_phi)
+{
+    G4double p_mom_north = sin(nadir_theta) * cos(nadir_phi);
+    G4double p_mom_east = sin(nadir_theta) * sin(nadir_phi);
+    G4double p_mom_down = cos(nadir_theta);
+
+    G4double p_mom_up = -p_mom_down;
+    G4double p_mom_south = -p_mom_north;
+
+    G4double p_dir_x = sin(pos_theta) * cos(pos_phi) * p_mom_up +
+                       cos(pos_theta) * cos(pos_phi) * p_mom_south -
+                       sin(pos_phi) * p_mom_east;
+    G4double p_dir_y = sin(pos_theta) * sin(pos_phi) * p_mom_up +
+                       cos(pos_theta) * sin(pos_phi) * p_mom_south +
+                       cos(pos_phi) * p_mom_east;
+    G4double p_dir_z = cos(pos_theta) * p_mom_up - sin(pos_theta) * p_mom_south;
+
+    G4ThreeVector p_dir(p_dir_x, p_dir_y, p_dir_z);
+    return p_dir;
 }

@@ -23,7 +23,7 @@ void associated_legendre(G4int n_max, G4int m_max, G4double theta,
     G4double sinth = sin(theta);
     G4double costh = cos(theta);
 
-    std::vector<std::vector<double>> S(n_max + 1, std::vector<double>(m_max + 1, 0));
+    G4ThreadLocal std::vector<std::vector<double>> S(n_max + 1, std::vector<double>(m_max + 1, 0));
 
     P[0][0] = 1.0;
     S[0][0] = 1.0;
@@ -74,14 +74,60 @@ void associated_legendre(G4int n_max, G4int m_max, G4double theta,
 
 bool is_leap_year(G4int year)
 {
+    if (year % 400 == 0)
+        return true;
+    if (year % 100 == 0)
+        return false;
     if (year % 4 == 0)
         return true;
-    else if (year % 100 == 0)
-        return false;
-    else if (year % 400 == 0)
-        return true;
-    else
-        return false;
+    return false;
+}
+
+double datetime_to_utc(int year, int month, double day)
+{
+    static const int epoch_year = 1970;
+    static const int epoch_month = 1;
+    static const double epoch_day = 1;
+
+    int days_in_month[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+
+    if (year < epoch_year)
+    {
+        G4int days = 0;
+        // Count days until next year
+        for (int m = month; m <= 12; m++)
+        {
+            days += days_in_month[m-1];
+            if (m == 2 && is_leap_year(year))
+            {
+                days += 1;
+            }
+        }
+        days -= (day-1); // Subtract days already passed in the current month
+        // Count full years in between
+        for (G4int y = year + 1; y < epoch_year; y++)
+        {
+            days += is_leap_year(y) ? 366 : 365;
+        }
+        return - days * 24.0 * 3600.0; // Convert days to seconds
+    }
+    else{
+        G4int days = 0;
+        for (G4int y = epoch_year; y < year; y++)
+        {
+            days += is_leap_year(y) ? 366 : 365;
+        }
+        for (G4int m = epoch_month; m < month; m++)
+        {
+            days += days_in_month[m - 1];
+            if (m == 2 && is_leap_year(year))
+            {
+                days += 1;
+            }
+        }
+        days += day - epoch_day;
+        return days * 24.0 * 3600.0; // Convert days to seconds
+    }
 }
 
 G4double datetime_to_yearfrac(G4int year, G4int month, G4int day)
