@@ -34,19 +34,25 @@ G4bool SensitiveDetectorBase::ProcessHits(G4Step *aStep, G4TouchableHistory *ROh
     return true;
 }
 
-SphericalShellSD::SphericalShellSD(G4String name, std::string SDOutputDir) : SensitiveDetectorBase(name)
+SphericalShellSD::SphericalShellSD(G4String name,
+                                   G4String particle,
+                                   FileManager *fileManager,
+                                   int sens_layer_id) : SensitiveDetectorBase(name)
 {
-    this->SDOutputDir = SDOutputDir;
-    this->SDOutputFile = SDOutputDir + "/secondaries.csv";
+    this->fileManager = fileManager;
+    this->particle = particle;
+    this->sens_layer_id = sens_layer_id;
 
-    // Create the output directory
-    std::filesystem::create_directories(SDOutputDir);
-
-    // Create the output file
-    std::ofstream ofs;
-    ofs.open(SDOutputFile, std::ofstream::out | std::ofstream::trunc);
-    ofs << "EventID,Energy,Process,Position_mag,Position_phi,Position_theta,Nadir_phi,Nadir_theta\n"; // CSV header
-    ofs.close();
+    /*
+    TODO: Thread safety issue in file creation. The constructor creates
+    output files for all threads upfront (lines 46-52), but this can cause
+    race conditions if multiple threads instantiate this class simultaneously.
+    In multi-threaded Geant4 simulations, the sensitive detector is typically
+    constructed once per thread. Creating files for all threads in each
+    instance's constructor will lead to files being overwritten. Consider
+    creating only the file for the current thread, or move file creation
+    to a master-thread-only initialization.
+    */
 }
 
 SphericalShellSD::~SphericalShellSD()
@@ -56,6 +62,7 @@ SphericalShellSD::~SphericalShellSD()
 G4bool SphericalShellSD::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhist)
 {
     // Check if this is the first step in the volume
+    // TODO: maybe kill the particle?
     if (aStep->IsFirstStepInVolume() == false)
     {
         return true;
@@ -65,7 +72,7 @@ G4bool SphericalShellSD::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhist)
     G4String pName = track->GetDefinition()->GetParticleName();
 
     // we are only interested in recording photons
-    if (pName != "gamma")
+    if (pName != particle)
         return false;
 
     G4StepPoint *preStepPoint = aStep->GetPreStepPoint();   // when the particle enters the sensitive detector
@@ -78,7 +85,9 @@ G4bool SphericalShellSD::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhist)
     G4double energy = postStepPoint->GetKineticEnergy();
 
     // 3. Record the physical process that generated the photon
-    G4String processName = track->GetCreatorProcess()->GetProcessName();
+    G4String processName = "primary";
+    if (track->GetCreatorProcess() != nullptr)
+        processName = track->GetCreatorProcess()->GetProcessName();
 
     // 4. Record the position of the photon
     G4ThreeVector p_pos = track->GetPosition();
@@ -86,33 +95,37 @@ G4bool SphericalShellSD::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhist)
     // 5. Record the momentum direction of the photon
     G4ThreeVector p_mom = track->GetMomentumDirection();
     // Transform to local coordinates
-    G4double p_pos_phi = p_pos.phi();
-    G4double p_pos_theta = p_pos.theta();
-    // transformation defined such that phi=0 is pointing towards north pole
-    G4double p_mom_x = -p_mom.x() * cos(p_pos_theta) * cos(p_pos_phi) -
-                       p_mom.y() * cos(p_pos_theta) * sin(p_pos_phi) +
-                       p_mom.z() * sin(p_pos_theta);
-    G4double p_mom_y = p_mom.x() * sin(p_pos_phi) -
-                       p_mom.y() * cos(p_pos_phi);
-    G4double p_mom_z = p_mom.x() * sin(p_pos_theta) * cos(p_pos_phi) +
-                       p_mom.y() * sin(p_pos_theta) * sin(p_pos_phi) +
-                       p_mom.z() * cos(p_pos_theta);
+    G4double nadir_angles[2];
+    p_mom_to_nadir_angles(&p_pos, &p_mom, nadir_angles);
 
-    G4ThreeVector p_mom_local(p_mom_x, p_mom_y, p_mom_z);
+    // 6. Record the production position of the photon
+    G4ThreeVector vertex_pos = track->GetVertexPosition();
+
+    // 7. Record the momentum direction of the photon at production height
+    G4ThreeVector vertex_mom = track->GetVertexMomentumDirection();
+    // Transform to local coordinates
+    G4double vertex_nadir_angles[2];
+    p_mom_to_nadir_angles(&vertex_pos, &vertex_mom, vertex_nadir_angles);
 
     // Write the data to data file
     std::ofstream output_file;
-    output_file.open(SDOutputFile, std::ios::app);
+    output_file.open(fileManager->getSecondariesFilesDir(sens_layer_id, G4Threading::G4GetThreadId()), std::ios::app);
     if (output_file.is_open())
     {
+        output_file << std::fixed << std::setprecision(10);
         output_file << eventID << ","
                     << energy / eV << ","
                     << processName << ","
                     << p_pos.mag() / km << ","
                     << p_pos.phi() / radian << ","
                     << p_pos.theta() / radian << ","
-                    << p_mom_local.phi() / radian << ","
-                    << p_mom_local.theta() / radian << "\n";
+                    << nadir_angles[1] / radian << ","
+                    << nadir_angles[0] / radian << ","
+                    << vertex_pos.mag() / km << ","
+                    << vertex_pos.phi() / radian << ","
+                    << vertex_pos.theta() / radian << ","
+                    << vertex_nadir_angles[1] / radian << ","
+                    << vertex_nadir_angles[0] / radian << "\n";
         output_file.close();
     }
     else
@@ -121,4 +134,35 @@ G4bool SphericalShellSD::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhist)
     }
 
     return true;
+}
+
+void SphericalShellSD::p_mom_to_nadir_angles(const G4ThreeVector *p_pos,
+                                             const G4ThreeVector *p_mom,
+                                             G4double *nadir_angles)
+{
+    // nadir_angles[0]: nadir_theta
+    // nadir_angles[1]: nadir_phi
+    // Transform to local coordinates
+    G4double p_pos_phi = p_pos->phi();
+    G4double p_pos_theta = p_pos->theta();
+
+    // arrival direction is opposite to momentum direction
+    G4double arrival_x = -p_mom->x();
+    G4double arrival_y = -p_mom->y();
+    G4double arrival_z = -p_mom->z();
+
+    G4double arrival_up = arrival_x * sin(p_pos_theta) * cos(p_pos_phi) +
+                           arrival_y * sin(p_pos_theta) * sin(p_pos_phi) +
+                           arrival_z * cos(p_pos_theta);
+    G4double arrival_south = arrival_x * cos(p_pos_theta) * cos(p_pos_phi) +
+                              arrival_y * cos(p_pos_theta) * sin(p_pos_phi) -
+                              arrival_z * sin(p_pos_theta);
+    G4double arrival_east = -arrival_x * sin(p_pos_phi) +
+                            arrival_y * cos(p_pos_phi);
+
+    // nadir angle system is defined such that nadir_phi=0 is particle coming from north pole
+    // and nadir_phi=90 is particle coming from east, and nadir_theta=0 is particle coming from center of the Earth
+    // and nadir_theta=90 is particle arriving from the horizon
+    nadir_angles[0] = acos(-arrival_up);
+    nadir_angles[1] = atan2(arrival_east, -arrival_south);
 }

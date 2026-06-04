@@ -145,6 +145,32 @@ private:
     G4double xmax;
 };
 
+class Lambertian : public SamplingBase
+{
+    /*
+    The probability density function is given by:
+    P(x) ~ sin(2x) for 0 <= x <= pi/2
+    */
+public:
+    Lambertian();
+    ~Lambertian();
+
+    virtual G4double sample() override;
+};
+
+class UpwardLambertian : public SamplingBase
+{
+    /*
+    The probability density function is given by:
+    P(x) ~ sin(2x) for pi/2 <= x <= pi
+    */
+public:
+    UpwardLambertian();
+    ~UpwardLambertian();
+
+    virtual G4double sample() override;
+};
+
 class CoordinatesSamplingBase
 {
 public:

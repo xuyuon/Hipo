@@ -10,6 +10,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <algorithm>
 
 class DensityModelBase
 {
@@ -22,90 +23,84 @@ public:
     DensityModelBase() {}
     ~DensityModelBase() {}
 
-    virtual std::vector<G4double> GetBoundaries() const = 0;
-    virtual std::vector<G4double> GetDensities() const = 0;
-    virtual std::vector<G4double> GetHPercentageMass() const = 0;
-    virtual std::vector<G4double> GetHePercentageMass() const = 0;
-    virtual std::vector<G4double> GetNPercentageMass() const = 0;
-    virtual std::vector<G4double> GetOPercentageMass() const = 0;
-    virtual std::vector<G4double> GetArPercentageMass() const = 0;
+    virtual G4double Get_r(G4int idx) const = 0;
+    virtual G4double Get_theta(G4int idx) const = 0;
+    virtual G4double Get_phi(G4int idx) const = 0;
+    virtual int Get_r_boundaries_size() const = 0;
+    virtual int Get_theta_boundaries_size() const = 0;
+    virtual int Get_phi_boundaries_size() const = 0;
+    virtual G4double GetDensities(G4int r_idx, G4int theta_idx, G4int phi_idx) const = 0;
+    virtual G4double GetHPercentageMass(G4int r_idx, G4int theta_idx, G4int phi_idx) const = 0;
+    virtual G4double GetHePercentageMass(G4int r_idx, G4int theta_idx, G4int phi_idx) const = 0;
+    virtual G4double GetNPercentageMass(G4int r_idx, G4int theta_idx, G4int phi_idx) const = 0;
+    virtual G4double GetOPercentageMass(G4int r_idx, G4int theta_idx, G4int phi_idx) const = 0;
+    virtual G4double GetArPercentageMass(G4int r_idx, G4int theta_idx, G4int phi_idx) const = 0;
 };
 
-class ConstTempBarometricModel : public DensityModelBase
+class TabulatedDensity : public DensityModelBase
 {
 public:
-    ConstTempBarometricModel(
-        G4double h_min,
-        G4double h_max,
-        G4double delta_h,
-        G4double X_layer,
-        G4double temperature = 300.,
-        G4double h_ref = 0.,
-        G4double pressure_ref = 101325.);
-    ~ConstTempBarometricModel();
+    TabulatedDensity(G4double r_min, G4double r_pause, G4double r_max,
+                     G4double delta_r1, G4double delta_r2,
+                     G4double delta_theta, G4double delta_phi, G4String data_file);
+    ~TabulatedDensity();
 
-    virtual std::vector<G4double> GetBoundaries() const override;
-    virtual std::vector<G4double> GetDensities() const override;
-    virtual std::vector<G4double> GetHPercentageMass() const override;
-    virtual std::vector<G4double> GetHePercentageMass() const override;
-    virtual std::vector<G4double> GetNPercentageMass() const override;
-    virtual std::vector<G4double> GetOPercentageMass() const override;
-    virtual std::vector<G4double> GetArPercentageMass() const override;
-
-    G4double CalculateDensity(G4double altitude) const;
+    virtual G4double Get_r(G4int idx) const { return r_boundaries[idx]; }
+    virtual G4double Get_theta(G4int idx) const { return theta_boundaries[idx]; }
+    virtual G4double Get_phi(G4int idx) const { return phi_boundaries[idx]; }
+    virtual int Get_r_boundaries_size() const { return r_boundaries.size(); }
+    virtual int Get_theta_boundaries_size() const { return theta_boundaries.size(); }
+    virtual int Get_phi_boundaries_size() const { return phi_boundaries.size(); }
+    virtual G4double GetDensities(G4int r_idx, G4int theta_idx, G4int phi_idx) const
+    {
+        return densities[r_idx][theta_idx][phi_idx];
+    }
+    virtual G4double GetHPercentageMass(G4int r_idx, G4int theta_idx, G4int phi_idx) const
+    {
+        return h_percentage_mass[r_idx][theta_idx][phi_idx];
+    }
+    virtual G4double GetHePercentageMass(G4int r_idx, G4int theta_idx, G4int phi_idx) const
+    {
+        return he_percentage_mass[r_idx][theta_idx][phi_idx];
+    }
+    virtual G4double GetNPercentageMass(G4int r_idx, G4int theta_idx, G4int phi_idx) const
+    {
+        return n_percentage_mass[r_idx][theta_idx][phi_idx];
+    }
+    virtual G4double GetOPercentageMass(G4int r_idx, G4int theta_idx, G4int phi_idx) const
+    {
+        return o_percentage_mass[r_idx][theta_idx][phi_idx];
+    }
+    virtual G4double GetArPercentageMass(G4int r_idx, G4int theta_idx, G4int phi_idx) const
+    {
+        return ar_percentage_mass[r_idx][theta_idx][phi_idx];
+    }
 
 private:
-    // Constants
-    G4double temperature;  // Temperature in Kelvin
-    G4double h_ref;        // Reference height in meters
-    G4double pressure_ref; // Reference pressure in Pascals
-    G4double R;            // Ideal gas constant in J/(mol*K)
-    G4double g;            // Gravitational acceleration in m/s^2
-    G4double m_air;        // Molar mass of dry air in kg/mol
-    G4double beta;         // A constant defined as m_air * g / R / temperature
+    // The atmosphere is divided into two regions with different altitude steps:
+    // from h_min to h_pause with delta_h1, and from h_pause to h_max with delta_h2
+    // h_pause should be defined such that most of the particles is produced below it.
+    G4double r_min, r_pause, r_max;
+    G4double delta_r1, delta_r2;
+    G4double delta_theta, delta_phi;
+    G4double R_earth;
 
-    // Geometry
-    G4double h_min, h_max, delta_h; // Minimum height in meters
+    // file directory
+    std::string data_file;
 
-    // Integrated density
-    G4double X_layer; // Integrated density for the air layer
-
-    std::vector<G4double> boundaries;
-    std::vector<G4double> densities;
-    std::vector<G4double> h_percentage_mass;
-    std::vector<G4double> he_percentage_mass;
-    std::vector<G4double> n_percentage_mass;
-    std::vector<G4double> o_percentage_mass;
-    std::vector<G4double> ar_percentage_mass;
+    std::vector<G4double> r_boundaries;
+    std::vector<G4double> theta_boundaries;
+    std::vector<G4double> phi_boundaries;
+    std::vector<std::vector<std::vector<G4double>>> densities; // [r][theta][phi]
+    std::vector<std::vector<std::vector<G4double>>> h_percentage_mass;
+    std::vector<std::vector<std::vector<G4double>>> he_percentage_mass;
+    std::vector<std::vector<std::vector<G4double>>> n_percentage_mass;
+    std::vector<std::vector<std::vector<G4double>>> o_percentage_mass;
+    std::vector<std::vector<std::vector<G4double>>> ar_percentage_mass;
 
     // Helper functions
     void InitBoundaries();
-    G4double LayerCeiling(G4double altitude, G4double X) const;
-    G4double MaxCeiling(G4double X) const;
-};
-
-class NRLMSIS_2 : public DensityModelBase
-{
-public:
-    NRLMSIS_2(G4String data_file);
-    ~NRLMSIS_2();
-
-    virtual std::vector<G4double> GetBoundaries() const override;
-    virtual std::vector<G4double> GetDensities() const override;
-    virtual std::vector<G4double> GetHPercentageMass() const override;
-    virtual std::vector<G4double> GetHePercentageMass() const override;
-    virtual std::vector<G4double> GetNPercentageMass() const override;
-    virtual std::vector<G4double> GetOPercentageMass() const override;
-    virtual std::vector<G4double> GetArPercentageMass() const override;
-
-private:
-    std::vector<G4double> boundaries;
-    std::vector<G4double> densities;
-    std::vector<G4double> h_percentage_mass;
-    std::vector<G4double> he_percentage_mass;
-    std::vector<G4double> n_percentage_mass;
-    std::vector<G4double> o_percentage_mass;
-    std::vector<G4double> ar_percentage_mass;
+    void LoadData();
 };
 
 #endif
