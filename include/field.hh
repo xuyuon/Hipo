@@ -125,7 +125,7 @@ private:
     // Precompute constants used in GetField_GSM
     double fpd, symh, cps, sps, tps;
     double dxp_term[1296], dyp_term[1296], dzp_term[1296], dxm_term[1296], dym_term[1296], dzm_term[1296];
-    double term1[1296], term2[1296], term3[1296], term4[1296];
+    double term1_plus_2[1296], term1_minus_2[1296], term4_plus_3[1296], term4_minus_3[1296];
 
     // inner field component
     IGRF *inner_field;

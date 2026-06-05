@@ -484,7 +484,6 @@ void TA16::PrecomputeGetFieldConstants()
     sps = sin(ps);
     tps = sps / cps;
 
-    double act[1296], ast[1296], at[1296], acp[1296], asp[1296], ap[1296];
     for (int i = 0; i < 1296; i++)
     {
         double dtheta = -asin(rhbr[i] * tps) * st[i];
@@ -498,17 +497,23 @@ void TA16::PrecomputeGetFieldConstants()
         dym_term[i] = -(1.0 + cdtm1) * yy[i] + sdt * zsp[i];
         dzm_term[i] = (1.0 + cdtm1) * zz[i] + rho[i] * sdt;
 
-        act[i] = a[i] + a[i + 5184] * fpd + a[i + 10368] * symh + a[i + 15552] * xind;
-        ast[i] = a[i + 1296] + a[i + 6480] * fpd + a[i + 11664] * symh + a[i + 16848] * xind;
-        at[i] = a[i + 20736] * by_imf;
-        acp[i] = a[i + 2592] + a[i + 7776] * fpd + a[i + 12960] * symh + a[i + 18144] * xind;
-        asp[i] = a[i + 3888] + a[i + 9072] * fpd + a[i + 14256] * symh + a[i + 19440] * xind;
-        ap[i] = a[i + 22032] * by_imf;
+        double act = a[i] + a[i + 5184] * fpd + a[i + 10368] * symh + a[i + 15552] * xind;
+        double ast = a[i + 1296] + a[i + 6480] * fpd + a[i + 11664] * symh + a[i + 16848] * xind;
+        double at = a[i + 20736] * by_imf;
+        double acp = a[i + 2592] + a[i + 7776] * fpd + a[i + 12960] * symh + a[i + 18144] * xind;
+        double asp = a[i + 3888] + a[i + 9072] * fpd + a[i + 14256] * symh + a[i + 19440] * xind;
+        double ap = a[i + 22032] * by_imf;
 
-        term1[i] = cps * act[i];
-        term2[i] = (sps * ast[i] + at[i]);
-        term3[i] = cps * acp[i];
-        term4[i] = (sps * asp[i] + ap[i]);
+        double t1 = cps * act;
+        double t2 = (sps * ast + at);
+        double t3 = cps * acp;
+        double t4 = (sps * asp + ap);
+
+        // Pre-package the linear combinations for the hot loop
+        term1_plus_2[i] = t1 + t2;
+        term1_minus_2[i] = t1 - t2;
+        term4_plus_3[i] = t4 + t3;
+        term4_minus_3[i] = t4 - t3;
     }
 }
 
@@ -527,55 +532,51 @@ void TA16::GetField_GSM(const G4double *Point, G4double *Bfield) const
     double bysm = 0.0;
     double bzsm = 0.0;
 
+    const double d2 = d * d;
+
     for (int i = 0; i < 1296; i++)
     {
         double xp_term = xsm + dxp_term[i];
         double yp_term = ysm + dyp_term[i];
         double zp_term = zsm + dzp_term[i];
+
+        double r2_p = xp_term * xp_term + yp_term * yp_term + zp_term * zp_term;
+        double dot_p = xsm * xp_term + ysm * yp_term + zsm * zp_term;
+        double cp_inv = 1.0 / std::sqrt(r2_p + d2);
+        double cp_inv3 = cp_inv * cp_inv * cp_inv;
+
+        double txcp = (zsm * yp_term - ysm * zp_term) * cp_inv;
+        double tycp = (xsm * zp_term - zsm * xp_term) * cp_inv;
+        double tzcp = (ysm * xp_term - xsm * yp_term) * cp_inv;
+
+        double pxcp = 2.0 * dxp_term[i] * cp_inv + (xsm * r2_p - xp_term * dot_p) * cp_inv3;
+        double pycp = 2.0 * dyp_term[i] * cp_inv + (ysm * r2_p - yp_term * dot_p) * cp_inv3;
+        double pzcp = 2.0 * dzp_term[i] * cp_inv + (zsm * r2_p - zp_term * dot_p) * cp_inv3;
+
         double xm_term = xsm + dxm_term[i];
         double ym_term = ysm + dym_term[i];
         double zm_term = zsm + dzm_term[i];
 
-        double cp_inv = 1.0 / sqrt(xp_term * xp_term + yp_term * yp_term + zp_term * zp_term + d * d); // RBF Ch_i+
-        double cm_inv = 1.0 / sqrt(xm_term * xm_term + ym_term * ym_term + zm_term * zm_term + d * d); // RBF Ch_i-
-        double dcpx = xp_term * cp_inv;
-        double dcmx = xm_term * cm_inv;
-        double dcpy = yp_term * cp_inv;
-        double dcmy = ym_term * cm_inv;
-        double dcpz = zp_term * cp_inv;
-        double dcmz = zm_term * cm_inv;
+        double r2_m = xm_term * xm_term + ym_term * ym_term + zm_term * zm_term;
+        double dot_m = xsm * xm_term + ysm * ym_term + zsm * zm_term;
 
-        double dcpx2 = cp_inv - dcpx * dcpx * cp_inv;
-        double dcmx2 = cm_inv - dcmx * dcmx * cm_inv;
-        double dcpy2 = cp_inv - dcpy * dcpy * cp_inv;
-        double dcmy2 = cm_inv - dcmy * dcmy * cm_inv;
-        double dcpz2 = cp_inv - dcpz * dcpz * cp_inv;
-        double dcmz2 = cm_inv - dcmz * dcmz * cm_inv;
-        double dcpxy = -dcpx * dcpy * cp_inv;
-        double dcmxy = -dcmx * dcmy * cm_inv;
-        double dcpxz = -dcpx * dcpz * cp_inv;
-        double dcmxz = -dcmx * dcmz * cm_inv;
-        double dcpyz = -dcpy * dcpz * cp_inv;
-        double dcmyz = -dcmy * dcmz * cm_inv;
+        double cm_inv = 1.0 / std::sqrt(r2_m + d2);
+        double cm_inv3 = cm_inv * cm_inv * cm_inv;
 
-        double txcp = zsm * dcpy - ysm * dcpz;
-        double tycp = xsm * dcpz - zsm * dcpx;
-        double tzcp = ysm * dcpx - xsm * dcpy;
-        double txcm = zsm * dcmy - ysm * dcmz;
-        double tycm = xsm * dcmz - zsm * dcmx;
-        double tzcm = ysm * dcmx - xsm * dcmy;
+        double txcm = (zsm * ym_term - ysm * zm_term) * cm_inv;
+        double tycm = (xsm * zm_term - zsm * xm_term) * cm_inv;
+        double tzcm = (ysm * xm_term - xsm * ym_term) * cm_inv;
 
-        double pxcp = 2.0 * dcpx - xsm * (dcpy2 + dcpz2) + ysm * dcpxy + zsm * dcpxz;
-        double pycp = 2.0 * dcpy - ysm * (dcpx2 + dcpz2) + zsm * dcpyz + xsm * dcpxy;
-        double pzcp = 2.0 * dcpz - zsm * (dcpx2 + dcpy2) + xsm * dcpxz + ysm * dcpyz;
-        double pxcm = 2.0 * dcmx - xsm * (dcmy2 + dcmz2) + ysm * dcmxy + zsm * dcmxz;
-        double pycm = 2.0 * dcmy - ysm * (dcmx2 + dcmz2) + zsm * dcmyz + xsm * dcmxy;
-        double pzcm = 2.0 * dcmz - zsm * (dcmx2 + dcmy2) + xsm * dcmxz + ysm * dcmyz;
+        double pxcm = 2.0 * dxm_term[i] * cm_inv + (xsm * r2_m - xm_term * dot_m) * cm_inv3;
+        double pycm = 2.0 * dym_term[i] * cm_inv + (ysm * r2_m - ym_term * dot_m) * cm_inv3;
+        double pzcm = 2.0 * dzm_term[i] * cm_inv + (zsm * r2_m - zm_term * dot_m) * cm_inv3;
 
-        // -----------------   TOTAL FIELD:    -----------------------------------
-        bxsm = bxsm + (txcp + txcm) * term1[i] + (txcp - txcm) * term2[i] + (pxcp - pxcm) * term3[i] + (pxcp + pxcm) * term4[i];
-        bysm = bysm + (tycp + tycm) * term1[i] + (tycp - tycm) * term2[i] + (pycp - pycm) * term3[i] + (pycp + pycm) * term4[i];
-        bzsm = bzsm + (tzcp + tzcm) * term1[i] + (tzcp - tzcm) * term2[i] + (pzcp - pzcm) * term3[i] + (pzcp + pzcm) * term4[i];
+        // ==========================================
+        // 3. Vectorized Accumulation
+        // ==========================================
+        bxsm += txcp * term1_plus_2[i] + txcm * term1_minus_2[i] + pxcp * term4_plus_3[i] + pxcm * term4_minus_3[i];
+        bysm += tycp * term1_plus_2[i] + tycm * term1_minus_2[i] + pycp * term4_plus_3[i] + pycm * term4_minus_3[i];
+        bzsm += tzcp * term1_plus_2[i] + tzcm * term1_minus_2[i] + pzcp * term4_plus_3[i] + pzcm * term4_minus_3[i];
     }
 
     // NOW CONVERT THE OBTAINED MAGNETIC FIELD VECTOR BACK FROM SM TO GSM (GSW) SYSTEM:
