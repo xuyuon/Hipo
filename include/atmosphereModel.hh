@@ -85,7 +85,7 @@ private:
 
     // Fields
     G4MagneticField *Bfield;
-    
+
     // Particle to be detected
     std::string particle_name;
 

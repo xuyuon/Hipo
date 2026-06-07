@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 #SBATCH -N 1 -c 32
 #SBATCH --mail-user=1155157363@link.cuhk.edu.hk
 

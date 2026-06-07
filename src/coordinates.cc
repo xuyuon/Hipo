@@ -196,7 +196,7 @@ void GeocentricCoordinates::InitTransformationMatrix()
 
     //  Now calculate the components of the unit vector ezmag in geo coord.system:
     //  sin(teta0)*cos(lambda0), sin(teta0)*sin(lambda0), and cos(teta0)
-    //        st0 * cl0                st0 * sl0                ct0 
+    //        st0 * cl0                st0 * sl0                ct0
     double sq=g11*g11+h11*h11;
     double sqq=sqrt(sq);
     double sqr=sqrt(g10*g10+sq);
@@ -210,7 +210,7 @@ void GeocentricCoordinates::InitTransformationMatrix()
     double ctcl=ct0*cl0;
 
     // All vectors are expressed in GEI.
-        
+
     // xgse_[xyz] (s[123]) are the components of the unit vector exgsm=exgse in GEI,
     // pointing from the earth's center to the sun:
     double xgse_x= cos(srasn)*cos(sdec);
@@ -272,7 +272,7 @@ void GeocentricCoordinates::InitTransformationMatrix()
     double zgsm_x = xgse_y*ygsm_z-xgse_z*ygsm_y;
     double zgsm_y = xgse_z*ygsm_x-xgse_x*ygsm_z;
     double zgsm_z = xgse_x*ygsm_y-xgse_y*ygsm_x;
-    
+
     // elements of the matrix gsm to gsw are the scalar products:
     // e11 = (exgsm, exgsw) e12 = (exgsm, eygsw) e13 = (exgsm, ezgsw)
     // e21 = (eygsm, exgsw) e22 = (eygsm, eygsw) e23 = (eygsm, ezgsw)
@@ -286,7 +286,7 @@ void GeocentricCoordinates::InitTransformationMatrix()
     e31 = zgsm_x*xgsw_x + zgsm_y*xgsw_y + zgsm_z*xgsw_z;
     e32 = zgsm_x*ygsw_x + zgsm_y*ygsw_y + zgsm_z*ygsw_z;
     e33 = zgsm_x*zgsw_x + zgsm_y*zgsw_y + zgsm_z*zgsw_z;
-    
+
     // Tilt angle: psi=arcsin(ezsm dot exgsm)
     double sps=zsm_x*xgse_x+zsm_y*xgse_y+zsm_z*xgse_z;
     double cps=sqrt(1.-sps*sps);
@@ -341,7 +341,7 @@ void GeocentricCoordinates::InitTransformationMatrix()
     b23 = e12*a13+e22*a23+e32*a33;
     b31 = e13*a11+e23*a21+e33*a31;
     b32 = e13*a12+e23*a22+e33*a32;
-    b33 = e13*a13+e23*a23+e33*a33;  
+    b33 = e13*a13+e23*a23+e33*a33;
 }
 
 void GeocentricCoordinates::gsm_to_gsw(const G4double* point_gsm, G4double* point_gsw) const

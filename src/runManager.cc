@@ -198,7 +198,7 @@ void G4EarthRunManager::init_atmosphere()
     {
         R_sens.push_back(parser->GetDimensionedDValue("R_sens_" + std::to_string(i)));
     }
-    
+
     if (model_name == "SphericalEarth")
     {
         G4double epsilon = 1e-6 * m; // small offset to avoid numerical issues

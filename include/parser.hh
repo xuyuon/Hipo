@@ -22,7 +22,7 @@ public:
     G4double GetDimensionedDValue(std::string key);
     G4int GetIValue(std::string key);
     G4bool GetBValue(std::string key);
-    
+
     void ReadConfig(const std::string filename);
 private:
     std::unordered_map<std::string, std::string> dict;

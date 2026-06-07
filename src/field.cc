@@ -329,11 +329,11 @@ TA16::TA16(int year, int month, int day, G4double pdyn, G4double symhc, G4double
     ConstructRBFGrid();
     // Precompute constants used in GetField_GSM
     PrecomputeGetFieldConstants();
-    
+
     // Initialize inner field
     this->inner_field = new IGRF(igrf_datafile, year, month, day, N_MAX);
 
-    // Initialize coordinate transformation 
+    // Initialize coordinate transformation
     this->coord = new GeocentricCoordinates(year, month, day, igrf_datafile, vxgse, vygse, vzgse);
 }
 

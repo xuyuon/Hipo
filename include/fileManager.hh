@@ -21,10 +21,10 @@ class FileManager
 A utility class to manage output files and directories for the simulation.
 */
 public:
-    FileManager(std::string project_name, 
-        std::string output_dir, 
+    FileManager(std::string project_name,
+        std::string output_dir,
         std::string detecting_particle_name,
-        int nThreads, 
+        int nThreads,
         int nSensitiveLayer);
     ~FileManager();
 

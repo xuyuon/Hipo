@@ -33,7 +33,7 @@ void ActionInitialization::Build() const
     SetUserAction(runAction);
 
     EventAction *eventAction = new EventAction(runAction);
-    SetUserAction(eventAction); 
+    SetUserAction(eventAction);
 
     SteppingAction *steppingAction = new SteppingAction(eventAction);
     SetUserAction(steppingAction);
@@ -132,7 +132,7 @@ CoordinatesSamplingBase *ActionInitialization::get_coordinates_sampler(G4String 
             parser->GetDimensionedDValue(label + "_theta_min"),
             parser->GetDimensionedDValue(label + "_theta_max"),
             parser->GetDimensionedDValue(label + "_phi_min"),
-            parser->GetDimensionedDValue(label + "_phi_max")            
+            parser->GetDimensionedDValue(label + "_phi_max")
             );
     }
     else

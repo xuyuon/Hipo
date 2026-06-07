@@ -6,7 +6,7 @@ MagneticTransport::MagneticTransport()
     SetVerboseLevel(0);
 
     // EM physics
-    RegisterPhysics(new G4EmStandardPhysics());  
+    RegisterPhysics(new G4EmStandardPhysics());
 
     // Step limiter
     G4StepLimiterPhysics* stepLimitPhys = new G4StepLimiterPhysics();
@@ -27,14 +27,14 @@ FTFP_BERT_Physics::FTFP_BERT_Physics()
     SetVerboseLevel(0);
     // FTFP_BERT
     // EM physics
-    RegisterPhysics(new G4EmStandardPhysics());  
+    RegisterPhysics(new G4EmStandardPhysics());
 
     // Synchroton Radiation & GN Physics
     RegisterPhysics( new G4EmExtraPhysics() );
 
     // Decay physics
     RegisterPhysics(new G4DecayPhysics());
-    
+
     // Hadronic scattering physics
     RegisterPhysics(new G4HadronElasticPhysics());
 
@@ -46,7 +46,7 @@ FTFP_BERT_Physics::FTFP_BERT_Physics()
 
     // Ion Physics
     RegisterPhysics( new G4IonPhysics());
-    
+
     // Neutron tracking cut
     RegisterPhysics( new G4NeutronTrackingCut());
 
