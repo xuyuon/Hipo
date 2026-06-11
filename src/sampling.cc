@@ -227,6 +227,54 @@ G4double UpwardLambertian::sample()
     return 0.5 * (PI + acos(2.0 * u - 1.0));
 }
 
+Beta::Beta(G4double alpha, G4double beta, G4double x_min, G4double x_max)
+{
+    if (alpha <= 0 || beta <= 0)
+    {
+        G4cerr << "Error in initialing Beta: alpha and beta must be greater than 0." << G4endl;
+    }
+    if (x_max >= x_min)
+    {
+        G4cerr << "Error in initialing Beta: x_max must be greater than x_min." << G4endl;
+    }
+    this->alpha = alpha;
+    this->beta = beta;
+    this->x_min = x_min;
+    this->x_max = x_max;
+    this->mode = (alpha - 1) / (alpha + beta - 2) * (x_max-x_min) + x_min; // mode of the distribution
+}
+
+Beta::~Beta()
+{
+}
+
+G4double Beta::UnnormalizedBeta(G4double x)
+{
+    if (x < x_min || x > x_max)
+    {
+        return 0.0;
+    }
+    return pow(x - x_min, alpha - 1) * pow(x_max - x, beta - 1);
+}
+
+G4double Beta::sample()
+{
+    /*
+    Samples a value from the Beta distribution by rejection sampling.
+    The probability density function is given by:
+    P(x) ~ (x-x_min)^(alpha-1) * (x_max-x)^(beta-1) for x_min <= x <= x_max
+    */
+    while (true)
+    {
+        G4double x = G4UniformRand() * (x_max-x_min)+x_min; // uniform random number in [0, x_max)
+        G4double y = G4UniformRand() * UnnormalizedBeta(mode); // uniform random number in [0, max of the PDF)
+        if (y <= UnnormalizedBeta(x))
+        {
+            return x;
+        }
+    }
+}
+
 ConstCoordinates::ConstCoordinates(G4double x,
                                    G4double y,
                                    G4double z)
@@ -297,11 +345,3 @@ G4ThreeVector UniformSphericalSurface::sample()
 
     return G4ThreeVector(x, y, z);
 }
-
-// UniformCircularRegionOnSphericalSurface::UniformCircularRegionOnSphericalSurface(
-//     G4double r,
-//     G4double theta_min,
-//     G4double theta_max,
-//     G4double phi_min,
-//     G4double phi_max
-// )
