@@ -99,6 +99,10 @@ SamplingBase *ActionInitialization::get_sampler(G4String sampler_name, G4String 
     {
         return new UpwardLambertian();
     }
+    else if (sampler_name == "Beta")
+    {
+        return new Beta(parser->GetDValue(label + "_alpha"), parser->GetDValue(label + "_beta"), parser->GetDimensionedDValue(label + "_min"), parser->GetDimensionedDValue(label + "_max"));
+    }
     else if (sampler_name == "Scaled")
     {
         SamplingBase *base_sampler = get_sampler(parser->GetSValue(label + "_base"), label + "_base");
