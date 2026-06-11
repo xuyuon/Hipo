@@ -188,6 +188,7 @@ private:
     G4double x_min;
     G4double x_max;
     G4double mode;
+    G4double max_pdf;
 
     G4double UnnormalizedBeta(G4double x); // unnormalized PDF
 };

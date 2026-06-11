@@ -229,11 +229,11 @@ G4double UpwardLambertian::sample()
 
 Beta::Beta(G4double alpha, G4double beta, G4double x_min, G4double x_max)
 {
-    if (alpha <= 0 || beta <= 0)
+    if (alpha <= 1 || beta <= 1)
     {
-        G4cerr << "Error in initialing Beta: alpha and beta must be greater than 0." << G4endl;
+        G4cerr << "Error in initialing Beta: alpha and beta must be greater than 1." << G4endl;
     }
-    if (x_max >= x_min)
+    if (x_max <= x_min)
     {
         G4cerr << "Error in initialing Beta: x_max must be greater than x_min." << G4endl;
     }
@@ -242,6 +242,8 @@ Beta::Beta(G4double alpha, G4double beta, G4double x_min, G4double x_max)
     this->x_min = x_min;
     this->x_max = x_max;
     this->mode = (alpha - 1) / (alpha + beta - 2) * (x_max-x_min) + x_min; // mode of the distribution
+
+    this->max_pdf = UnnormalizedBeta(mode);
 }
 
 Beta::~Beta()
@@ -267,7 +269,7 @@ G4double Beta::sample()
     while (true)
     {
         G4double x = G4UniformRand() * (x_max-x_min)+x_min; // uniform random number in [0, x_max)
-        G4double y = G4UniformRand() * UnnormalizedBeta(mode); // uniform random number in [0, max of the PDF)
+        G4double y = G4UniformRand() * max_pdf; // uniform random number in [0, max of the PDF)
         if (y <= UnnormalizedBeta(x))
         {
             return x;
