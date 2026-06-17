@@ -80,6 +80,11 @@ G4EarthRunManager::~G4EarthRunManager()
 {
     // destructor
     delete runManager;
+    delete parser;
+    delete fileManager;
+    delete timer;
+    delete densityModel;
+    delete field;
 }
 
 void G4EarthRunManager::run()

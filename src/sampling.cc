@@ -12,6 +12,7 @@ Scaled::Scaled(SamplingBase *dist, G4double alpha)
 
 Scaled::~Scaled()
 {
+    delete dist;
 }
 
 G4double Scaled::sample()
@@ -28,6 +29,7 @@ Offset::Offset(SamplingBase *dist, G4double offset)
 
 Offset::~Offset()
 {
+    delete dist;
 }
 
 G4double Offset::sample()
@@ -281,6 +283,7 @@ UniformSphericalSurface::UniformSphericalSurface(G4double r,
 
 UniformSphericalSurface::~UniformSphericalSurface()
 {
+    delete thetaSampling;
 }
 
 G4ThreeVector UniformSphericalSurface::sample()
