@@ -1,7 +1,7 @@
 #----------------------------------------------------------------------------
 # Setup the project
 cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
-project(G4Earth)
+project(halo)
 
 #----------------------------------------------------------------------------
 # Set the build type
@@ -75,4 +75,4 @@ file(COPY ${INPUT_FILES} DESTINATION ${CMAKE_BINARY_DIR})
 #----------------------------------------------------------------------------
 # Add program to the project targets
 # (this avoids the need of typing the program name after make)
-add_custom_target(G4Earth DEPENDS run)
+add_custom_target(halo DEPENDS run)
