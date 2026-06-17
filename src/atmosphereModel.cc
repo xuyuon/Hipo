@@ -1,7 +1,5 @@
 #include "atmosphereModel.hh"
 
-#include "G4AutoDelete.hh"
-
 SphericalEarth::SphericalEarth(DensityModelBase *densityModel,
                                std::vector<G4double> R_sens,
                                G4double R_earth,
@@ -227,11 +225,6 @@ void SphericalEarth::ConstructSDandField()
         G4ChordFinder *pChordFinder = new G4ChordFinder(pIntgrDriver);
         globalFieldMgr->SetChordFinder(pChordFinder);
 
-        G4AutoDelete::Register(fEquation);
-        G4AutoDelete::Register(fstepper);
-        G4AutoDelete::Register(pIntgrDriver);
-        G4AutoDelete::Register(pChordFinder);
-
         globalFieldMgr->GetChordFinder()->SetDeltaChord(deltaChord);
         globalFieldMgr->SetAccuraciesWithDeltaOneStep(deltaStep);
         globalFieldMgr->SetMinimumEpsilonStep(minEps);
@@ -337,11 +330,6 @@ void Magnetosphere::ConstructSDandField()
         G4MagInt_Driver *pIntgrDriver = new G4MagInt_Driver(minStep, fstepper);
         G4ChordFinder *pChordFinder = new G4ChordFinder(pIntgrDriver);
         globalFieldMgr->SetChordFinder(pChordFinder);
-
-        G4AutoDelete::Register(fEquation);
-        G4AutoDelete::Register(fstepper);
-        G4AutoDelete::Register(pIntgrDriver);
-        G4AutoDelete::Register(pChordFinder);
 
         globalFieldMgr->GetChordFinder()->SetDeltaChord(deltaChord);
         globalFieldMgr->SetAccuraciesWithDeltaOneStep(deltaStep);
