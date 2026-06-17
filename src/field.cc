@@ -340,6 +340,8 @@ TA16::TA16(int year, int month, int day, G4double pdyn, G4double symhc, G4double
 TA16::~TA16()
 {
     // Destructor
+    delete inner_field;
+    delete coord;
 }
 
 void TA16::ConstructRBFGrid()

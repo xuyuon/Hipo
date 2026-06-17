@@ -21,6 +21,9 @@ PrimaryGenerator::PrimaryGenerator(SamplingBase *energySpectrum,
 PrimaryGenerator::~PrimaryGenerator()
 {
     delete fParticleGun; // Clean up the particle gun
+    delete EnergySpectrum;
+    delete pos_dist;
+    delete dir_dist;
 }
 
 void PrimaryGenerator::GeneratePrimaries(G4Event *anEvent)
@@ -80,6 +83,10 @@ SphericalSurfaceSampling::SphericalSurfaceSampling(
 SphericalSurfaceSampling::~SphericalSurfaceSampling()
 {
     delete fParticleGun; // Clean up the particle gun
+    delete EnergySpectrum;
+    delete pos_dist;
+    delete theta_dist;
+    delete phi_dist;
 }
 
 void SphericalSurfaceSampling::GeneratePrimaries(G4Event *anEvent)
@@ -193,6 +200,7 @@ GenerateFromTable::GenerateFromTable(
 GenerateFromTable::~GenerateFromTable()
 {
     // Destructor implementation
+    delete fParticleGun;
 }
 
 void GenerateFromTable::init_table()

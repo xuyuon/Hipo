@@ -36,6 +36,7 @@ SphericalEarth::SphericalEarth(DensityModelBase *densityModel,
 SphericalEarth::~SphericalEarth()
 {
     // Destructor
+    delete userLimits;
 }
 
 G4VPhysicalVolume *SphericalEarth::Construct()
@@ -264,6 +265,7 @@ Magnetosphere::Magnetosphere(G4double R_inner,
 Magnetosphere::~Magnetosphere()
 {
     // Destructor
+    delete userLimits;
 }
 
 G4VPhysicalVolume *Magnetosphere::Construct()
