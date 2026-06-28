@@ -1,2 +1,2 @@
-# Halo - High-altitude Earth limb observation simulator
+# Hipo - High-energy atmospheric particle observation simulator
 
