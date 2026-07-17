@@ -1,15 +1,17 @@
-#!/bin/bash 
-#SBATCH -N 1 -c 32
-#SBATCH --mail-user=1155157363@link.cuhk.edu.hk
+#!/usr/bin/env bash
+set -euo pipefail
 
-module purge
-module load cmake
-module load gcc
-source /users/s1155157363/software/geant4/geant4-v11.3.2-install/share/Geant4/geant4make/geant4make.sh
+# Optional Geant4 setup if Geant4_DIR is not already configured.
+if [[ -n "${GEANT4_DIR:-}" && -f "${GEANT4_DIR}/geant4make/geant4make.sh" ]]; then
+  # shellcheck disable=SC1090
+  source "${GEANT4_DIR}/geant4make/geant4make.sh"
+fi
 
-module list
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+BUILD_DIR="${BUILD_DIR:-${REPO_ROOT}/build}"
 
-cd $SLURM_SUBMIT_DIR
-cd build
-ldd --version
+cmake -S "${REPO_ROOT}" -B "${BUILD_DIR}"
+cmake --build "${BUILD_DIR}" -j"$(nproc)"
+
+cd "${BUILD_DIR}"
 ./run cs_local_2008_06_12_1e9eV-1e10eV.config.txt

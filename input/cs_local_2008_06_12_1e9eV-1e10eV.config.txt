@@ -1,7 +1,7 @@
 ProjectName=cs_local_2008_06_12_1e9ev_1e10ev
-nThreads=64
+nThreads=8
 batch_mode=TRUE
-OutputDir=/users/s1155157363/workdir/G4Earth/build/cs_2008_06_12_1e9ev_1e10ev
+OutputDir=./output/cs_2008_06_12_1e9ev_1e10ev
 nEvents=-1
 Enable_interaction=TRUE
 Seed=345354
@@ -14,19 +14,21 @@ delta_r1=1.0 km
 delta_r2=20.0 km
 delta_theta=10.0 degree
 delta_phi=20.0 degree
-DensityProfileFile=/users/s1155157363/workdir/G4Earth/build/msis2.0_2008_06_14.txt
+DensityProfileFile=./msis2.0_2008_06_14.txt
 
 FieldModel=IGRF
-IGRFDataFile=/users/s1155157363/workdir/G4Earth/build/IGRF14.shc
+IGRFDataFile=./IGRF14.shc
 Year=2008
 Month=6
 Day=12
 n_order_max=13
 
 AtmosphereModel=SphericalEarth
-R_sens= 6921.2 km
+nSensitiveLayer=1
+R_sens_1=6921.2 km
 R_earth=6371.2 km
+DetectingParticleName=proton
 
 GeneratorModel=GenerateFromTable
 ParticleName=proton
-PrimariesDataFile=/users/s1155157363/workdir/G4Earth/primaries/bt_local_2008_06_12_1e9ev_1e10ev_selected_primaries.csv
+PrimariesDataFile=./bt_local_2008_06_12_1e9ev_1e10ev_selected_primaries.csv

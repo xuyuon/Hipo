@@ -108,30 +108,28 @@ G4bool SphericalShellSD::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhist)
     p_mom_to_nadir_angles(&vertex_pos, &vertex_mom, vertex_nadir_angles);
 
     // Write the data to data file
-    std::ofstream output_file;
-    output_file.open(fileManager->getSecondariesFilesDir(sens_layer_id, G4Threading::G4GetThreadId()), std::ios::app);
-    if (output_file.is_open())
-    {
-        output_file << std::fixed << std::setprecision(10);
-        output_file << eventID << ","
-                    << energy / eV << ","
-                    << processName << ","
-                    << p_pos.mag() / km << ","
-                    << p_pos.phi() / radian << ","
-                    << p_pos.theta() / radian << ","
-                    << nadir_angles[1] / radian << ","
-                    << nadir_angles[0] / radian << ","
-                    << vertex_pos.mag() / km << ","
-                    << vertex_pos.phi() / radian << ","
-                    << vertex_pos.theta() / radian << ","
-                    << vertex_nadir_angles[1] / radian << ","
-                    << vertex_nadir_angles[0] / radian << "\n";
-        output_file.close();
-    }
-    else
+    const int thread_id = G4Threading::G4GetThreadId();
+    fileManager->ensureSecondariesFile(sens_layer_id, thread_id);
+    std::ofstream output_file(fileManager->getSecondariesFilesDir(sens_layer_id, thread_id), std::ios::app);
+    if (!output_file.is_open())
     {
         G4cerr << "Unable to open file for writing output data." << G4endl;
+        return false;
     }
+    output_file << std::fixed << std::setprecision(10);
+    output_file << eventID << ","
+                << energy / eV << ","
+                << processName << ","
+                << p_pos.mag() / km << ","
+                << p_pos.phi() / radian << ","
+                << p_pos.theta() / radian << ","
+                << nadir_angles[1] / radian << ","
+                << nadir_angles[0] / radian << ","
+                << vertex_pos.mag() / km << ","
+                << vertex_pos.phi() / radian << ","
+                << vertex_pos.theta() / radian << ","
+                << vertex_nadir_angles[1] / radian << ","
+                << vertex_nadir_angles[0] / radian << "\n";
 
     return true;
 }

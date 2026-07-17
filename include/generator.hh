@@ -13,9 +13,11 @@
 
 #include <iostream>
 #include <fstream>
-#include <vector>
-#include <sstream>
 #include <iomanip>
+#include <mutex>
+#include <sstream>
+#include <unordered_set>
+#include <vector>
 
 class GeneratorBase : public G4VUserPrimaryGeneratorAction
 {
@@ -41,6 +43,8 @@ public:
     int get_n_events() const { return -1; }
 
 private:
+    void ensure_output_file(int thread_id) const;
+
     G4AnalysisManager *analysisManager;
     G4ParticleGun *fParticleGun; // Pointer to the particle gun
 
@@ -80,6 +84,8 @@ private:
     SamplingBase *phi_dist;
 
     std::string OutputDir;
+    mutable std::mutex output_init_mutex;
+    mutable std::unordered_set<int> initialized_output_threads;
 };
 
 class GenerateFromTable : public GeneratorBase
@@ -102,11 +108,9 @@ public:
 
 private:
     void init_table();
+    void ensure_output_file(int thread_id) const;
 
     G4ParticleGun *fParticleGun; // Pointer to the particle gun
-
-    //
-    G4int n_threads;
 
     // Primaries parameters
     std::vector<G4double> energies;
@@ -119,6 +123,8 @@ private:
     // Directories
     std::string data_file;
     std::string output_file;
+    mutable std::mutex output_init_mutex;
+    mutable std::unordered_set<int> initialized_output_threads;
 };
 
 #endif
