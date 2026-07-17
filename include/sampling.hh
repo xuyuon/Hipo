@@ -14,7 +14,7 @@ class SamplingBase
 {
 public:
     SamplingBase() {}
-    ~SamplingBase() {}
+    virtual ~SamplingBase() = default;
 
     virtual G4double sample() = 0;
 };
@@ -246,7 +246,7 @@ private:
     G4double phi_min;
     G4double phi_max;
 
-    SamplingBase *thetaSampling;
+    Sine *thetaSampling;
 };
 
 #endif
