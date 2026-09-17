@@ -13,7 +13,7 @@ SphericalEarth::SphericalEarth(DensityModelBase *densityModel,
     this->nSensLayers = R_sens.size();
     sens_layer.resize(nSensLayers, -1);
 
-    delta_sens = 1. * cm; // thickness of the sensitive layer
+    delta_sens = 0.1 * cm; // thickness of the sensitive layer
 
     // Set maximum step length to avoid tracking looping particles
     G4double MaxTrackLength = 2 * 3.141592653589793 * (2 * R_earth);
@@ -309,7 +309,7 @@ void Magnetosphere::ConstructSDandField()
     // Construct magnetic field
     if (Bfield != nullptr)
     {
-        G4double minStep = 1.0 * km; // minimal step of 1 km
+        G4double minStep = 0.1 * km; // minimal step of 1 km
         G4double minEps = 1e-5;      //   Minimum & value for smallest steps
         G4double maxEps = 1e-3;      //   Minimum & value for largest steps
         G4bool allLocal = true;
