@@ -19,7 +19,7 @@
 #include "action.hh"
 #include "field.hh"
 #include "physicsList.hh"
-#include "fileManager.hh"
+#include "outputManager.hh"
 
 #include <vector>
 
@@ -59,7 +59,7 @@ private:
     G4VisManager *visManager;
 
     // directories
-    FileManager *fileManager;
+    OutputManager *outputManager;
 
     G4String config_file;
     std::string output_dir;

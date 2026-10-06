@@ -9,11 +9,12 @@
 #include "steppingAction.hh"
 #include "parser.hh"
 #include "sampling.hh"
+#include "outputManager.hh"
 
 class ActionInitialization : public G4VUserActionInitialization
 {
 public:
-    ActionInitialization(Parser *parser, std::string output_dir);
+    ActionInitialization(Parser *parser, OutputManager *OutputManager);
     ~ActionInitialization();
 
     virtual void Build() const;
@@ -34,7 +35,7 @@ private:
     Parser *parser;
 
     // output directory
-    std::string output_dir;
+    OutputManager *outputManager;
 };
 
 #endif

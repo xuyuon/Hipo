@@ -5,7 +5,7 @@ SphericalEarth::SphericalEarth(DensityModelBase *densityModel,
                                G4double R_earth,
                                G4MagneticField *Bfield,
                                std::string particle_name,
-                               FileManager *fileManager)
+                               OutputManager *outputManager)
 {
     this->R_earth = R_earth; // Global average number
     this->R_sens = R_sens;   // radial position of the sensitive layer
@@ -26,7 +26,7 @@ SphericalEarth::SphericalEarth(DensityModelBase *densityModel,
     this->densityModel = densityModel;
 
     this->Bfield = Bfield;
-    this->fileManager = fileManager;
+    this->outputManager = outputManager;
 
     nLayers_r = densityModel->Get_r_boundaries_size() - 1;         // Number of altitude layers
     nLayers_theta = densityModel->Get_theta_boundaries_size() - 1; // Number of latitude layers
@@ -189,7 +189,7 @@ void SphericalEarth::ConstructSDandField()
     {
         SensitiveDetectorBase *sd = new SphericalShellSD("SensitiveDetector_" + std::to_string(l),
                                                          particle_name,
-                                                         fileManager,
+                                                         outputManager,
                                                          l);
         for (G4int j = 0; j < nLayers_theta; ++j)
         {
@@ -239,7 +239,7 @@ Magnetosphere::Magnetosphere(G4double R_inner,
                              std::vector<G4double> R_sens,
                              G4MagneticField *Bfield,
                              std::string particle_name,
-                             FileManager *fileManager)
+                             OutputManager *outputManager)
 {
     // User-defined variables
     this->R_inner = R_inner;
@@ -247,7 +247,7 @@ Magnetosphere::Magnetosphere(G4double R_inner,
     this->R_sens = R_sens;
     this->Bfield = Bfield;
     this->particle_name = particle_name;
-    this->fileManager = fileManager;
+    this->outputManager = outputManager;
 
     if (R_sens.size() != 1)
     {
@@ -302,7 +302,7 @@ void Magnetosphere::ConstructSDandField()
     // Construct sensitive detectors that record anti-protons
     SensitiveDetectorBase *sd = new SphericalShellSD("SensitiveDetector",
                                                      particle_name,
-                                                     fileManager,
+                                                     outputManager,
                                                      0);
     logicSensLayer->SetSensitiveDetector(sd);
 

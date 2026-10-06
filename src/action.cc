@@ -1,9 +1,9 @@
 #include "action.hh"
 
-ActionInitialization::ActionInitialization(Parser *parser, std::string output_dir)
+ActionInitialization::ActionInitialization(Parser *parser, OutputManager *outputManager)
 {
     this->parser = parser;
-    this->output_dir = output_dir;
+    this->outputManager = outputManager;
 
     this->n_events = -1; // default value, if generator does not specify it
     if (parser->GetSValue("GeneratorModel") == "GenerateFromTable")
@@ -12,7 +12,7 @@ ActionInitialization::ActionInitialization(Parser *parser, std::string output_di
         GeneratorBase *generator = new GenerateFromTable(
             parser->GetSValue("ParticleName"),
             parser->GetSValue("PrimariesDataFile"),
-            output_dir + "_primaries" // output directory for sensitive detector
+            outputManager
         );
         this->n_events = generator->get_n_events();
         delete generator; // clean up the dummy generator
@@ -53,7 +53,7 @@ GeneratorBase *ActionInitialization::init_generator() const
             get_coordinates_sampler(parser->GetSValue("InitialPosition"), "InitialPosition"),
             get_sampler(parser->GetSValue("NadirAngle"), "NadirAngle"),
             get_sampler(parser->GetSValue("AzimuthAngle"), "AzimuthAngle"),
-            output_dir + "_primaries" // output directory for sensitive detector
+            outputManager
         );
     }
     else if (model_name == "GenerateFromTable")
@@ -61,7 +61,7 @@ GeneratorBase *ActionInitialization::init_generator() const
         generator = new GenerateFromTable(
             parser->GetSValue("ParticleName"),
             parser->GetSValue("PrimariesDataFile"),
-            output_dir + "_primaries" // output directory for sensitive detector
+            outputManager
         );
     }
     else

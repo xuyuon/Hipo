@@ -12,15 +12,14 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
     nThreads = parser->GetIValue("nThreads");
     nSensLayer = parser->GetIValue("nSensitiveLayer");
 
-    // Create file manager
+    // Initialize file manager
     output_dir = parser->GetSValue("OutputDir");
-    fileManager = new FileManager(project_name,
-                                  output_dir,
-                                  parser->GetSValue("DetectingParticleName"),
-                                  nThreads,
-                                  nSensLayer);
-
-    primaries_output_dir = output_dir + "/primaries/" + project_name;
+    outputManager = new OutputManager();
+    outputManager->initialize(project_name,
+                            output_dir,
+                            parser->GetSValue("DetectingParticleName"),
+                            nThreads,
+                            nSensLayer);
 
     // Setting up Timer
     timer = new Timer(output_dir + "/runtime/" + project_name + "_runtime.txt");
@@ -61,7 +60,7 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
     init_atmosphere();
 
     // generator is initialized in ActionInitialization
-    action = new ActionInitialization(parser, primaries_output_dir);
+    action = new ActionInitialization(parser, outputManager);
     runManager->SetUserInitialization(atmosphere);
     runManager->SetUserInitialization(action);
 
@@ -81,7 +80,7 @@ G4EarthRunManager::~G4EarthRunManager()
     // destructor
     delete runManager;
     delete parser;
-    delete fileManager;
+    delete outputManager;
     delete timer;
     delete densityModel;
     delete field;
@@ -113,7 +112,7 @@ void G4EarthRunManager::run()
         timer->stop();
 
         // merge output files
-        fileManager->merge_all_output_files();
+        outputManager->merge_all_output_files();
     }
     else
     {
@@ -214,7 +213,7 @@ void G4EarthRunManager::init_atmosphere()
             parser->GetDimensionedDValue("R_earth"),
             field,
             parser->GetSValue("DetectingParticleName"),
-            fileManager);
+            outputManager);
     }
     else if (model_name == "Magnetosphere")
     {
@@ -224,7 +223,7 @@ void G4EarthRunManager::init_atmosphere()
             R_sens,
             field,
             parser->GetSValue("DetectingParticleName"),
-            fileManager);
+            outputManager);
     }
     else
     {

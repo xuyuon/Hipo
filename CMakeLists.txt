@@ -1,7 +1,7 @@
 #----------------------------------------------------------------------------
 # Setup the project
 cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
-project(hipo)
+project(hipo VERSION 0.1 LANGUAGES CXX)
 
 #----------------------------------------------------------------------------
 # Set the build type

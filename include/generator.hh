@@ -10,6 +10,7 @@
 #include "G4RunManager.hh"
 
 #include "sampling.hh"
+#include "outputManager.hh"
 
 #include <iostream>
 #include <fstream>
@@ -27,28 +28,6 @@ public:
     virtual int get_n_events() const = 0;
 };
 
-class PrimaryGenerator : public GeneratorBase
-{
-public:
-    PrimaryGenerator(
-        SamplingBase *energySpectrum,      // pointer to the energy spectrum sampling object
-        CoordinatesSamplingBase *pos_dist, // distribution of initial position
-        CoordinatesSamplingBase *dir_dist  // distribution of direction of initial momentum
-    );
-    ~PrimaryGenerator();
-
-    virtual void GeneratePrimaries(G4Event *);
-    int get_n_events() const { return -1; }
-
-private:
-    G4AnalysisManager *analysisManager;
-    G4ParticleGun *fParticleGun; // Pointer to the particle gun
-
-    SamplingBase *EnergySpectrum;
-    CoordinatesSamplingBase *pos_dist;
-    CoordinatesSamplingBase *dir_dist;
-};
-
 class SphericalSurfaceSampling : public GeneratorBase
 {
 public:
@@ -58,7 +37,7 @@ public:
         CoordinatesSamplingBase *pos_dist,             // distribution of initial position
         SamplingBase *theta_dist,                      // distribution of theta angle (nadir angle)
         SamplingBase *phi_dist,                        // distribution of phi angle (azimuthal angle)
-        std::string OutputDir = "output/primaries.csv" // output directory for analysis
+        OutputManager *outputManager = nullptr // pointer to the output manager
     );
     ~SphericalSurfaceSampling();
 
@@ -79,7 +58,7 @@ private:
     SamplingBase *theta_dist;
     SamplingBase *phi_dist;
 
-    std::string OutputDir;
+    OutputManager *outputManager;
 };
 
 class GenerateFromTable : public GeneratorBase
@@ -88,7 +67,7 @@ public:
     GenerateFromTable(
         G4String particleName, // name of the particle to be generated
         std::string data_file,
-        std::string output_file = "output/primaries.csv" // output directory for analysis
+        OutputManager *outputManager = nullptr
     );
     ~GenerateFromTable();
 
@@ -118,7 +97,7 @@ private:
 
     // Directories
     std::string data_file;
-    std::string output_file;
+    OutputManager *outputManager;
 };
 
 #endif
