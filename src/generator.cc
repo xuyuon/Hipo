@@ -185,11 +185,6 @@ void GenerateFromTable::init_table()
     file.close();
 }
 
-int GenerateFromTable::get_n_events() const
-{
-    return energies.size();
-}
-
 void GenerateFromTable::GeneratePrimaries(G4Event *anEvent)
 {
     G4ParticleDefinition *particle = fParticleGun->GetParticleDefinition(); // Find the particle definition

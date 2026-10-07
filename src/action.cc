@@ -4,19 +4,6 @@ ActionInitialization::ActionInitialization(Parser *parser, OutputManager *output
 {
     this->parser = parser;
     this->outputManager = outputManager;
-
-    this->n_events = -1; // default value, if generator does not specify it
-    if (parser->GetSValue("GeneratorModel") == "GenerateFromTable")
-    {
-        // generate a dummy generator to get the number of events
-        GeneratorBase *generator = new GenerateFromTable(
-            parser->GetSValue("ParticleName"),
-            parser->GetSValue("PrimariesDataFile"),
-            outputManager
-        );
-        this->n_events = generator->get_n_events();
-        delete generator; // clean up the dummy generator
-    }
 }
 
 ActionInitialization::~ActionInitialization()
@@ -120,11 +107,6 @@ SamplingBase *ActionInitialization::get_sampler(G4String sampler_name, G4String 
         G4cerr << "Error: Unsupported sampler: " << sampler_name << G4endl;
         return nullptr;
     }
-}
-
-G4int ActionInitialization::get_n_events() const
-{
-    return n_events;
 }
 
 CoordinatesSamplingBase *ActionInitialization::get_coordinates_sampler(G4String sampler_name, G4String label) const

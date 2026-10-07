@@ -25,7 +25,6 @@ public:
     virtual ~GeneratorBase(){};
 
     virtual void GeneratePrimaries(G4Event *) = 0;
-    virtual int get_n_events() const = 0;
 };
 
 class SphericalSurfaceSampling : public GeneratorBase
@@ -42,7 +41,6 @@ public:
     ~SphericalSurfaceSampling();
 
     virtual void GeneratePrimaries(G4Event *);
-    int get_n_events() const { return -1; }
     static G4ThreeVector nadir_angles_to_p_dir(
         G4double pos_theta,
         G4double pos_phi,
@@ -72,7 +70,6 @@ public:
     ~GenerateFromTable();
 
     virtual void GeneratePrimaries(G4Event *);
-    int get_n_events() const;
     static G4ThreeVector nadir_angles_to_p_dir(
         G4double pos_theta,
         G4double pos_phi,
@@ -84,7 +81,6 @@ private:
 
     G4ParticleGun *fParticleGun; // Pointer to the particle gun
 
-    //
     G4int n_threads;
 
     // Primaries parameters

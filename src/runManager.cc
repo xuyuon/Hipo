@@ -65,6 +65,7 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
     init_density_model();
     init_field();
     init_atmosphere();
+    this->n_events = get_n_events();
 
     // generator is initialized in ActionInitialization
     action = new ActionInitialization(parser, outputManager);
@@ -105,20 +106,9 @@ void G4EarthRunManager::run()
         timer->start("Batch Mode Execution");
         G4cout << "Starting Batch Execution" << G4endl;
 
-        // when the generator does not specify the number of events,
-        // use the nEvents from the config file
-        if (action->get_n_events() == -1)
-        {
-            G4cout << parser->GetIValue("nEvents") << " events will be generated." << G4endl;
-            runManager->BeamOn(parser->GetIValue("nEvents"));
-        }
-        else
-        {
-            // otherwise use the nEvents from the generator
-            G4cout << action->get_n_events() << " events will be generated." << G4endl;
-            runManager->BeamOn(action->get_n_events());
-        }
-
+        // Generate events
+        G4cout << n_events << " events will be generated." << G4endl;
+        runManager->BeamOn(n_events);
         G4cout << "Batch Execution Completed" << G4endl;
         timer->stop();
 
@@ -242,6 +232,46 @@ void G4EarthRunManager::init_atmosphere()
     }
 }
 
+int G4EarthRunManager::get_n_events()
+{
+    G4String model_name = parser->GetSValue("GeneratorModel");
+
+    if (model_name == "SphericalSurfaceSampling")
+    {
+        return parser->GetIValue("nEvents");
+    }
+    else if (model_name == "GenerateFromTable")
+    {
+        // Read the data file
+        std::string data_file = parser->GetSValue("PrimariesDataFile");
+        std::ifstream file(data_file);
+        if (!file.is_open())
+        {
+            G4cerr << "Error: Could not open data file " << data_file << G4endl;
+            return -1;
+        }
+        std::string line;
+        // Read the first line to get the header information
+        std::getline(file, line);
+
+        int count = 0;
+        while (std::getline(file, line))
+        {
+            // Count non-empty lines
+            if (line.find_first_not_of(" \t\r\n") != std::string::npos)
+            {
+                count++;
+            }
+        }
+        file.close();
+    }
+    else
+    {
+        G4cerr << "Error: Unsupported generator model: " << model_name << G4endl;
+        return -1;
+    }
+    return -1;
+}
 
 void G4EarthRunManager::disable_stdout()
 {

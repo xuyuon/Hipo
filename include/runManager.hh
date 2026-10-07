@@ -36,6 +36,7 @@ public:
     void init_density_model();
     void init_field();
     void init_atmosphere();
+    int get_n_events();
 
     void disable_stdout();
     void enable_stdout();
@@ -47,6 +48,7 @@ private:
     G4bool batch_mode;
     G4int nThreads;
     int nSensLayer;
+    int n_events;
 
     // utility classes
     Timer *timer;
