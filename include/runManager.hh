@@ -22,7 +22,8 @@
 #include "outputManager.hh"
 
 #include <vector>
-
+#include <unistd.h>
+#include <err.h>
 
 class G4EarthRunManager
 {
@@ -35,7 +36,12 @@ public:
     void init_density_model();
     void init_field();
     void init_atmosphere();
+
+    void disable_stdout();
+    void enable_stdout();
 private:
+    inline static int outfd = STDOUT_FILENO;
+
     // config
     std::string project_name;
     G4bool batch_mode;
@@ -60,7 +66,6 @@ private:
 
     // directories
     OutputManager *outputManager;
-
     G4String config_file;
     std::string output_dir;
     std::string primaries_output_dir;

@@ -1,21 +1,6 @@
 #include <iostream>
 
-#include "G4RunManager.hh"
-#include "G4MTRunManager.hh"
-#include "G4UImanager.hh"
-#include "G4UIExecutive.hh"
-#include "G4VisManager.hh"
-#include "G4VisExecutive.hh"
-#include "G4SystemOfUnits.hh"
-#include "FTFP_BERT.hh"
-
-#include "action.hh"
-#include "atmosphereModel.hh"
-#include "densityModel.hh"
-#include "generator.hh"
-#include "sampling.hh"
-#include "parser.hh"
-#include "timer.hh"
+#include "G4Types.hh"
 
 #include "runManager.hh"
 

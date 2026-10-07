@@ -25,6 +25,12 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
     timer = new Timer(output_dir + "/runtime/" + project_name + "_runtime.txt");
     timer->start("Initialization and Run Manager Setup");
 
+    // Disable GEANT4 output if necessary
+    if(parser->GetBValue("disable_geant4_verbose"))
+    {
+        disable_stdout();
+    }
+
     // Set Random seed
     G4int seed = parser->GetIValue("Seed");
     G4Random::setTheEngine(new CLHEP::RanluxEngine);
@@ -55,6 +61,7 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
     }
     runManager->SetUserInitialization(physicsList);
 
+    // initialize different physics models
     init_density_model();
     init_field();
     init_atmosphere();
@@ -72,6 +79,10 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
     UImanager = G4UImanager::GetUIpointer();
 
     batch_mode = parser->GetBValue("batch_mode");
+    if(parser->GetBValue("disable_geant4_verbose"))
+    {
+        enable_stdout();
+    }
     timer->stop();
 }
 
@@ -229,4 +240,29 @@ void G4EarthRunManager::init_atmosphere()
     {
         G4cerr << "Error: Unsupported atmosphere model: " << model_name << G4endl;
     }
+}
+
+
+void G4EarthRunManager::disable_stdout()
+{
+    FILE* tmp = fopen("/dev/null", "a+");
+
+    fflush(stdout);
+
+    outfd = dup(STDOUT_FILENO);
+
+    if (outfd == -1 || dup2(fileno(tmp), STDOUT_FILENO) == -1)
+        errx(1, "failed to disable stdout");
+
+    fclose(tmp);
+}
+
+void G4EarthRunManager::enable_stdout()
+{
+    fflush(stdout);
+
+    if (dup2(outfd, STDOUT_FILENO) == -1)
+        errx(1, "failed to enable stdout");
+
+    close(outfd);
 }

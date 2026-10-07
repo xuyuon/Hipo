@@ -38,7 +38,9 @@ FetchContent_MakeAvailable(googletest)
 include_directories(${PROJECT_SOURCE_DIR}/include ${Geant4_INCLUDE_DIR})
 file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cc)
 file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
-file(GLOB tests ${PROJECT_SOURCE_DIR}/test/*.cc)
+file(GLOB unit_tests ${PROJECT_SOURCE_DIR}/test/unit/*.cc)
+file(GLOB integration_tests ${PROJECT_SOURCE_DIR}/test/integration/*.cc)
+
 message("${headers}")
 
 #----------------------------------------------------------------------------
@@ -46,7 +48,7 @@ message("${headers}")
 add_executable(run run.cc ${sources} ${headers})
 target_link_libraries(run ${Geant4_LIBRARIES})
 enable_testing()
-add_executable(run_test ${tests} ${sources} ${headers})
+add_executable(run_test ${unit_tests} ${integration_tests} ${sources} ${headers})
 target_link_libraries(run_test ${Geant4_LIBRARIES} GTest::gtest_main)
 
 #----------------------------------------------------------------------------
