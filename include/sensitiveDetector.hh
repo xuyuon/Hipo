@@ -8,7 +8,7 @@
 #include "G4EventManager.hh"
 #include "G4RunManager.hh"
 
-#include "fileManager.hh"
+#include "outputManager.hh"
 
 #include <iostream>
 #include <fstream>
@@ -31,7 +31,7 @@ class SphericalShellSD : public SensitiveDetectorBase
 public:
     SphericalShellSD(G4String name,
                      G4String particle = "gamma",
-                     FileManager *fileManager = nullptr,
+                     OutputManager *outputManager = nullptr,
                      int sens_layer_id = 0);
     ~SphericalShellSD();
 
@@ -41,7 +41,7 @@ public:
                                G4double *nadir_angles);
 
 private:
-    FileManager *fileManager;
+    OutputManager *outputManager;
     int sens_layer_id;
     G4String particle;
 };

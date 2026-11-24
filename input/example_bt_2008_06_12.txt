@@ -1,0 +1,53 @@
+ProjectName=example_bt_2008_06_12
+nThreads=4
+batch_mode=TRUE
+OutputDir=example_bt_2008_06_12
+nEvents=10
+Enable_interaction=FALSE
+Seed=100001
+disable_geant4_verbose=TRUE
+
+DensityModel=None
+
+FieldModel=TA16
+Year=2008
+Month=6
+Day=12
+Hour=0
+Min=0
+pdyn=0.9
+symhc=-13.2
+xind=0.0602
+by_imf=1.41
+ps=0.3868 radian
+vxgse=-324.1
+vygse=-1.4
+vzgse=-13.8
+TA16ParamFile=TA16_RBF.par
+IGRFDataFile=IGRF14.shc
+n_order_max=13
+
+AtmosphereModel=Magnetosphere
+nSensitiveLayer=1
+R_inner=6471.1 km
+R_outer=63712.1 km
+R_sens_1=63712.0 km
+DetectingParticleName=anti_proton
+
+GeneratorModel=SphericalSurfaceSampling
+ParticleName=anti_proton
+EnergySpectrum=LogUniform
+EnergySpectrum_min=1e9 eV
+EnergySpectrum_max=1e10 eV
+InitialPosition=UniformSphericalSurface
+InitialPosition_mag=6471.2 km
+InitialPosition_theta_min=0 degree
+InitialPosition_theta_max=180 degree
+InitialPosition_phi_min=0 degree
+InitialPosition_phi_max=360 degree
+
+NadirAngle=UpwardLambertian
+
+AzimuthAngle=Uniform
+AzimuthAngle_min=0.0 radian
+AzimuthAngle_max=6.28318530718 radian

@@ -1,6 +1,11 @@
-#include "fileManager.hh"
+#include "outputManager.hh"
 
-FileManager::FileManager(std::string project_name,
+OutputManager::OutputManager()
+{
+    // private constructor
+}
+
+void OutputManager::initialize(std::string project_name,
                          std::string output_dir,
                          std::string detecting_particle_name,
                          int nThreads,
@@ -16,10 +21,11 @@ FileManager::FileManager(std::string project_name,
     fs::create_directories(root_dir);
 
     // create subdirectories for different types of output
-    primaries_dir = root_dir + "/primaries";
+    primaries_dir = root_dir + "/raw/primaries";
     runtime_dir = root_dir + "/runtime";
     tracks_dir = root_dir + "/tracks";
     summary_dir = root_dir + "/summary";
+
     fs::create_directories(primaries_dir);
     fs::create_directories(runtime_dir);
     // TODO: tracking of particles
@@ -29,19 +35,20 @@ FileManager::FileManager(std::string project_name,
     // create subdirectories for secondaries
     for (int i = 1; i <= nSensitiveLayer; i++)
     {
-        secondaries_dir.push_back(root_dir + "/" + detecting_particle_name + "_" + std::to_string(i));
-        fs::create_directories(root_dir + "/" + detecting_particle_name + "_" + std::to_string(i));
+        secondaries_dir.push_back(root_dir + "/raw/" + detecting_particle_name + "_" + std::to_string(i));
+        fs::create_directories(root_dir + "/raw/" + detecting_particle_name + "_" + std::to_string(i));
     }
 
     // create output files
+    createPrimariesFile();
     createSecondariesFile();
 }
 
-FileManager::~FileManager()
+OutputManager::~OutputManager()
 {
 }
 
-void FileManager::createSecondariesFile() const
+void OutputManager::createSecondariesFile() const
 {
     for (int j = 0; j < nSensitiveLayer; j++)
     {
@@ -55,12 +62,28 @@ void FileManager::createSecondariesFile() const
     }
 }
 
-std::string FileManager::getSecondariesFilesDir(int sens_layer_id, int thread_id) const
+void OutputManager::createPrimariesFile() const
+{
+    for (int i = 0; i < nThreads; i++)
+    {
+        std::ofstream ofs;
+        ofs.open(primaries_dir + "/" + project_name + "_" + std::to_string(i) + ".csv", std::ofstream::out | std::ofstream::trunc);
+        ofs << "EventID,Energy,Position_mag,Position_phi,Position_theta,Nadir_phi,Nadir_theta\n"; // CSV header
+        ofs.close();
+    }
+}
+
+std::string OutputManager::getSecondariesFilesDir(int sens_layer_id, int thread_id) const
 {
     return secondaries_dir[sens_layer_id] + "/" + project_name + "_" + std::to_string(thread_id) + ".csv";
 }
 
-void FileManager::merge_output_files(std::string data_folder, std::string data_type)
+std::string OutputManager::getPrimariesFilesDir(int thread_id) const
+{
+    return primaries_dir + "/" + project_name + "_" + std::to_string(thread_id) + ".csv";
+}
+
+void OutputManager::merge_output_files(std::string data_folder, std::string data_type)
 {
     // set up the merged output file
     std::string result_file_name = summary_dir + "/" + project_name + "_" + data_type + ".csv";
@@ -94,7 +117,7 @@ void FileManager::merge_output_files(std::string data_folder, std::string data_t
     }
 }
 
-void FileManager::merge_all_output_files()
+void OutputManager::merge_all_output_files()
 {
     G4cout << "Merging output files..." << G4endl;
 

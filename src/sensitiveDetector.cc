@@ -36,10 +36,10 @@ G4bool SensitiveDetectorBase::ProcessHits(G4Step *aStep, G4TouchableHistory *ROh
 
 SphericalShellSD::SphericalShellSD(G4String name,
                                    G4String particle,
-                                   FileManager *fileManager,
+                                    OutputManager *outputManager,
                                    int sens_layer_id) : SensitiveDetectorBase(name)
 {
-    this->fileManager = fileManager;
+    this->outputManager = outputManager;
     this->particle = particle;
     this->sens_layer_id = sens_layer_id;
 
@@ -109,7 +109,7 @@ G4bool SphericalShellSD::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhist)
 
     // Write the data to data file
     std::ofstream output_file;
-    output_file.open(fileManager->getSecondariesFilesDir(sens_layer_id, G4Threading::G4GetThreadId()), std::ios::app);
+    output_file.open(outputManager->getSecondariesFilesDir(sens_layer_id, G4Threading::G4GetThreadId()), std::ios::app);
     if (output_file.is_open())
     {
         output_file << std::fixed << std::setprecision(10);

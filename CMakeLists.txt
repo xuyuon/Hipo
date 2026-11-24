@@ -1,7 +1,7 @@
 #----------------------------------------------------------------------------
 # Setup the project
 cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
-project(halo)
+project(hipo VERSION 0.1 LANGUAGES CXX)
 
 #----------------------------------------------------------------------------
 # Set the build type
@@ -38,7 +38,9 @@ FetchContent_MakeAvailable(googletest)
 include_directories(${PROJECT_SOURCE_DIR}/include ${Geant4_INCLUDE_DIR})
 file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cc)
 file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
-file(GLOB tests ${PROJECT_SOURCE_DIR}/test/*.cc)
+file(GLOB unit_tests ${PROJECT_SOURCE_DIR}/test/unit/*.cc)
+file(GLOB integration_tests ${PROJECT_SOURCE_DIR}/test/integration/*.cc)
+
 message("${headers}")
 
 #----------------------------------------------------------------------------
@@ -46,7 +48,7 @@ message("${headers}")
 add_executable(run run.cc ${sources} ${headers})
 target_link_libraries(run ${Geant4_LIBRARIES})
 enable_testing()
-add_executable(run_test ${tests} ${sources} ${headers})
+add_executable(run_test ${unit_tests} ${integration_tests} ${sources} ${headers})
 target_link_libraries(run_test ${Geant4_LIBRARIES} GTest::gtest_main)
 
 #----------------------------------------------------------------------------
@@ -75,4 +77,4 @@ file(COPY ${INPUT_FILES} DESTINATION ${CMAKE_BINARY_DIR})
 #----------------------------------------------------------------------------
 # Add program to the project targets
 # (this avoids the need of typing the program name after make)
-add_custom_target(halo DEPENDS run)
+add_custom_target(hipo DEPENDS run)

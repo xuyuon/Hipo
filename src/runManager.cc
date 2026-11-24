@@ -12,19 +12,24 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
     nThreads = parser->GetIValue("nThreads");
     nSensLayer = parser->GetIValue("nSensitiveLayer");
 
-    // Create file manager
+    // Initialize file manager
     output_dir = parser->GetSValue("OutputDir");
-    fileManager = new FileManager(project_name,
-                                  output_dir,
-                                  parser->GetSValue("DetectingParticleName"),
-                                  nThreads,
-                                  nSensLayer);
-
-    primaries_output_dir = output_dir + "/primaries/" + project_name;
+    outputManager = new OutputManager();
+    outputManager->initialize(project_name,
+                            output_dir,
+                            parser->GetSValue("DetectingParticleName"),
+                            nThreads,
+                            nSensLayer);
 
     // Setting up Timer
     timer = new Timer(output_dir + "/runtime/" + project_name + "_runtime.txt");
     timer->start("Initialization and Run Manager Setup");
+
+    // Disable GEANT4 output if necessary
+    if(parser->GetBValue("disable_geant4_verbose"))
+    {
+        disable_stdout();
+    }
 
     // Set Random seed
     G4int seed = parser->GetIValue("Seed");
@@ -56,12 +61,14 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
     }
     runManager->SetUserInitialization(physicsList);
 
+    // initialize different physics models
     init_density_model();
     init_field();
     init_atmosphere();
+    this->n_events = get_n_events();
 
     // generator is initialized in ActionInitialization
-    action = new ActionInitialization(parser, primaries_output_dir);
+    action = new ActionInitialization(parser, outputManager);
     runManager->SetUserInitialization(atmosphere);
     runManager->SetUserInitialization(action);
 
@@ -73,6 +80,10 @@ G4EarthRunManager::G4EarthRunManager(G4String config_file)
     UImanager = G4UImanager::GetUIpointer();
 
     batch_mode = parser->GetBValue("batch_mode");
+    if(parser->GetBValue("disable_geant4_verbose"))
+    {
+        enable_stdout();
+    }
     timer->stop();
 }
 
@@ -81,7 +92,7 @@ G4EarthRunManager::~G4EarthRunManager()
     // destructor
     delete runManager;
     delete parser;
-    delete fileManager;
+    delete outputManager;
     delete timer;
     delete densityModel;
     delete field;
@@ -95,25 +106,14 @@ void G4EarthRunManager::run()
         timer->start("Batch Mode Execution");
         G4cout << "Starting Batch Execution" << G4endl;
 
-        // when the generator does not specify the number of events,
-        // use the nEvents from the config file
-        if (action->get_n_events() == -1)
-        {
-            G4cout << parser->GetIValue("nEvents") << " events will be generated." << G4endl;
-            runManager->BeamOn(parser->GetIValue("nEvents"));
-        }
-        else
-        {
-            // otherwise use the nEvents from the generator
-            G4cout << action->get_n_events() << " events will be generated." << G4endl;
-            runManager->BeamOn(action->get_n_events());
-        }
-
+        // Generate events
+        G4cout << n_events << " events will be generated." << G4endl;
+        runManager->BeamOn(n_events);
         G4cout << "Batch Execution Completed" << G4endl;
         timer->stop();
 
         // merge output files
-        fileManager->merge_all_output_files();
+        outputManager->merge_all_output_files();
     }
     else
     {
@@ -214,7 +214,7 @@ void G4EarthRunManager::init_atmosphere()
             parser->GetDimensionedDValue("R_earth"),
             field,
             parser->GetSValue("DetectingParticleName"),
-            fileManager);
+            outputManager);
     }
     else if (model_name == "Magnetosphere")
     {
@@ -224,10 +224,76 @@ void G4EarthRunManager::init_atmosphere()
             R_sens,
             field,
             parser->GetSValue("DetectingParticleName"),
-            fileManager);
+            outputManager);
     }
     else
     {
         G4cerr << "Error: Unsupported atmosphere model: " << model_name << G4endl;
     }
+}
+
+int G4EarthRunManager::get_n_events()
+{
+    G4String model_name = parser->GetSValue("GeneratorModel");
+
+    if (model_name == "SphericalSurfaceSampling")
+    {
+        return parser->GetIValue("nEvents");
+    }
+    else if (model_name == "GenerateFromTable")
+    {
+        // Read the data file
+        std::string data_file = parser->GetSValue("PrimariesDataFile");
+        std::ifstream file(data_file);
+        if (!file.is_open())
+        {
+            G4cerr << "Error: Could not open data file " << data_file << G4endl;
+            return -1;
+        }
+        std::string line;
+        // Read the first line to get the header information
+        std::getline(file, line);
+
+        int count = 0;
+        while (std::getline(file, line))
+        {
+            // Count non-empty lines
+            if (line.find_first_not_of(" \t\r\n") != std::string::npos)
+            {
+                count++;
+            }
+        }
+        file.close();
+        return count;
+    }
+    else
+    {
+        G4cerr << "Error: Unsupported generator model: " << model_name << G4endl;
+        return -1;
+    }
+    return -1;
+}
+
+void G4EarthRunManager::disable_stdout()
+{
+    FILE* tmp = fopen("/dev/null", "a+");
+
+    fflush(stdout);
+
+    outfd = dup(STDOUT_FILENO);
+
+    if (outfd == -1 || dup2(fileno(tmp), STDOUT_FILENO) == -1)
+        errx(1, "failed to disable stdout");
+
+    fclose(tmp);
+}
+
+void G4EarthRunManager::enable_stdout()
+{
+    fflush(stdout);
+
+    if (dup2(outfd, STDOUT_FILENO) == -1)
+        errx(1, "failed to enable stdout");
+
+    close(outfd);
 }

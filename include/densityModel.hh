@@ -21,7 +21,7 @@ class DensityModelBase
     */
 public:
     DensityModelBase() {}
-    ~DensityModelBase() {}
+    virtual ~DensityModelBase() = default;
 
     virtual G4double Get_r(G4int idx) const = 0;
     virtual G4double Get_theta(G4int idx) const = 0;

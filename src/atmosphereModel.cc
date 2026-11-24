@@ -5,7 +5,7 @@ SphericalEarth::SphericalEarth(DensityModelBase *densityModel,
                                G4double R_earth,
                                G4MagneticField *Bfield,
                                std::string particle_name,
-                               FileManager *fileManager)
+                               OutputManager *outputManager)
 {
     this->R_earth = R_earth; // Global average number
     this->R_sens = R_sens;   // radial position of the sensitive layer
@@ -13,7 +13,7 @@ SphericalEarth::SphericalEarth(DensityModelBase *densityModel,
     this->nSensLayers = R_sens.size();
     sens_layer.resize(nSensLayers, -1);
 
-    delta_sens = 1. * cm; // thickness of the sensitive layer
+    delta_sens = 0.1 * cm; // thickness of the sensitive layer
 
     // Set maximum step length to avoid tracking looping particles
     G4double MaxTrackLength = 2 * 3.141592653589793 * (2 * R_earth);
@@ -26,7 +26,7 @@ SphericalEarth::SphericalEarth(DensityModelBase *densityModel,
     this->densityModel = densityModel;
 
     this->Bfield = Bfield;
-    this->fileManager = fileManager;
+    this->outputManager = outputManager;
 
     nLayers_r = densityModel->Get_r_boundaries_size() - 1;         // Number of altitude layers
     nLayers_theta = densityModel->Get_theta_boundaries_size() - 1; // Number of latitude layers
@@ -150,7 +150,7 @@ void SphericalEarth::ConstructSensitiveLayer()
     for (int l = 0; l < nSensLayers; l++)
     {
         // Check if the sensitive layer is within a layer
-        if (R_sens[l] < densityModel->Get_r(0) || R_sens[l] > densityModel->Get_r(nLayers_r - 1))
+        if (R_sens[l] < densityModel->Get_r(0) || R_sens[l] > densityModel->Get_r(nLayers_r))
         {
             G4cerr << "Error: Sensitive layer should be within the atmosphere layers." << G4endl;
         }
@@ -189,7 +189,7 @@ void SphericalEarth::ConstructSDandField()
     {
         SensitiveDetectorBase *sd = new SphericalShellSD("SensitiveDetector_" + std::to_string(l),
                                                          particle_name,
-                                                         fileManager,
+                                                         outputManager,
                                                          l);
         for (G4int j = 0; j < nLayers_theta; ++j)
         {
@@ -239,7 +239,7 @@ Magnetosphere::Magnetosphere(G4double R_inner,
                              std::vector<G4double> R_sens,
                              G4MagneticField *Bfield,
                              std::string particle_name,
-                             FileManager *fileManager)
+                             OutputManager *outputManager)
 {
     // User-defined variables
     this->R_inner = R_inner;
@@ -247,7 +247,7 @@ Magnetosphere::Magnetosphere(G4double R_inner,
     this->R_sens = R_sens;
     this->Bfield = Bfield;
     this->particle_name = particle_name;
-    this->fileManager = fileManager;
+    this->outputManager = outputManager;
 
     if (R_sens.size() != 1)
     {
@@ -302,14 +302,14 @@ void Magnetosphere::ConstructSDandField()
     // Construct sensitive detectors that record anti-protons
     SensitiveDetectorBase *sd = new SphericalShellSD("SensitiveDetector",
                                                      particle_name,
-                                                     fileManager,
+                                                     outputManager,
                                                      0);
     logicSensLayer->SetSensitiveDetector(sd);
 
     // Construct magnetic field
     if (Bfield != nullptr)
     {
-        G4double minStep = 1.0 * km; // minimal step of 1 km
+        G4double minStep = 0.1 * km; // minimal step of 1 km
         G4double minEps = 1e-5;      //   Minimum & value for smallest steps
         G4double maxEps = 1e-3;      //   Minimum & value for largest steps
         G4bool allLocal = true;

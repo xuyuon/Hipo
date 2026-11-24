@@ -1,22 +1,9 @@
 #include "action.hh"
 
-ActionInitialization::ActionInitialization(Parser *parser, std::string output_dir)
+ActionInitialization::ActionInitialization(Parser *parser, OutputManager *outputManager)
 {
     this->parser = parser;
-    this->output_dir = output_dir;
-
-    this->n_events = -1; // default value, if generator does not specify it
-    if (parser->GetSValue("GeneratorModel") == "GenerateFromTable")
-    {
-        // generate a dummy generator to get the number of events
-        GeneratorBase *generator = new GenerateFromTable(
-            parser->GetSValue("ParticleName"),
-            parser->GetSValue("PrimariesDataFile"),
-            output_dir + "_primaries" // output directory for sensitive detector
-        );
-        this->n_events = generator->get_n_events();
-        delete generator; // clean up the dummy generator
-    }
+    this->outputManager = outputManager;
 }
 
 ActionInitialization::~ActionInitialization()
@@ -53,7 +40,7 @@ GeneratorBase *ActionInitialization::init_generator() const
             get_coordinates_sampler(parser->GetSValue("InitialPosition"), "InitialPosition"),
             get_sampler(parser->GetSValue("NadirAngle"), "NadirAngle"),
             get_sampler(parser->GetSValue("AzimuthAngle"), "AzimuthAngle"),
-            output_dir + "_primaries" // output directory for sensitive detector
+            outputManager
         );
     }
     else if (model_name == "GenerateFromTable")
@@ -61,7 +48,7 @@ GeneratorBase *ActionInitialization::init_generator() const
         generator = new GenerateFromTable(
             parser->GetSValue("ParticleName"),
             parser->GetSValue("PrimariesDataFile"),
-            output_dir + "_primaries" // output directory for sensitive detector
+            outputManager
         );
     }
     else
@@ -120,11 +107,6 @@ SamplingBase *ActionInitialization::get_sampler(G4String sampler_name, G4String 
         G4cerr << "Error: Unsupported sampler: " << sampler_name << G4endl;
         return nullptr;
     }
-}
-
-G4int ActionInitialization::get_n_events() const
-{
-    return n_events;
 }
 
 CoordinatesSamplingBase *ActionInitialization::get_coordinates_sampler(G4String sampler_name, G4String label) const
