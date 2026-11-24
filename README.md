@@ -299,7 +299,7 @@ If you use IGRF model, please cite the IGRF paper:
 }
 ```
 
-If you use TA16 model, please cite the IGRF paper together with the TA16 paper:
+If you use TA16 model, please cite the IGRF paper together with the two TA16 papers:
 ```bibtex
 @article{Andreeva_2016,
 author = {Tsyganenko, N. A. and Andreeva, V. A.},
@@ -310,6 +310,21 @@ number = {11},
 pages = {10,786-10,802},
 keywords = {magnetosphere, modeling, geomagnetic field, radial basis functions},
 doi = {https://doi.org/10.1002/2016JA023217},
+year = {2016}
+}
+```
+
+```bibtex
+@article{Andreeva_2016_b,
+author = {Andreeva, Varvara A. and Tsyganenko, Nikolai A.},
+title = {Reconstructing the magnetosphere from data using radial basis functions},
+journal = {Journal of Geophysical Research: Space Physics},
+volume = {121},
+number = {3},
+pages = {2249-2263},
+keywords = {magnetospheric modeling, current systems, polar cusps},
+doi = {https://doi.org/10.1002/2015JA022242},
+url = {https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1002/2015JA022242},
 year = {2016}
 }
 ```
