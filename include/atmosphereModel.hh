@@ -25,7 +25,8 @@
 #include "sensitiveDetector.hh"
 #include "densityModel.hh"
 #include "field.hh"
-#include "fileManager.hh"
+#include "outputManager.hh"
+
 
 class AtmosphereModelBase : public G4VUserDetectorConstruction
 {
@@ -47,7 +48,7 @@ public:
                    G4double R_earth,
                    G4MagneticField *Bfield = nullptr,
                    std::string particle_name = "gamma",
-                   FileManager *fileManager = nullptr
+                   OutputManager *outputManager = nullptr
     );
     ~SphericalEarth();
 
@@ -85,12 +86,12 @@ private:
 
     // Fields
     G4MagneticField *Bfield;
-    
+
     // Particle to be detected
     std::string particle_name;
 
     // File manager
-    FileManager *fileManager;
+    OutputManager *outputManager;
 
     // User Limits
     G4UserLimits *userLimits;
@@ -112,7 +113,7 @@ public:
                   std::vector<G4double> R_sens,
                   G4MagneticField *Bfield = nullptr,
                   std::string particle_name = "anti_proton",
-                  FileManager *fileManager = nullptr);
+                  OutputManager *outputManager = nullptr);
     ~Magnetosphere();
 
     virtual G4VPhysicalVolume *Construct() override;
@@ -141,7 +142,7 @@ private:
     std::string particle_name;
 
     // Output directory
-    FileManager *fileManager;
+    OutputManager *outputManager;
 
     // Private Methods
     void ConstructSensitiveLayer();

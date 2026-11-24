@@ -57,7 +57,7 @@ private:
     double srasn, sdec;        // sun right ascension and declination
     double epsilon;   // mean obliquity of the ecliptic
 
-    double cgst, sgst; 
+    double cgst, sgst;
 
     // elements of the matrix gsm to gsw
     double e11, e12, e13, e21, e22, e23, e31, e32, e33;

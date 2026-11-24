@@ -8,33 +8,48 @@
 #include <fstream>
 #include <iomanip>
 
-// #include <filesystem>
-// namespace fs = std::filesystem;
+#include <filesystem>
+namespace fs = std::filesystem;
 
-#include <experimental/filesystem>
-namespace fs = std::experimental::filesystem;
+// #include <experimental/filesystem>
+// namespace fs = std::experimental::filesystem;
 
 
-class FileManager
+class OutputManager
 {
 /*
 A utility class to manage output files and directories for the simulation.
 */
 public:
-    FileManager(std::string project_name, 
-        std::string output_dir, 
+    OutputManager();
+    ~OutputManager();
+
+    // set values
+    void initialize(std::string project_name,
+        std::string output_dir,
         std::string detecting_particle_name,
-        int nThreads, 
+        int nThreads,
         int nSensitiveLayer);
-    ~FileManager();
+
 
     std::string getSecondariesFilesDir(int sens_layer_id, int thread_id) const;
+    std::string getPrimariesFilesDir(int thread_id) const;
 
     void merge_all_output_files();
     void merge_output_files(std::string data_folder, std::string data_type);
 private:
+    // Private constructor
+    OutputManager(std::string project_name,
+        std::string output_dir,
+        std::string detecting_particle_name,
+        int nThreads,
+        int nSensitiveLayer);
+
+
+
     //private functions
     void createSecondariesFile() const;
+    void createPrimariesFile() const;
 
     int nThreads;
     int nSensitiveLayer;
@@ -56,6 +71,8 @@ private:
     std::string tracks_dir;
     std::string summary_dir;
 
+    // Static pointer to the Singleton instance
+    static OutputManager* instancePtr;
 };
 
 #endif

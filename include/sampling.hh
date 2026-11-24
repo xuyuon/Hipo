@@ -14,7 +14,7 @@ class SamplingBase
 {
 public:
     SamplingBase() {}
-    ~SamplingBase() {}
+    virtual ~SamplingBase() = default;
 
     virtual G4double sample() = 0;
 };
@@ -171,6 +171,28 @@ public:
     virtual G4double sample() override;
 };
 
+class Beta : public SamplingBase{
+    /*
+    The probability density function is given by:
+    P(x) ~ (x-x_min)^(alpha-1) * (x_max-x)^(beta-1) for x_min <= x <= x_max
+    */
+public:
+    Beta(G4double alpha, G4double beta, G4double x_min, G4double x_max);
+    ~Beta();
+
+    virtual G4double sample() override;
+
+private:
+    G4double alpha;
+    G4double beta;
+    G4double x_min;
+    G4double x_max;
+    G4double mode;
+    G4double max_pdf;
+
+    G4double UnnormalizedBeta(G4double x); // unnormalized PDF
+};
+
 class CoordinatesSamplingBase
 {
 public:
@@ -224,7 +246,7 @@ private:
     G4double phi_min;
     G4double phi_max;
 
-    SamplingBase *thetaSampling;
+    Sine *thetaSampling;
 };
 
 #endif

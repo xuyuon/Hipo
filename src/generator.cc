@@ -1,51 +1,5 @@
 #include "generator.hh"
 
-PrimaryGenerator::PrimaryGenerator(SamplingBase *energySpectrum,
-                                   CoordinatesSamplingBase *pos_dist,
-                                   CoordinatesSamplingBase *dir_dist)
-{
-    analysisManager = G4AnalysisManager::Instance(); // singleton instance of analysis manager
-
-    // Constructor implementation
-    fParticleGun = new G4ParticleGun(1); // Create a particle gun with 1 particle
-
-    G4ParticleTable *particleTable = G4ParticleTable::GetParticleTable();
-    G4ParticleDefinition *particle = particleTable->FindParticle("proton");
-    fParticleGun->SetParticleDefinition(particle);
-
-    this->EnergySpectrum = energySpectrum;
-    this->pos_dist = pos_dist;
-    this->dir_dist = dir_dist;
-}
-
-PrimaryGenerator::~PrimaryGenerator()
-{
-    delete fParticleGun; // Clean up the particle gun
-}
-
-void PrimaryGenerator::GeneratePrimaries(G4Event *anEvent)
-{
-    G4ParticleDefinition *particle = fParticleGun->GetParticleDefinition(); // Find the particle definition
-
-    G4int event_id = anEvent->GetEventID();
-    analysisManager->FillNtupleIColumn(1, 0, event_id);
-
-    // Sample the particle energy
-    G4double p_energy = EnergySpectrum->sample();
-    analysisManager->FillNtupleDColumn(1, 1, p_energy / eV);
-    analysisManager->AddNtupleRow(1);
-    fParticleGun->SetParticleEnergy(p_energy); // Set the energy of the particle
-
-    // Sample the initial position
-    G4ThreeVector p_pos = pos_dist->sample();
-    fParticleGun->SetParticlePosition(p_pos);
-
-    // Sample the momentum direction
-    G4ThreeVector p_dir = dir_dist->sample();
-    fParticleGun->SetParticleMomentumDirection(p_dir);
-
-    fParticleGun->GeneratePrimaryVertex(anEvent); // Generate the primary vertex for the event
-}
 
 SphericalSurfaceSampling::SphericalSurfaceSampling(
     G4String particleName,
@@ -53,7 +7,7 @@ SphericalSurfaceSampling::SphericalSurfaceSampling(
     CoordinatesSamplingBase *pos_dist,
     SamplingBase *theta_dist,
     SamplingBase *phi_dist,
-    std::string OutputDir)
+    OutputManager *outputManager)
 {
     analysisManager = G4AnalysisManager::Instance(); // singleton instance of analysis manager
 
@@ -68,18 +22,16 @@ SphericalSurfaceSampling::SphericalSurfaceSampling(
     this->theta_dist = theta_dist;
     this->phi_dist = phi_dist;
 
-    this->OutputDir = OutputDir;
-
-    // Create the output file
-    std::ofstream ofs;
-    ofs.open(OutputDir + "_" + std::to_string(G4Threading::G4GetThreadId()) + ".csv", std::ofstream::out | std::ofstream::trunc);
-    ofs << "EventID,Energy,Position_mag,Position_phi,Position_theta,Nadir_phi,Nadir_theta\n"; // CSV header
-    ofs.close();
+    this->outputManager = outputManager;
 }
 
 SphericalSurfaceSampling::~SphericalSurfaceSampling()
 {
     delete fParticleGun; // Clean up the particle gun
+    delete EnergySpectrum;
+    delete pos_dist;
+    delete theta_dist;
+    delete phi_dist;
 }
 
 void SphericalSurfaceSampling::GeneratePrimaries(G4Event *anEvent)
@@ -111,7 +63,7 @@ void SphericalSurfaceSampling::GeneratePrimaries(G4Event *anEvent)
 
     // Write the data to data file
     std::ofstream output_file;
-    output_file.open(OutputDir + "_" + std::to_string(G4Threading::G4GetThreadId()) + ".csv", std::ios::app);
+    output_file.open(outputManager->getPrimariesFilesDir(G4Threading::G4GetThreadId()), std::ios::app);
     if (output_file.is_open())
     {
         // set precision
@@ -163,7 +115,7 @@ G4ThreeVector SphericalSurfaceSampling::nadir_angles_to_p_dir(
 GenerateFromTable::GenerateFromTable(
     G4String particleName,
     std::string data_file,
-    std::string output_file)
+    OutputManager *outputManager)
 {
     n_threads = G4RunManager::GetRunManager()->GetNumberOfThreads();
     fParticleGun = new G4ParticleGun(1); // Create a particle gun with 1 particle
@@ -173,26 +125,15 @@ GenerateFromTable::GenerateFromTable(
     fParticleGun->SetParticleDefinition(particle);
 
     this->data_file = data_file;
-    this->output_file = output_file;
+    this->outputManager = outputManager;
 
     init_table();
-
-    // Create the output file
-    /*
-    TODO: Potential thread safety issue in constructor. The constructor uses G4Threading::G4GetThreadId() to create thread-specific output files,
-    but constructors may be called from different contexts in multi-threaded Geant4 applications.
-    This could lead to incorrect file creation if the constructor is called before threads are properly initialized.
-    Consider creating the output files in the GeneratePrimaries method on first use instead.
-    */
-    std::ofstream ofs;
-    ofs.open(output_file + "_" + std::to_string(G4Threading::G4GetThreadId()) + ".csv", std::ofstream::out | std::ofstream::trunc);
-    ofs << "EventID,Energy,Position_mag,Position_phi,Position_theta,Nadir_phi,Nadir_theta\n"; // CSV header
-    ofs.close();
 }
 
 GenerateFromTable::~GenerateFromTable()
 {
     // Destructor implementation
+    delete fParticleGun;
 }
 
 void GenerateFromTable::init_table()
@@ -244,11 +185,6 @@ void GenerateFromTable::init_table()
     file.close();
 }
 
-int GenerateFromTable::get_n_events() const
-{
-    return energies.size();
-}
-
 void GenerateFromTable::GeneratePrimaries(G4Event *anEvent)
 {
     G4ParticleDefinition *particle = fParticleGun->GetParticleDefinition(); // Find the particle definition
@@ -284,7 +220,7 @@ void GenerateFromTable::GeneratePrimaries(G4Event *anEvent)
 
     // Write the data to data file
     std::ofstream ofile;
-    ofile.open(output_file + "_" + std::to_string(G4Threading::G4GetThreadId()) + ".csv", std::ios::app);
+    ofile.open(outputManager->getPrimariesFilesDir(G4Threading::G4GetThreadId()), std::ios::app);
     if (ofile.is_open())
     {
         // set precision

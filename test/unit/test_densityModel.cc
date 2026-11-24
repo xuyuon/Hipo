@@ -31,8 +31,8 @@ TEST(TestTabulatedDensity, ValueCheck)
     // Case 2: r = 6371.2 km + 88.5 km (88.5 km altitude), theta = 135.0 deg (-45.0 deg glat), phi = 170 deg (170 deg glong)
     EXPECT_DOUBLE_EQ(densityModel.GetDensities(88, 13, 8), 3.22e-09 * g / cm3);
     // check the lower boundary value
-    EXPECT_DOUBLE_EQ(densityModel.Get_r(88),  88 * km + 6371.2 * km); 
-    EXPECT_DOUBLE_EQ(densityModel.Get_theta(13), 130.0 * deg); 
+    EXPECT_DOUBLE_EQ(densityModel.Get_r(88),  88 * km + 6371.2 * km);
+    EXPECT_DOUBLE_EQ(densityModel.Get_theta(13), 130.0 * deg);
     EXPECT_DOUBLE_EQ(densityModel.Get_phi(8), 160.0 * deg);
 
     // Case 3: r = 6371.2 km + 475.0 km (475 km altitude), theta = 45.0 deg (45 deg glat), phi = 130 deg (130 deg glong)

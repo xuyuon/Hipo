@@ -73,4 +73,3 @@ TEST(TestNadirAnglesToPDir, ValueCheck) {
     EXPECT_NEAR(p_dir_g.y(), 0.0, 1e-6);
     EXPECT_NEAR(p_dir_g.z(), 0.0, 1e-6);
 }
-

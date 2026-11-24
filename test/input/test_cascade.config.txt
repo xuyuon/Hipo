@@ -1,0 +1,35 @@
+ProjectName=test_cascade
+nThreads=2
+batch_mode=TRUE
+OutputDir=test_cascade
+nEvents=-1
+Enable_interaction=TRUE
+Seed=110002
+disable_geant4_verbose=TRUE
+
+DensityModel=TabulatedDensity
+r_min=6371.2 km
+r_pause=6471.2 km
+r_max=6971.2 km
+delta_r1=20.0 km
+delta_r2=50.0 km
+delta_theta=90.0 degree
+delta_phi=180.0 degree
+DensityProfileFile=../test/input/test_cascade_density.txt
+
+FieldModel=IGRF
+IGRFDataFile=../test/input/test_field.shc
+Year=2008
+Month=6
+Day=12
+n_order_max=13
+
+AtmosphereModel=SphericalEarth
+nSensitiveLayer=1
+R_sens_1=6936.2 km
+R_earth=6371.2 km
+DetectingParticleName=gamma
+
+GeneratorModel=GenerateFromTable
+ParticleName=proton
+PrimariesDataFile=../test/input/test_pr_selected.csv

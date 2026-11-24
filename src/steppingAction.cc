@@ -37,10 +37,10 @@ void SteppingAction::UserSteppingAction(const G4Step *step)
     // G4int eID = G4EventManager::GetEventManager()->GetNonconstCurrentEvent()->GetEventID();
     // G4ThreeVector ppos = step -> GetPreStepPoint() -> GetPosition();
     // G4int Stepid=track->GetCurrentStepNumber();
-     
-    // record every 1000 steps 
+
+    // record every 1000 steps
     // if (Stepid % 1000 != 0) return;
-    
+
     // G4String foldername = "output/tracks/";
     // G4String filename = foldername + std::to_string(eID) + pName + ".txt";
 

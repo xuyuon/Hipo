@@ -11,14 +11,14 @@ TEST(TestTA16, ValueCheck) {
         0.2169, // xind
         -2.86, // by_imf
         -0.2309, // ps
-        -534.2, 3.8, -0.1, 
+        -534.2, 3.8, -0.1,
         "../test/input/test_TA16_RBF.par",
         "../test/input/test_field.shc",
         13
     );
 
     // Random test point in GEO coordinates
-    G4double point_1[3] = {1.25 * 6371.2 * km, 3.12 * 6371.2 * km, -2.14 * 6371.2 * km}; 
+    G4double point_1[3] = {1.25 * 6371.2 * km, 3.12 * 6371.2 * km, -2.14 * 6371.2 * km};
     G4double Bfield_1[3];
     model.GetFieldValue(point_1, Bfield_1);
 

@@ -19,10 +19,11 @@
 #include "action.hh"
 #include "field.hh"
 #include "physicsList.hh"
-#include "fileManager.hh"
+#include "outputManager.hh"
 
 #include <vector>
-
+#include <unistd.h>
+#include <err.h>
 
 class G4EarthRunManager
 {
@@ -35,12 +36,19 @@ public:
     void init_density_model();
     void init_field();
     void init_atmosphere();
+    int get_n_events();
+
+    void disable_stdout();
+    void enable_stdout();
 private:
+    inline static int outfd = STDOUT_FILENO;
+
     // config
     std::string project_name;
     G4bool batch_mode;
     G4int nThreads;
     int nSensLayer;
+    int n_events;
 
     // utility classes
     Timer *timer;
@@ -59,8 +67,7 @@ private:
     G4VisManager *visManager;
 
     // directories
-    FileManager *fileManager;
-
+    OutputManager *outputManager;
     G4String config_file;
     std::string output_dir;
     std::string primaries_output_dir;

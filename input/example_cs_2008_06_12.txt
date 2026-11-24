@@ -1,0 +1,35 @@
+ProjectName=example_cs_2008_06_12
+nThreads=4
+batch_mode=TRUE
+OutputDir=example_cs_2008_06_12
+nEvents=-1
+Enable_interaction=TRUE
+Seed=813450
+disable_geant4_verbose=TRUE
+
+DensityModel=TabulatedDensity
+r_min=6371.2 km
+r_pause=6471.2 km
+r_max=6971.2 km
+delta_r1=20.0 km
+delta_r2=50.0 km
+delta_theta=90.0 degree
+delta_phi=180.0 degree
+DensityProfileFile=example_density_2008_06_12.txt
+
+FieldModel=IGRF
+IGRFDataFile=IGRF14.shc
+Year=2008
+Month=6
+Day=12
+n_order_max=13
+
+AtmosphereModel=SphericalEarth
+nSensitiveLayer=1
+R_sens_1=6936.2 km
+R_earth=6371.2 km
+DetectingParticleName=gamma
+
+GeneratorModel=GenerateFromTable
+ParticleName=proton
+PrimariesDataFile=example_selected_primaries.csv

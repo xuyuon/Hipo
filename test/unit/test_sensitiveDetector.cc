@@ -26,7 +26,7 @@ TEST(TestPMomToNadirAngles, ValueCheck) {
     SphericalShellSD::p_mom_to_nadir_angles(&p_pos2, &p_mom2, nadir_angles2);
     SphericalShellSD::p_mom_to_nadir_angles(&p_pos3, &p_mom3, nadir_angles3);
 
-    
+
     EXPECT_NEAR(nadir_angles1[0] / degree, 90.0, 1e-4);
     EXPECT_NEAR(nadir_angles1[1] / degree, 0.0, 1e-4);
     EXPECT_NEAR(nadir_angles2[0] / degree, 90.0, 1e-4);
