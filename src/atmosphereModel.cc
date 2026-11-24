@@ -150,7 +150,7 @@ void SphericalEarth::ConstructSensitiveLayer()
     for (int l = 0; l < nSensLayers; l++)
     {
         // Check if the sensitive layer is within a layer
-        if (R_sens[l] < densityModel->Get_r(0) || R_sens[l] > densityModel->Get_r(nLayers_r - 1))
+        if (R_sens[l] < densityModel->Get_r(0) || R_sens[l] > densityModel->Get_r(nLayers_r))
         {
             G4cerr << "Error: Sensitive layer should be within the atmosphere layers." << G4endl;
         }

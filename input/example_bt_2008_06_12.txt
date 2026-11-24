@@ -1,10 +1,11 @@
-ProjectName=bt_1e9ev_1e10ev_1
-nThreads=64
+ProjectName=example_bt_2008_06_12
+nThreads=4
 batch_mode=TRUE
-OutputDir=bt_1e9ev_1e10ev_1
-nEvents=25000
+OutputDir=example_bt_2008_06_12
+nEvents=10
 Enable_interaction=FALSE
 Seed=100001
+disable_geant4_verbose=TRUE
 
 DensityModel=None
 

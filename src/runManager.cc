@@ -264,6 +264,7 @@ int G4EarthRunManager::get_n_events()
             }
         }
         file.close();
+        return count;
     }
     else
     {
