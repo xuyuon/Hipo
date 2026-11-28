@@ -301,7 +301,7 @@ If you use IGRF model, please cite the IGRF paper:
 
 If you use TA16 model, please cite the IGRF paper together with the two TA16 papers:
 ```bibtex
-@article{Andreeva_2016,
+@article{Tsyganenko_2016,
 author = {Tsyganenko, N. A. and Andreeva, V. A.},
 title = {An empirical RBF model of the magnetosphere parameterized by interplanetary and ground-based drivers},
 journal = {Journal of Geophysical Research: Space Physics},
@@ -315,7 +315,7 @@ year = {2016}
 ```
 
 ```bibtex
-@article{Andreeva_2016_b,
+@article{Andreeva_2016,
 author = {Andreeva, Varvara A. and Tsyganenko, Nikolai A.},
 title = {Reconstructing the magnetosphere from data using radial basis functions},
 journal = {Journal of Geophysical Research: Space Physics},
